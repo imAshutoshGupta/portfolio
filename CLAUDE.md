@@ -45,8 +45,11 @@ source's exact values, so don't round them to a scale. They're defined in
 `app/(site)/site.css`.
 
 **Sections, top to bottom:** Nav · Hero · 01 Selected work · 02 Experience ·
-03 Hackathons & wins · 04 Writing · 05 Toolkit · 06 How I work · 07 Kind words ·
+03 Hackathons & wins · 04 Kind words · 05 Toolkit · 06 How I work · 07 Writing ·
 08 Beyond work · Footer
+
+This order is a deliberate change from the source, which had Writing at 04 and
+Kind words at 07. The user chose it on 2026-11-11, so keep it.
 
 **The 10 interactions from the spec**
 

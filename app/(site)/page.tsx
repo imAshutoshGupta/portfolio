@@ -112,23 +112,16 @@ export default function Home() {
           </div>
         </Section>
 
-        <Section id="writing">
-          <Heading {...sections.writing} more={{ label: sections.writing.more, href: links.allPosts }} mb="mb-4" />
-          {posts.map((b, i) => (
-            <a
-              key={i}
-              href={b.href}
-              data-reveal=""
-              className="row grid grid-cols-[140px_minmax(0,1fr)_120px_24px] items-baseline gap-6 border-b border-line p-[24px_0] no-underline max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-4 max-md:gap-y-2 max-md:p-[20px_0]"
-            >
-              <span className="font-mono text-[13px] text-muted">{b.date}</span>
-              <span className="text-[22px] tracking-[-0.015em] max-md:order-last max-md:col-span-2 max-sm:text-[20px]"><span className="ul">{b.title}</span></span>
-              <span className="text-right text-[14px] text-muted">{b.read}</span>
-              <span aria-hidden="true" className="arrow text-accent max-md:hidden">
-                →
-              </span>
-            </a>
-          ))}
+        <Section id="words">
+          <Heading {...sections.words} mb="mb-8" />
+          <div className="grid grid-cols-2 gap-10 max-md:grid-cols-1 max-md:gap-9">
+            {quotes.map((q, i) => (
+              <figure key={i} data-reveal="" className="m-0">
+                <blockquote className="m-0 font-serif text-[30px] leading-[1.35] italic max-sm:text-[24px]">{q.quote}</blockquote>
+                <figcaption className="mt-[18px] text-[14px] text-muted">{q.by}</figcaption>
+              </figure>
+            ))}
+          </div>
         </Section>
 
         <Section id="toolkit">
@@ -155,16 +148,23 @@ export default function Home() {
           </div>
         </Section>
 
-        <Section id="words">
-          <Heading {...sections.words} mb="mb-8" />
-          <div className="grid grid-cols-2 gap-10 max-md:grid-cols-1 max-md:gap-9">
-            {quotes.map((q, i) => (
-              <figure key={i} data-reveal="" className="m-0">
-                <blockquote className="m-0 font-serif text-[30px] leading-[1.35] italic max-sm:text-[24px]">{q.quote}</blockquote>
-                <figcaption className="mt-[18px] text-[14px] text-muted">{q.by}</figcaption>
-              </figure>
-            ))}
-          </div>
+        <Section id="writing">
+          <Heading {...sections.writing} more={{ label: sections.writing.more, href: links.allPosts }} mb="mb-4" />
+          {posts.map((b, i) => (
+            <a
+              key={i}
+              href={b.href}
+              data-reveal=""
+              className="row grid grid-cols-[140px_minmax(0,1fr)_120px_24px] items-baseline gap-6 border-b border-line p-[24px_0] no-underline max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-4 max-md:gap-y-2 max-md:p-[20px_0]"
+            >
+              <span className="font-mono text-[13px] text-muted">{b.date}</span>
+              <span className="text-[22px] tracking-[-0.015em] max-md:order-last max-md:col-span-2 max-sm:text-[20px]"><span className="ul">{b.title}</span></span>
+              <span className="text-right text-[14px] text-muted">{b.read}</span>
+              <span aria-hidden="true" className="arrow text-accent max-md:hidden">
+                →
+              </span>
+            </a>
+          ))}
         </Section>
 
         <section id="about" className={SECTION}>

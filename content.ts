@@ -87,10 +87,10 @@ export const sections = {
   work: { num: "01", title: "Selected work", more: "All projects →" },
   experience: { num: "02", title: "Experience" },
   wins: { num: "03", title: "Hackathons & wins" },
-  writing: { num: "04", title: "Writing", more: "All posts →" },
+  words: { num: "04", title: "Kind words" },
   toolkit: { num: "05", title: "Toolkit" },
   approach: { num: "06", title: "How I work" },
-  words: { num: "07", title: "Kind words" },
+  writing: { num: "07", title: "Writing", more: "All posts →" },
   about: { num: "08", title: "Beyond work" },
 };
 
