@@ -8,6 +8,7 @@ import {
   achievements,
   approach,
   contact,
+  copyright,
   experience,
   kindWords,
   localTime,
@@ -259,6 +260,7 @@ function build(): Fs {
       t: "meta",
       text: "ashOS is an original design inspired by familiar desktop conventions. It isn't affiliated with Apple.",
     },
+    { t: "meta", text: copyright },
   ];
 
   /* Desktop */

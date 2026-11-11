@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { SettingsPane } from "../data/apps";
 import { SHORTCUTS } from "../data/shortcuts";
-import { person } from "../data/portfolio";
+import { copyright, person } from "../data/portfolio";
 import { WALLPAPERS, wallpaperById } from "../data/wallpapers";
 import { useKeyLabel, useOS, useWindowMenus } from "../state/os";
 import { ACCENTS, type Prefs } from "../state/prefs";
@@ -276,6 +276,11 @@ export function Settings() {
                 </span>
                 <h1>ashOS</h1>
                 <p>Version 7.0</p>
+                <p className="ashos-sysabout__legal">
+                  Designed and built by {person.name}.
+                  <br />
+                  {copyright}
+                </p>
               </div>
               <Group>
                 <Row label="Owner">{person.name}</Row>

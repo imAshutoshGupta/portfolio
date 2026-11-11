@@ -3790,3 +3790,9 @@
 .ashos :is(.ashos-term__input input, .ashos-address input, .ashos-search input, .ashos-spot__field input, .ashos-compose__row input, .ashos-compose__body):focus-visible {
   outline: none;
 }
+.ashos-sysabout .ashos-sysabout__legal {
+  margin-top: 10px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-3);
+}

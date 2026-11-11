@@ -64,6 +64,9 @@ export const person = {
   signoff: footer.signoff,
 };
 
+/** Ownership line shown in About ashOS and the Welcome guide. */
+export const copyright = `© ${new Date().getFullYear()} ${hero.name}. All rights reserved.`;
+
 export const localTime = hero.localTime;
 
 /** Ashutosh's local time + the mood line the hero uses. */
