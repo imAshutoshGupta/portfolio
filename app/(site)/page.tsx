@@ -160,6 +160,7 @@ export default function Home() {
             {wins.map((w, i) =>
               w.image ? (
                 // A win with a screenshot gets the full width: the story on the left, a small shot on the right.
+                // Under 900px the shot drops below the story, on the same soft panel.
                 <article key={i} data-reveal="" className="win-feature col-span-full overflow-hidden rounded-[16px] border border-line bg-card">
                   <div className="grid grid-cols-[minmax(0,1fr)_400px] max-[900px]:grid-cols-1">
                     <div className="flex flex-col p-8 max-sm:p-6">
@@ -198,7 +199,7 @@ export default function Home() {
                       href={w.live?.href ?? w.image}
                       {...external(w.live?.href ?? "")}
                       aria-label={`${w.project ?? w.event}: open the live demo`}
-                      className="win-shot flex items-center bg-soft p-7 max-[900px]:hidden"
+                      className="win-shot flex items-center bg-soft p-7 max-[900px]:border-t max-[900px]:border-line max-sm:p-5"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={w.image} alt={w.alt} width={1440} height={900} loading="lazy" decoding="async" className="block h-auto w-full rounded-[10px]" />
@@ -300,7 +301,8 @@ export default function Home() {
               <Label {...sections.about} />
             </h2>
             {/* Headline and text on the left; the photo (trial) sits on the right,
-                level with the headline. Phones: headline, photo, then text. */}
+                level with the headline. Phones: headline, photo (centred), then text
+                with the hobby chips centred under it. */}
             <div
               className={
                 "flex min-w-0 flex-[1_1_600px] flex-col gap-6 " +
@@ -311,7 +313,7 @@ export default function Home() {
             >
               <Headline line={sections.about.line} accent={sections.about.accent} className="sm:col-start-1 sm:row-start-1" />
               {features.aboutPhoto && (
-                <figure data-reveal="" className="photo m-0 w-[150px] sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:mt-[28px] sm:mr-5 sm:w-[200px]">
+                <figure data-reveal="" className="photo m-0 w-[150px] max-sm:self-center sm:col-start-2 sm:row-span-2 sm:row-start-1 sm:mt-[28px] sm:mr-5 sm:w-[200px]">
                   <div className="photo-frame rounded-[14px] border border-line bg-card p-[6px]">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -340,7 +342,7 @@ export default function Home() {
                 >
                   {about.body}
                 </p>
-                <div className="mt-7 flex flex-wrap gap-[10px]">
+                <div className="mt-7 flex flex-wrap gap-[10px] max-sm:justify-center">
                   {about.hobbies.map((h) => (
                     <span key={h.label} className="inline-flex items-center gap-[8px] rounded-[999px] border border-line p-[10px_16px]">
                       <HobbyIcon name={h.icon} className="h-[15px] w-[15px] shrink-0 text-accent" />
