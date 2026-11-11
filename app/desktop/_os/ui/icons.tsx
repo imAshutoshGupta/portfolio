@@ -259,6 +259,13 @@ const G: Record<string, ReactNode> = {
       stroke="none"
     />
   ),
+  xLogo: (
+    <path
+      d="M14.3 3h2.5l-5.4 6.2L17.8 17h-5l-3.9-5.1L4.4 17H1.9l5.8-6.6L1.6 3h5.1l3.5 4.7zm-.9 12.6h1.4L6 4.3H4.5z"
+      fill="currentColor"
+      stroke="none"
+    />
+  ),
   terminal: (
     <>
       <rect x="2.75" y="3.75" width="14.5" height="12.5" rx="2" />

@@ -235,6 +235,7 @@ function build(): Fs {
         { label: "Email", href: contact.email },
         { label: "GitHub", href: contact.github },
         { label: "LinkedIn", href: contact.linkedin },
+        { label: "X", href: contact.x },
         { label: "Website", href: contact.site },
       ],
     },
@@ -369,6 +370,7 @@ function build(): Fs {
         ["Email", contact.emailLabel],
         ["GitHub", contact.github ?? "not linked yet"],
         ["LinkedIn", contact.linkedin ?? "not linked yet"],
+        ["X", contact.x ?? "not linked yet"],
         ["Website", contact.site],
         ["Time zone", `${localTime.timeZone} (${localTime.suffix})`],
       ],
@@ -383,6 +385,7 @@ function build(): Fs {
   link(contactDir, "Email", contact.email, contact.emailLabel);
   link(contactDir, "GitHub", contact.github, contact.github ?? "GitHub");
   link(contactDir, "LinkedIn", contact.linkedin, contact.linkedin ?? "LinkedIn");
+  link(contactDir, "X", contact.x, contact.x ?? "X");
   link(contactDir, "Portfolio", "/", contact.site);
 
   /* Projects */

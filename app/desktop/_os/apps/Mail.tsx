@@ -85,6 +85,7 @@ export function Mail() {
     { label: "Email", sub: contact.emailLabel, glyph: "envelope", run: () => setComposing(true) },
     { label: "GitHub", sub: contact.github?.replace(/^https?:\/\/(www\.)?/, "") ?? "not linked yet", glyph: "github", run: contact.github ? () => window.open(contact.github!, "_blank", "noopener") : undefined },
     { label: "LinkedIn", sub: contact.linkedin?.replace(/^https?:\/\/(www\.)?/, "") ?? "not linked yet", glyph: "linkedin", run: contact.linkedin ? () => window.open(contact.linkedin!, "_blank", "noopener") : undefined },
+    { label: "X", sub: contact.x?.replace(/^https?:\/\/(www\.)?/, "") ?? "not linked yet", glyph: "xLogo", run: contact.x ? () => window.open(contact.x!, "_blank", "noopener") : undefined },
     { label: "Résumé", sub: contact.resumeFile, glyph: "doc", run: () => os.launch("resume") },
   ];
 

@@ -170,8 +170,9 @@ item was approved by the user):
 - Footer contact block: intro paragraph + "I can help with" numbered list
   (`footer.intro`, `footer.help`, approved for now). The intro is Inter Tight 18px
   muted: the user rejected Newsreader italic there ("extremely terrible").
-- Footer email: 26px with a ↗ arrow, small "Copy" button under it
-  (`CopyEmail.tsx`, announces to screen readers).
+- Footer email with a ↗ arrow, small "Copy" button under it
+  (`CopyEmail.tsx`, announces to screen readers). Layout since reworked: see
+  "Footer rework" below.
 - Footer stats pill (`FooterStats.tsx`): page views (Semi's blinking eyes) │
   Semi pokes (Semi's 12px head, click to poke; hero pokes count too, 20 per
   visitor). Plus "Back to top ↑" (`BackToTop.tsx`). Data: `/api/views`,
@@ -189,36 +190,52 @@ item was approved by the user):
   "me, mid-hackathon".
 - Accessibility: job/win/toolkit/principle/post titles are `h3`; every section
   has `aria-labelledby`; project demos have alt text (`projects[].alt`).
-- JSON-LD `Person` (name, url, jobTitle, email, LinkedIn, GitHub) in `page.tsx`.
+- JSON-LD `Person` (name, url, jobTitle, email, LinkedIn, GitHub, X) in `page.tsx`.
 - ashOS mirrors all of it: status + location pills, photo avatar, hobby icons,
   "Work With Me.md", `Me.webp` in Finder, `contact`/`writing` terminal output.
 - "All projects →" stays (points to `#` until there's more work to list).
 
-Still open (waiting on the user's content):
+### Open (as of 2026-11-12)
+
+Waiting on the user's content (don't invent it):
 - **Projects one and four** are placeholders (`[Project one]`, `[Project four]`),
   and "All projects →" plus the case-study links point to `#`.
 - **Writing** rows are placeholders until the user sends LinkedIn post links.
   LinkedIn blocks automated reading, so don't try to scrape them.
 - **Kind words**: both quotes are placeholders.
 
-Settled (2026-11-12, don't reopen unless the user does):
-- Hackathons & wins: RootCause (Paytm Build for India) is the only win. Done.
+Waiting on the user to check:
+- Nav frosted glass in Safari on their iPhone (headless WebKit can't show it).
+- The reworked footer on a real phone.
+
+Parked; ask before starting:
+- Font change: the user liked the reference site's fonts (Josefin Sans, DM Sans,
+  Fraunces). Don't touch type without asking.
+- Mobile Lighthouse headroom: the largest remaining cost is a ~147KB font,
+  probably Newsreader italic with its optical-size axis. It changes how the
+  font looks, so ask first.
+- Floating glass-pill nav: offered as a bigger nav option; build only if asked.
+
+### Closed (don't reopen unless the user does)
+
+- Hackathons & wins: RootCause (Paytm Build for India) is the only win.
 - About photo: kept. The user likes it. Still don't spread it elsewhere.
-- Footer copy, the two section headlines and the hobby lines are approved for
-  now. The user plans to rework the footer later; wait for them.
+- Footer: reworked and merged 2026-11-12 (details under "Footer rework"),
+  including the cramped phone spacing. Footer copy, the two section headlines
+  and the hobby lines are approved.
+- Now playing / Spotify: Last.fm feed, Spotify-profile link, idle line and
+  refresh timing are done (details under "Shipped 2026-11-12"). Reopen only if
+  the user reports a problem.
+- Writing rows keep the "LinkedIn" source label; the user may bring up "Blog"
+  later themselves.
+- The thread stays (see Ground rules).
 - `public/Ashutosh_Gupta_Resume.pdf` is the user's final résumé. Replace it only
   with a file they send; never edit or regenerate it.
 - LinkedIn is `linkedin.com/in/ashutoshgupta08` (matches the résumé). Toolkit
-  and Experience match the résumé too.
+  and Experience match the résumé too. X is `x.com/im_AshutoshG` (`links.x`).
 - Footer counters: `/api/views` and `/api/pokes` read the `COUNTERS` KV
   binding (namespace `portfolio-counters`, in `wrangler.jsonc`).
 - Experience rows have no arrow (they aren't links); writing rows do.
-- Now playing / Spotify: **closed 2026-11-12.** Last.fm feed, Spotify-profile
-  link, idle line and refresh timing are all done (details under "Shipped
-  2026-11-12"). Don't reopen unless the user reports a problem.
-- Writing rows keep the "LinkedIn" source label. Closed 2026-11-12; the user may
-  bring up "Blog" later themselves.
-- The thread stays (see Ground rules).
 
 **Shipped 2026-11-12** (merged to `main` at the user's request):
 
@@ -226,8 +243,7 @@ Settled (2026-11-12, don't reopen unless the user does):
   to be hidden); the About photo and hobby chips are centred under 640px.
 - Nav glass: the frosted blur never rendered before (see the nav note under
   "Decisions"). Now it does, at the original 72% tint + 14px blur. The user
-  hasn't confirmed Safari on their iPhone yet. A floating glass-pill nav was
-  floated as a bigger option; only build it if they ask.
+  hasn't confirmed Safari on their iPhone yet (see Open).
 - Now playing (hero + ashOS Control Centre) always links to the user's Spotify
   profile (`links.spotify`), not a Last.fm track page; the API no longer returns
   a track URL. With no track it shows paused bars and "Silence, for now;"
@@ -245,16 +261,24 @@ Settled (2026-11-12, don't reopen unless the user does):
 - Brand kit under `public/brand/` (logos, favicon variants, OG variants) isn't
   referenced by code. It's the user's asset library: keep it.
 
-**Later / optional** (still open as of 2026-11-12: footer rework, font change,
-mobile Lighthouse)
+**Footer rework, 2026-11-12** (merged to `main` at the user's request; approved
+after a second look at manishluci.com's footer):
 
-- Footer rework: the user plans it; wait for them to bring it. Fold in the
-  phone spacing too: the footer feels cramped at 390px (noted 2026-11-12).
-- Mobile Lighthouse headroom: the largest remaining cost is a ~147KB font,
-  probably Newsreader italic with its optical-size axis. It affects how the
-  font looks, so ask before changing it.
-- The user liked the reference site's fonts (Josefin Sans, DM Sans, Fraunces).
-  A font change is parked for later; ask before touching type.
+- Two columns. Left: the CTA headline (64px, Semi inline after the last word
+  at every size), intro, then the email (28px, ↗ right after it) + Copy; the
+  user asked for the email on the left to fill that side. Right: "I can help
+  with" list, then social rows "LinkedIn · ashutoshgupta08 ↗"
+  (`footer.socials`). One column under 768px.
+- Bottom bar behind a full-width line: wordmark "Ashutosh Gupta" in Newsreader
+  italic with a violet semicolon (`footer.wordmark`; the user asked for the
+  full name) and the sign-off "Designed and built, mostly after hours" under
+  it (no name: the wordmark says who; the user didn't want "Ashutosh" twice).
+  Right side: ashOS · Résumé, stats pill, Back to top. The bar has **no social
+  links**: the user called them repeats of the rows above. Don't add them back.
+- Social rows underline label + handle together on hover (`.mail` + `.ul`).
+  JSON-LD `sameAs` has X.
+- ashOS: X in the contact card, Contact folder, Portfolio Overview.pdf links, Mail
+  (`xLogo` glyph; `x` is the close icon), Terminal `contact`, Safari start page.
 
 ## ashOS (`/desktop`)
 

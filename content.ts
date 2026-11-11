@@ -23,6 +23,7 @@ export const links = {
   emailLabel: "hello@iamashutosh.com",
   linkedin: "https://www.linkedin.com/in/ashutoshgupta08",
   github: "https://github.com/imAshutoshGupta",
+  x: "https://x.com/im_AshutoshG",
   // Personal Spotify profile (open.spotify.com/user/…). The now-playing widget
   // always links here, whatever track it shows.
   spotify: "https://open.spotify.com/user/luzxyw9wz3d2felvulp35eqqo",
@@ -330,13 +331,18 @@ export const footer = {
   },
   views: { one: "view", many: "views" },
   backToTop: "Back to top",
-  links: [
-    { label: "LinkedIn", href: links.linkedin },
-    { label: "GitHub", href: links.github },
+  // Contact rows under the email: "LinkedIn · ashutoshgupta08 ↗".
+  socials: [
+    { label: "LinkedIn", handle: "ashutoshgupta08", href: links.linkedin },
+    { label: "GitHub", handle: "imAshutoshGupta", href: links.github },
+    { label: "X", handle: "@im_AshutoshG", href: links.x },
   ],
+  // Bottom bar wordmark; the site adds a violet semicolon after it.
+  wordmark: "Ashutosh Gupta",
   ashos: "ashOS",
   resume: "Résumé",
-  signoff: "Designed and built by Ashutosh, mostly after hours",
+  // Sits under the wordmark, which already says who.
+  signoff: "Designed and built, mostly after hours",
 };
 
 export const ashos = {

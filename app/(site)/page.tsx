@@ -40,7 +40,7 @@ const personLd = {
   jobTitle: hero.facts.find((f) => f.label === "Role")?.value,
   description: meta.description,
   email: links.email,
-  sameAs: [links.linkedin, links.github],
+  sameAs: [links.linkedin, links.github, links.x],
 };
 
 const external = (href: string) =>
@@ -363,14 +363,34 @@ export default function Home() {
         </section>
         </main>
 
-        <footer className="border-t border-line p-[100px_0_64px] max-sm:p-[72px_0_48px]">
-          <FooterCta />
-          <div
-            data-reveal=""
-            className="mt-16 grid grid-cols-2 gap-14 max-md:grid-cols-1 max-md:gap-10 max-sm:mt-12"
-          >
-            <p className="m-0 max-w-[500px] text-[18px] leading-[1.7] text-muted max-sm:text-[17px]">{footer.intro}</p>
+        <footer className="border-t border-line p-[100px_0_48px] max-sm:p-[72px_0_40px]">
+          {/* two columns: the ask on the left, every way to answer it on the right */}
+          <div className="grid grid-cols-[1.1fr_1fr] gap-x-20 gap-y-12 max-md:grid-cols-1 max-sm:gap-y-10">
             <div>
+              <FooterCta />
+              <p
+                data-reveal=""
+                className="m-[40px_0_0] max-w-[500px] text-[18px] leading-[1.7] text-muted max-sm:mt-8 max-sm:text-[17px]"
+              >
+                {footer.intro}
+              </p>
+              <div data-reveal="" className="mt-10 max-sm:mt-8">
+                <a
+                  href={links.email}
+                  data-magnet="6"
+                  className="mail inline-flex items-baseline gap-[12px] text-[28px] tracking-[-0.02em] no-underline max-sm:text-[22px]"
+                >
+                  <span className="ul">{links.emailLabel}</span>
+                  <span aria-hidden="true" className="mail-arrow inline-block text-[24px] text-accent max-sm:text-[19px]">
+                    ↗
+                  </span>
+                </a>
+                <div className="mt-[6px] ml-[-6px]">
+                  <CopyEmail />
+                </div>
+              </div>
+            </div>
+            <div data-reveal="" className="md:pt-[10px]">
               <p className="m-[0_0_6px] text-[15px] font-medium">{footer.helpTitle}</p>
               <ol className="m-0 list-none p-0">
                 {footer.help.map((h, i) => (
@@ -380,42 +400,43 @@ export default function Home() {
                   </li>
                 ))}
               </ol>
+              <ul className="m-[36px_0_0] list-none p-0 max-sm:mt-7">
+                {footer.socials.map((l) => (
+                  <li key={l.label}>
+                    <a
+                      href={l.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mail flex items-baseline justify-between gap-4 p-[10px_0] text-[18px] no-underline max-sm:text-[17px]"
+                    >
+                      <span className="ul">
+                        {l.label}
+                        <span className="text-muted"> · {l.handle}</span>
+                      </span>
+                      <span aria-hidden="true" className="mail-arrow inline-block text-[16px] text-accent">
+                        ↗
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-          <div className="mt-16 flex flex-wrap items-end justify-between gap-x-6 gap-y-8 max-sm:mt-12">
+          <div className="mt-20 flex flex-wrap items-center justify-between gap-x-8 gap-y-6 border-t border-line pt-8 max-sm:mt-14">
             <div>
-              <a
-                href={links.email}
-                data-magnet="6"
-                className="mail inline-flex items-baseline gap-[10px] text-[26px] tracking-[-0.02em] no-underline max-sm:text-[22px]"
-              >
-                <span className="link">{links.emailLabel}</span>
-                <span aria-hidden="true" className="mail-arrow inline-block text-[22px] text-accent max-sm:text-[19px]">
-                  ↗
-                </span>
-              </a>
-              <div className="mt-[6px] ml-[-6px]">
-                <CopyEmail />
-              </div>
+              <p className="m-0 font-serif text-[24px] leading-none italic">
+                {footer.wordmark}
+                <span className="text-accent">;</span>
+              </p>
+              <p className="m-[8px_0_0] text-[13px] text-muted">{footer.signoff}</p>
             </div>
-            <div className="flex flex-wrap gap-6 text-[15px] text-muted">
-              {footer.links.map((l) => (
-                <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" className="link">
-                  {l.label}
-                </a>
-              ))}
-              <AshOSLink className="link">{footer.ashos}</AshOSLink>
-              <a {...resumeLink} className="link">
-                {footer.resume}
-              </a>
-            </div>
-          </div>
-          <div className="mt-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-5">
-            <p className="m-0 text-[13px] text-muted">
-              {footer.signoff}
-              <span className="text-accent">;</span>
-            </p>
             <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+              <div className="flex gap-6 text-[15px] text-muted max-sm:basis-full">
+                <AshOSLink className="link">{footer.ashos}</AshOSLink>
+                <a {...resumeLink} className="link">
+                  {footer.resume}
+                </a>
+              </div>
               <FooterStats />
               <BackToTop />
             </div>

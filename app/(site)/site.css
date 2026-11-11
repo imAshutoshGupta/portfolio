@@ -225,6 +225,7 @@
   /* footer: email arrow and back-to-top arrow nudge on hover */
   .mail-arrow,.totop-arrow{transition:transform .45s cubic-bezier(.2,.8,.2,1)}
   .mail:hover .mail-arrow,.mail:focus-visible .mail-arrow{transform:translate(3px,-3px)}
+  .mail:hover .ul::after,.mail:focus-visible .ul::after{transform:scaleX(1);transform-origin:left}
   .totop:hover .totop-arrow,.totop:focus-visible .totop-arrow{transform:translateY(-4px)}
 
   /* about photo (trial): pinned slightly askew, straightens on hover */
