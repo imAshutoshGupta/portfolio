@@ -125,20 +125,33 @@ function LocalTime() {
 
 type Track = { live: boolean; isPlaying?: boolean; title?: string; artist?: string };
 
+const NOW_PLAYING_POLL_MS = 15_000;
+
 function NowPlaying() {
   const [track, setTrack] = useState<Track>({ live: false });
   useEffect(() => {
     let alive = true;
-    const load = () =>
+    let latest = 0; // only the newest request may update the widget
+    const load = () => {
+      // Background tabs skip polls (browsers throttle their timers anyway)...
+      if (document.hidden) return;
+      const id = ++latest;
       fetch("/api/now-playing")
         .then((r) => r.json() as Promise<Track>)
-        .then((t) => alive && setTrack(t))
+        .then((t) => alive && id === latest && setTrack(t))
         .catch(() => {});
+    };
+    // ...and catch up the moment the tab is visible again.
+    const onVisibility = () => {
+      if (!document.hidden) load();
+    };
     load();
-    const iv = setInterval(load, 30000);
+    const iv = setInterval(load, NOW_PLAYING_POLL_MS);
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       alive = false;
       clearInterval(iv);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 

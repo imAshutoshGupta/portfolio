@@ -13,20 +13,34 @@ import { useClock } from "./MenuBar";
 
 type Track = { live: false } | { live: true; isPlaying: boolean; title: string; artist: string };
 
+const NOW_PLAYING_POLL_MS = 15_000;
+
+// Same cadence as the site's hero widget: poll every 15s while visible, skip
+// background tabs, refresh as soon as the tab is shown again.
 function useNowPlaying() {
   const [t, setT] = useState<Track | null>(null);
   useEffect(() => {
     let alive = true;
-    const load = () =>
+    let latest = 0; // only the newest request may update the widget
+    const load = () => {
+      if (document.hidden) return;
+      const id = ++latest;
+      const apply = (d: Track) => alive && id === latest && setT(d);
       fetch("/api/now-playing")
         .then((r) => (r.ok ? r.json() : { live: false }))
-        .then((d) => alive && setT(d))
-        .catch(() => alive && setT({ live: false }));
+        .then(apply)
+        .catch(() => apply({ live: false }));
+    };
+    const onVisibility = () => {
+      if (!document.hidden) load();
+    };
     load();
-    const id = setInterval(load, 30_000);
+    const iv = setInterval(load, NOW_PLAYING_POLL_MS);
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       alive = false;
-      clearInterval(id);
+      clearInterval(iv);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
   return t;

@@ -71,7 +71,8 @@ social proof → skills → personality → contact. Keep it.
    to the footer. An accent copy draws with scroll (ScrollTrigger scrub), led by
    a glowing dot, ending in a semicolon. Hidden under 1100px.
 6. Now playing: three equalizer bars + track/artist from Spotify (server route,
-   cached ~30s; "last played" when nothing is playing).
+   cached ~30s; "last played" when nothing is playing). Since 2026-11-12: 10s
+   edge cache, 15s poll, skipped in background tabs, refetched on tab focus.
 7. Local time (Asia/Kolkata) with a mood: <6 "probably shipping", <12 "coffee,
    then code", <18 "deep in the work", else "extra-hours mode".
 8. Footer CTA hover: text turns accent, small Semi looks up (eyes open, -8deg).
@@ -229,11 +230,14 @@ Settled (2026-11-12, don't reopen unless the user does):
   (`hero.nowPlaying.fallback`).
 - Now-playing data comes from Last.fm (`LASTFM_*` env vars win over the Spotify
   ones). The user has no Spotify Premium, so Spotify's Web API (real-time) is
-  out. Lag of a few minutes comes from Spotify's built-in Last.fm link, not the
-  site (the site adds ≤ ~1 min: 30s poll + 30s edge cache). Faster scrobblers
-  (Pano Scrobbler on Android, Web Scrobbler extension for the web player) fix
-  it on the user's side; iPhone has no option. Check Last.fm's own
-  `user.getrecenttracks` before debugging the site.
+  out. The user's Last.fm keeps up with Spotify fine (checked 2026-11-12). The lag
+  they saw was the page: a 30s poll + 30s edge cache, and background tabs
+  (Safari throttles timers) showing the song from when they left. Fixed the
+  same day: 10s edge cache, 15s poll, refetch on `visibilitychange` (hero +
+  ashOS), so a change shows within ~25s, instantly on returning to the tab.
+  If it ever lags again, compare Last.fm's `user.getrecenttracks` with
+  `/api/now-playing` first. Faster scrobblers (Pano Scrobbler on Android, Web
+  Scrobbler for the web player) only matter if Last.fm itself falls behind.
 - Brand kit under `public/brand/` (logos, favicon variants, OG variants) isn't
   referenced by code. It's the user's asset library: keep it.
 

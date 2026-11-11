@@ -21,7 +21,7 @@ desktop. The design spec and current status are in `CLAUDE.md`.
 | `components/HobbyIcon.tsx`   | Line icons for the hobby chips, shared by the site and ashOS        |
 | `app/desktop/`               | ashOS, a macOS-inspired desktop (opened in a full-screen iframe). `_os/data` = content adapter + virtual file system, `_os/state` = window manager, `_os/ui` + `_os/apps` = UI. Styles in `os.css`, all scoped under `.ashos` |
 | `public/ashos/wallpapers/`   | Original ashOS wallpapers (light + dark SVGs) |
-| `app/api/now-playing`        | Now / last played (Last.fm, or Spotify's API), edge-cached ~30s. The widget always links to the Spotify profile (`links.spotify`) |
+| `app/api/now-playing`        | Now / last played (Last.fm, or Spotify's API), edge-cached 10s; the widget polls every 15s and on tab focus. The widget always links to the Spotify profile (`links.spotify`) |
 | `app/api/views`, `app/api/pokes` | Footer counters, stored in Cloudflare KV (`app/api/_lib/counter.ts`) |
 | `public/projects/`           | Project demo videos (`.mp4`) and their first frames (`.webp`)      |
 | `public/about/`              | The About photo (behind `features.aboutPhoto`)                     |

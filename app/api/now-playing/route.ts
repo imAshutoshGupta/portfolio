@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 
-// Fetched on demand; real results sit in Cloudflare's edge cache for ~30s,
-// so Spotify is hit at most about twice a
-// minute per location.
+// Fetched on demand; real results sit in Cloudflare's edge cache for 10s, so
+// Last.fm (or Spotify) is hit at most about six times a minute per location,
+// however many visitors are polling. Clients poll every 15s (and on tab focus),
+// so a song change shows up within ~25s.
 export const dynamic = "force-dynamic";
 
-const CACHE_SECONDS = 30;
+const CACHE_SECONDS = 10;
 
 const TOKEN_URL = "https://accounts.spotify.com/api/token";
 const NOW_PLAYING_URL = "https://api.spotify.com/v1/me/player/currently-playing";
