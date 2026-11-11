@@ -21,7 +21,8 @@ desktop. The design spec and current status are in `CLAUDE.md`.
 | `app/desktop/`               | ashOS, a macOS-inspired desktop (opened in a full-screen iframe). `_os/data` = content adapter + virtual file system, `_os/state` = window manager, `_os/ui` + `_os/apps` = UI. Styles in `os.css`, all scoped under `.ashos` |
 | `public/ashos/wallpapers/`   | Original ashOS wallpapers (light + dark SVGs) |
 | `app/api/now-playing`        | Spotify now / last played, edge-cached ~30s                        |
-| `app/api/github`, `app/api/contact`, `app/og` | Unchanged API routes and OG image                   |
+| `app/api/github`, `app/api/contact` | Unchanged API routes |
+| `public/` brand assets | Favicons, app icons, manifest, `og.png`, `brand/` logos |
 
 ## Notes
 

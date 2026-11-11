@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+<style>
+.sq{fill:#120f1f}.dot{fill:#a78bfa}.stem{fill:#ffffff}
+@media (prefers-color-scheme:dark){.sq{fill:#eeedf5}.dot{fill:#a78bfa}.stem{fill:#0b0a12}}
+</style>
+<rect class="sq" width="32" height="32" rx="8"/><circle cx="16" cy="8" r="4" class="dot"/><path transform="translate(16 21) skewX(-12) translate(-16 -21)" d="M16,14 H16 A3,3 0 0 1 19,17 V25 A3,3 0 0 1 16,28 H14 A1,1 0 0 1 13,27 V17 A3,3 0 0 1 16,14 Z" class="stem"/>
+</svg>

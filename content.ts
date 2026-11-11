@@ -11,7 +11,7 @@ export const features = {
 export const meta = {
   title: "Ashutosh Gupta — Full-stack · AI engineer",
   description: "I build products end to end, and the AI inside them.",
-  url: "https://ashutoshgupta.dev",
+  url: "https://iamashutosh.com",
 };
 
 export const links = {
