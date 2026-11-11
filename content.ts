@@ -106,10 +106,13 @@ type ProjectInput = {
   codeHref?: string;
   /** Write-up page. Leave out on a real project to hide the link. */
   caseStudyHref?: string;
-  /** Image path in public/ (e.g. "/projects/x.webp"), shown whole. */
+  /** 16:10 image path in public/ (e.g. "/projects/x.webp"). */
   screenshot?: string;
-  /** Fills the space around a screenshot that isn't 16:10; match the image's edge. */
-  screenshotBg?: string;
+  /**
+   * Looping demo video, 16:10. "/projects/x" means x.mp4 exists, plus x.webp
+   * (its first frame, used as the poster and as the screenshot).
+   */
+  demo?: string;
 };
 
 // Fields a project leaves out fall back to the placeholders below.
@@ -123,8 +126,7 @@ export const projects = ([
     stack: ["React", "TypeScript", "Radix UI", "Zustand"],
     liveHref: "https://imashutoshgupta.github.io/glyphx/",
     codeHref: "https://github.com/imAshutoshGupta/glyphx",
-    screenshot: "/projects/glyphx.webp",
-    screenshotBg: "#09090b",
+    demo: "/projects/glyphx",
   },
   {
     name: "Smudge",
@@ -134,16 +136,15 @@ export const projects = ([
     stack: ["JavaScript", "Manifest V3", "Local-first"],
     liveHref: "https://imashutoshgupta.github.io/smudge/",
     codeHref: "https://github.com/imAshutoshGupta/smudge",
-    screenshot: "/projects/smudge.webp",
-    screenshotBg: "#0d0c12",
+    demo: "/projects/smudge",
   },
   { name: "[Project four]", kind: "Tool", year: "[2024]", caseStudyHref: "#" },
 ] satisfies ProjectInput[]).map((p: ProjectInput) => ({
   name: p.name,
   kind: p.kind,
   year: p.year,
-  screenshot: p.screenshot ?? "[Screenshot]",
-  screenshotBg: p.screenshotBg ?? null,
+  screenshot: p.screenshot ?? (p.demo ? `${p.demo}.webp` : "[Screenshot]"),
+  demo: p.demo ? { video: `${p.demo}.mp4`, poster: `${p.demo}.webp` } : null,
   blurb: p.blurb ?? "[One or two lines: the problem and what you built.]",
   stack: p.stack ?? ["[Stack]", "[Stack]"],
   live: { label: "Live ↗", href: p.liveHref ?? "#" },

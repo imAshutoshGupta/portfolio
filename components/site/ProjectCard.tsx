@@ -1,4 +1,5 @@
 import type { projects } from "@/content";
+import ProjectDemo from "./ProjectDemo";
 
 type Project = (typeof projects)[number];
 
@@ -11,19 +12,17 @@ export default function ProjectCard({ p, i }: { p: Project; i: number }) {
   return (
     <div data-reveal="">
       <article data-tilt="" className="card relative rounded-[16px] border border-line bg-card p-[14px]">
-        <div
-          className="aspect-[16/10] overflow-hidden rounded-[10px]"
-          style={{ background: p.screenshotBg ?? TINTS[i % TINTS.length] }}
-        >
-          {p.screenshot.startsWith("/") ? (
-            // Shown whole (not cropped): previews aren't 16:10, and screenshotBg fills the gap.
+        <div className="aspect-[16/10] overflow-hidden rounded-[10px]" style={{ background: TINTS[i % TINTS.length] }}>
+          {p.demo ? (
+            <ProjectDemo name={p.name} demo={p.demo} />
+          ) : p.screenshot.startsWith("/") ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={p.screenshot}
               alt={`${p.name} preview`}
               loading="lazy"
               decoding="async"
-              className="shot h-full w-full object-contain"
+              className="shot h-full w-full object-cover"
             />
           ) : (
             <div className="shot flex h-full w-full items-center justify-center text-[13px] text-muted">{p.screenshot}</div>
