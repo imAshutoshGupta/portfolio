@@ -256,7 +256,7 @@ function StartPage({ go }: { go: (u: string) => void }) {
               <div>
                 <b>{p.title}</b>
                 <small>
-                  {p.date} · {p.read}
+                  {p.date} · {p.where}
                   {!p.link && " · not linked yet"}
                 </small>
               </div>

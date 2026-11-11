@@ -61,7 +61,7 @@ export function Projects() {
             {work.map((w) => (
               <button key={w.id} type="button" className={"ashos-sidebar__item ashos-sidebar__item--tall" + (id === w.id ? " is-active" : "")} onClick={() => setId(w.id)}>
                 <span className="ashos-sidebar__thumb">
-                  <Cover seed={Number(w.num)} title={w.name} src={w.screenshotSrc} />
+                  <Cover seed={Number(w.num)} title={w.name} src={w.screenshotSrc} alt={w.alt} />
                 </span>
                 <span className="ashos-sidebar__two">
                   <span>{w.name}</span>
@@ -115,7 +115,7 @@ export function Projects() {
 
         <div className="ashos-proj ashos-scroll">
           {project && <ProjectDetail w={project} visit={visit} />}
-          {hack && <HackDetail w={hack} />}
+          {hack && <HackDetail w={hack} visit={visit} />}
         </div>
       </div>
     </div>
@@ -141,7 +141,7 @@ function ProjectDetail({ w, visit }: { w: Work; visit: (h: string | null) => voi
   return (
     <article className="ashos-proj__inner">
       <div className="ashos-proj__shot">
-        <Cover seed={Number(w.num)} title={w.name} caption={w.screenshot} src={w.screenshotSrc} />
+        <Cover seed={Number(w.num)} title={w.name} caption={w.screenshot} src={w.screenshotSrc} alt={w.alt} />
         {!w.screenshotSrc && <span className="ashos-proj__shotnote">{w.screenshot}</span>}
       </div>
       <header className="ashos-proj__head">
@@ -172,22 +172,66 @@ function ProjectDetail({ w, visit }: { w: Work; visit: (h: string | null) => voi
   );
 }
 
-function HackDetail({ w }: { w: Win }) {
+function HackDetail({ w, visit }: { w: Win; visit: (h: string | null) => void }) {
   return (
     <article className="ashos-proj__inner">
-      <div className="ashos-proj__trophy">
-        <Glyph name="trophy" />
-        <span>{w.place}</span>
-      </div>
+      {w.image && (
+        <div className="ashos-proj__shot">
+          <Cover seed={Number(w.num)} title={w.project ?? w.event} src={w.image} alt={w.alt} />
+        </div>
+      )}
+      {!w.image && (
+        <div className="ashos-proj__trophy">
+          <Glyph name="trophy" />
+          <span>{w.place}</span>
+        </div>
+      )}
       <header className="ashos-proj__head">
         <div>
-          <h1>{w.event}</h1>
+          <h1>{w.project ?? w.event}</h1>
           <p>
-            {S.wins.title} · {w.year}
+            {w.project ? `${w.place} · ${w.event} · ${w.year}` : `${S.wins.title} · ${w.year}`}
           </p>
         </div>
       </header>
       <p className="ashos-lead">{w.what}</p>
+      {w.steps.length > 0 && (
+        <>
+          <h3 className="ashos-h3">How it works</h3>
+          <ol className="ashos-principles">
+            {w.steps.map((s, i) => (
+              <li key={s.label}>
+                <span className="ashos-principles__n">{String(i + 1).padStart(2, "0")}</span>
+                <div>
+                  <b>{s.label}</b>
+                  <p>{s.text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+      {w.stack.length > 0 && (
+        <>
+          <h3 className="ashos-h3">Built with</h3>
+          <div className="ashos-chips">
+            {w.stack.map((x) => (
+              <span key={x} className="ashos-chip">
+                {x}
+              </span>
+            ))}
+          </div>
+        </>
+      )}
+      {(w.live || w.code) && (
+        <>
+          <h3 className="ashos-h3">Links</h3>
+          <div className="ashos-proj__links">
+            {w.live && <LinkButton label="Live demo" href={w.live} glyph="globe" visit={visit} primary />}
+            {w.code && <LinkButton label="Source code" href={w.code} glyph="code" visit={visit} />}
+          </div>
+        </>
+      )}
     </article>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { hero, resumeLink } from "@/content";
 import { AshOSLink } from "./AshOS";
+import { poke } from "./pokes";
 import { onHashClick } from "./scroll";
 
 const CLIP = "[clip-path:polygon(0_0,100%_0,100%_60%,34%_100%,20%_100%,42%_60%,0_60%)]";
@@ -42,7 +43,10 @@ function Name() {
         ))}
       </span>
       <button
-        onClick={() => setPokes((p) => p + 1)}
+        onClick={() => {
+          setPokes((p) => p + 1);
+          poke(); // adds to the global count shown in the footer
+        }}
         aria-label={hero.pokeLabel}
         className="relative ml-[calc(8px*var(--k))] h-[calc(112px*var(--k))] w-[calc(48px*var(--k))] cursor-pointer border-0 bg-transparent p-0"
       >
@@ -168,10 +172,12 @@ function NowPlaying() {
 export default function Hero() {
   return (
     <header id="top" className="p-[120px_0_104px] max-sm:p-[56px_0_72px]">
-      <span className="up inline-flex [animation-delay:.1s] items-center gap-[10px] rounded-[999px] border border-line p-[8px_14px] text-[14px] text-muted">
-        <span className="pulse h-2 w-2 rounded-[99px] bg-status" />
-        {hero.status}
-      </span>
+      <p className="up m-0 inline-flex max-w-full flex-wrap items-center gap-x-[10px] gap-y-1 open-badge rounded-[999px] border border-solid p-[8px_14px] text-[14px] text-muted [animation-delay:.1s] max-sm:rounded-[14px]">
+        <span className="pulse h-2 w-2 shrink-0 rounded-[99px] bg-status" />
+        <span className="text-fg">{hero.status}</span>
+        <span aria-hidden="true" className="max-sm:hidden">·</span>
+        <span className="max-sm:basis-full max-sm:pl-[18px]">{hero.statusDetail}</span>
+      </p>
 
       <Name />
 

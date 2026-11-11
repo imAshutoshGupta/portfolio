@@ -1,5 +1,6 @@
 "use client";
 
+import HobbyIcon from "@/components/HobbyIcon";
 import { useEffect, useState } from "react";
 import {
   achievements,
@@ -9,7 +10,7 @@ import {
   localNow,
   person,
   sectionTitles as S,
-  toolkit,
+  toolkitAreas,
 } from "../data/portfolio";
 import { useOS, useWindowMenus } from "../state/os";
 import { Glyph } from "../ui/icons";
@@ -69,8 +70,13 @@ export function About() {
 
       <div className="ashos-about__body ashos-scroll">
         <header className="ashos-profile">
-          <div className="ashos-avatar" aria-hidden="true">
-            {person.initials}
+          <div className={"ashos-avatar" + (person.photo ? " ashos-avatar--photo" : "")} aria-hidden="true">
+            {person.photo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={person.photo.src} alt="" draggable={false} />
+            ) : (
+              person.initials
+            )}
           </div>
           <div className="ashos-profile__text">
             <h1>{person.name}</h1>
@@ -79,6 +85,7 @@ export function About() {
               <span className="ashos-pill ashos-pill--status">
                 <span className="ashos-status-dot" /> {person.status}
               </span>
+              <span className="ashos-pill">{person.availability}</span>
               <span className="ashos-pill" title={`${person.firstName}'s local time`}>
                 <Glyph name="clock" /> {t.time} {t.zone} · {t.mood}
               </span>
@@ -118,9 +125,10 @@ export function About() {
               </div>
               <h3 className="ashos-h3">{S.about.title}</h3>
               <div className="ashos-chips">
-                {person.hobbies.map((h, i) => (
-                  <span key={i} className="ashos-chip">
-                    {h}
+                {person.hobbyChips.map((h) => (
+                  <span key={h.label} className="ashos-chip ashos-chip--icon">
+                    <HobbyIcon name={h.icon} className="ashos-chip__icon" />
+                    {h.label}
                   </span>
                 ))}
                 <span className="ashos-chip ashos-chip--soft">{person.punctuation}</span>
@@ -136,7 +144,9 @@ export function About() {
                   <div>
                     <b>{j.role}</b>
                     <span className="ashos-timeline__org">{j.org}</span>
-                    <p>{j.what}</p>
+                    <ul className="ashos-timeline__points">
+                      {j.points.map((p) => <li key={p}>{p}</li>)}
+                    </ul>
                   </div>
                 </li>
               ))}
@@ -160,7 +170,13 @@ export function About() {
 
           {tab === "toolkit" && (
             <div className="ashos-groups">
-              {toolkit.map((g) => (
+              {toolkitAreas.map((a) => (
+                <section key={a.id} className="ashos-area">
+                  <h2 className="ashos-area__title">
+                    {a.title}
+                    <span>;</span>
+                  </h2>
+                  {a.groups.map((g) => (
                 <div key={g.title} className="ashos-group">
                   <h3 className="ashos-h3">{g.title}</h3>
                   <div className="ashos-chips">
@@ -171,6 +187,8 @@ export function About() {
                     ))}
                   </div>
                 </div>
+                  ))}
+                </section>
               ))}
             </div>
           )}

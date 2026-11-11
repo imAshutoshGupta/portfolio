@@ -202,7 +202,7 @@ export function NotificationCentre() {
       </div>
       <div className="ashos-widget ashos-widget--status">
         <span className="ashos-status-dot" />
-        <span>{person.status}</span>
+        <span>{person.statusLine}</span>
       </div>
     </div>
   );
