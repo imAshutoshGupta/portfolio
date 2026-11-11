@@ -6,8 +6,7 @@ export const features = {
   // The scroll-drawn "thread" in the left gutter (components/site/Thread.tsx),
   // scrubbed by ScrollTrigger. Set to false to remove it (and its About note).
   thread: true,
-  // TRIAL (2026-11-12): small framed photo in "Beyond work". The user may drop
-  // it; set to false to remove it.
+  // Small framed photo in "Beyond work" (kept). Set to false to remove it.
   aboutPhoto: true,
 };
 
@@ -304,8 +303,7 @@ export const about = {
 
 export const footer = {
   cta: "Have a problem worth the late nights?",
-  // DRAFT copy for the contact block (intro + "I can help with" list).
-  // Replace with your own words.
+  // Contact block copy (intro + "I can help with" list). Approved for now.
   intro: "I’m open to full-time roles and freelance projects in full-stack and AI engineering. A rough idea, a half-built prototype or a product that needs AI done properly are all good places to start.",
   helpTitle: "I can help with",
   help: [

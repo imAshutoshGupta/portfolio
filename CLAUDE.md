@@ -157,7 +157,7 @@ manishluci.com; each item was approved by the user):
   on **Writing and Beyond work only**. The user had the other six removed;
   don't add them back.
 - Footer contact block: intro paragraph + "I can help with" numbered list
-  (`footer.intro`, `footer.help`, draft copy). The intro is Inter Tight 18px
+  (`footer.intro`, `footer.help`, approved for now). The intro is Inter Tight 18px
   muted: the user rejected Newsreader italic there ("extremely terrible").
 - Footer email: 26px with a ↗ arrow, small "Copy" button under it
   (`CopyEmail.tsx`, announces to screen readers).
@@ -173,7 +173,7 @@ manishluci.com; each item was approved by the user):
   so the caption lines up with the last chip row). Phones: headline → photo →
   text. Hobbies are chips with line icons (`components/HobbyIcon.tsx`, shared
   with ashOS): Music, Netflix, Gym.
-- About photo (trial): `public/about/ashutosh.webp`, 480×600, **not mirrored**
+- About photo (kept): `public/about/ashutosh.webp`, 480×600, **not mirrored**
   (the user wants it as shot), tilted +2.5deg, straightens on hover, caption
   "me, mid-hackathon".
 - Accessibility: job/win/toolkit/principle/post titles are `h3`; every section
@@ -183,33 +183,34 @@ manishluci.com; each item was approved by the user):
   "Work With Me.md", `Me.webp` in Finder, `contact`/`writing` terminal output.
 - "All projects →" stays (points to `#` until there's more work to list).
 
-Still open:
-- `public/Ashutosh_Gupta_Resume.pdf` is the user's final résumé (added 2026-11-12). Replace
-  it only with a file they send; never edit or regenerate it.
+Still open (waiting on the user's content):
+- **Projects one and four** are placeholders (`[Project one]`, `[Project four]`),
+  and "All projects →" plus the case-study links point to `#`.
+- **Writing** rows are placeholders until the user sends LinkedIn post links.
+  LinkedIn blocks automated reading, so don't try to scrape them.
+- **Kind words**: both quotes are placeholders.
 - **Contact form needs Resend set up.** `/api/contact` sends from
   `portfolio@iamashutosh.com`, so that domain must be verified in Resend, with
   `RESEND_API_KEY` and `CONTACT_TO_EMAIL` added as Worker secrets.
-- Experience rows have no arrow (they aren't links); writing rows do.
-- Footer counters: `/api/views` and `/api/pokes` read the `COUNTERS` KV
-  binding (namespace `portfolio-counters`, wired in `wrangler.jsonc` on
-  2026-11-12).
-- **About photo is a trial** (`features.aboutPhoto`, `public/about/`). The
-  user hasn't decided whether to keep it. `false` also restores the About
-  text to 28px.
-- Writing rows are placeholders until the user sends LinkedIn post links.
-  LinkedIn blocks automated reading, so don't try to scrape them.
+
+Settled (2026-11-12, don't reopen unless the user does):
+- Hackathons & wins: RootCause (Paytm Build for India) is the only win. Done.
+- About photo: kept. The user likes it. Still don't spread it elsewhere.
+- Footer copy, the two section headlines and the hobby lines are approved for
+  now. The user plans to rework the footer later; wait for them.
+- `public/Ashutosh_Gupta_Resume.pdf` is the user's final résumé. Replace it only
+  with a file they send; never edit or regenerate it.
 - LinkedIn is `linkedin.com/in/ashutoshgupta08` (matches the résumé). Toolkit
   and Experience match the résumé too.
-- Draft copy to confirm: `footer.intro`, `footer.help`, the two headlines,
-  the hobby lines.
+- Footer counters: `/api/views` and `/api/pokes` read the `COUNTERS` KV
+  binding (namespace `portfolio-counters`, in `wrangler.jsonc`).
+- Experience rows have no arrow (they aren't links); writing rows do.
 
 **Later / optional**
 
 - Mobile Lighthouse headroom: the largest remaining cost is a ~147KB font,
   probably Newsreader italic with its optical-size axis. It affects how the
   font looks, so ask before changing it.
-- Fill in the `[placeholder]` content in `content.ts` (jobs, wins, quotes,
-  posts, project one and four).
 - The user liked the reference site's fonts (Josefin Sans, DM Sans, Fraunces).
   A font change is parked for later; ask before touching type.
 

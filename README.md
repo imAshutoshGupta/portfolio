@@ -25,7 +25,7 @@ desktop. The design spec and current status are in `CLAUDE.md`.
 | `app/api/contact`            | Contact form (Resend), used by ashOS Mail                          |
 | `app/api/views`, `app/api/pokes` | Footer counters, stored in Cloudflare KV (`app/api/_lib/counter.ts`) |
 | `public/projects/`           | Project demo videos (`.mp4`) and their first frames (`.webp`)      |
-| `public/about/`              | The About photo (a trial, behind `features.aboutPhoto`)            |
+| `public/about/`              | The About photo (behind `features.aboutPhoto`)                     |
 | `public/` brand assets | Favicons, app icons, manifest, `og.png`, `brand/` logos |
 
 ## Notes
@@ -39,7 +39,7 @@ desktop. The design spec and current status are in `CLAUDE.md`.
   values exactly. The `max-*:` Tailwind variants add the responsive layout
   the source didn't have (menu button below 860px, stacked grids, smaller type).
 - **Reduced motion:** all animations and transitions are off and Lenis is disabled.
-- **About photo:** a trial. Set `features.aboutPhoto` in `content.ts` to `false`
+- **About photo:** set `features.aboutPhoto` in `content.ts` to `false`
   to remove it from the site and ashOS.
 - **ashOS** reads everything from `content.ts`, so content changes show up in
   both places.
