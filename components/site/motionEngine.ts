@@ -14,6 +14,7 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Lenis from "lenis";
+import { setLenis } from "./scroll";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -34,16 +35,47 @@ export function initMotion(): () => void {
   /* ---- 1. smooth scroll, driven by GSAP's ticker so ScrollTrigger stays in sync ---- */
   const l = new Lenis({
     lerp: 0.1,
-    anchors: true,
+    // in-page links go through scroll.ts (scrollToHash), which also works
+    // before this bundle loads and resyncs Lenis first
+    anchors: false,
     autoRaf: false,
     // keep scrolling inside the ashOS iframe native
     prevent: (node) => node.nodeName === "IFRAME",
   });
   lenis = l;
+  // Lenis.reset() is public at runtime but typed private; it's exactly the
+  // "forget the glide, re-read the real scroll position" step we need.
+  const resetLenis = () => (l as unknown as { reset: () => void }).reset();
+  setLenis({
+    scrollTo: (target) => l.scrollTo(target),
+    sync: () => {
+      l.resize();
+      resetLenis();
+    },
+  });
   l.on("scroll", ScrollTrigger.update);
   const tick = (time: number) => l.raf(time * 1000);
   gsap.ticker.add(tick);
   gsap.ticker.lagSmoothing(0);
+
+  // Native scrolls (keyboard, scrollbar drag) are ignored by Lenis while it is
+  // mid-glide, so the two would fight. Stop the glide when one starts; Lenis's
+  // own native-scroll handler then keeps its position in sync.
+  const SCROLL_KEYS = new Set(["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "]);
+  const stopGlide = () => {
+    if (l.isScrolling === "smooth") resetLenis();
+  };
+  const onKey = (e: KeyboardEvent) => SCROLL_KEYS.has(e.key) && stopGlide();
+  // a press on the page scrollbar lands on <html>, right of its client width
+  const onDown = (e: PointerEvent) => {
+    if (e.target === root && e.clientX >= root.clientWidth) stopGlide();
+  };
+  window.addEventListener("keydown", onKey);
+  window.addEventListener("pointerdown", onDown);
+  cleanups.push(() => {
+    window.removeEventListener("keydown", onKey);
+    window.removeEventListener("pointerdown", onDown);
+  });
 
   // pause page scrolling while the ashOS takeover is open
   const mo = new MutationObserver(() => (root.dataset.ashos === "open" ? l.stop() : l.start()));
@@ -162,6 +194,7 @@ export function initMotion(): () => void {
     gsap.ticker.remove(tick);
     l.destroy();
     lenis = null;
+    setLenis(null);
     delete root.dataset.motionReady;
   };
 }

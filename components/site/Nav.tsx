@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { links, nav } from "@/content";
+import { nav, resumeLink } from "@/content";
 import { AshOSLink } from "./AshOS";
+import { onHashClick } from "./scroll";
 
 /** Switches theme with a circle growing out of the toggle (View Transitions),
  *  a short colour fade where that API is missing, and instantly under reduced motion. */
@@ -67,7 +68,8 @@ function useAutoHide(ref: React.RefObject<HTMLElement | null>, pinned: boolean) 
       const y = Math.max(0, window.scrollY);
       const dy = y - last;
       nav.toggleAttribute("data-scrolled", y > 8);
-      if (reduced || pinnedRef.current || nav.contains(document.activeElement) || y < 160) {
+      // keyboard focus in the nav keeps it on screen; a mouse click on a link doesn't
+      if (reduced || pinnedRef.current || nav.querySelector(":focus-visible") || y < 160) {
         nav.removeAttribute("data-hidden");
       } else if (dy > 4) {
         nav.setAttribute("data-hidden", "");
@@ -79,7 +81,7 @@ function useAutoHide(ref: React.RefObject<HTMLElement | null>, pinned: boolean) 
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
     };
-    const onFocus = () => nav.removeAttribute("data-hidden");
+    const onFocus = () => nav.querySelector(":focus-visible") && nav.removeAttribute("data-hidden");
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
     nav.addEventListener("focusin", onFocus);
@@ -114,7 +116,7 @@ export default function Nav() {
 
   return (
     <nav ref={navRef} className="site-nav flex flex-wrap items-center justify-between gap-4 border-b border-line p-[28px_0] max-sm:p-[20px_0]">
-      <a href="#top" className="flex items-center gap-3 no-underline">
+      <a href="#top" onClick={(e) => onHashClick(e)} className="flex items-center gap-3 no-underline">
         <span
           aria-hidden="true"
           className="flex h-8 w-8 flex-col items-center justify-center gap-[3px] rounded-[8px] bg-fg"
@@ -128,12 +130,12 @@ export default function Nav() {
       {/* desktop links */}
       <div className="flex flex-wrap items-center gap-6 text-[15px] text-muted max-[860px]:hidden">
         {nav.items.map((l) => (
-          <a key={l.href} href={l.href} className="link no-underline">
+          <a key={l.href} href={l.href} onClick={(e) => onHashClick(e)} className="link no-underline">
             {l.label}
           </a>
         ))}
         <AshOSLink className="link font-mono text-[13px] no-underline">{nav.ashos}</AshOSLink>
-        <a href={links.resume} download="" className="link text-fg no-underline">
+        <a {...resumeLink} className="link text-fg no-underline">
           {nav.resume}
         </a>
         <ThemeButton />
@@ -160,7 +162,7 @@ export default function Nav() {
           <ul className="m-0 list-none p-[4px_0_0] text-[20px] tracking-[-0.015em]">
             {nav.items.map((l) => (
               <li key={l.href} className="border-t border-line first:border-t-0">
-                <a href={l.href} onClick={close} className="block p-[14px_0] no-underline">
+                <a href={l.href} onClick={(e) => onHashClick(e, close)} className="block p-[14px_0] no-underline">
                   {l.label}
                 </a>
               </li>
@@ -169,7 +171,7 @@ export default function Nav() {
               <AshOSLink className="block p-[16px_0] font-mono text-[15px] text-muted no-underline">{nav.ashos}</AshOSLink>
             </li>
             <li className="border-t border-line">
-              <a href={links.resume} download="" className="block p-[14px_0] no-underline">
+              <a {...resumeLink} className="block p-[14px_0] no-underline">
                 {nav.resume}
               </a>
             </li>

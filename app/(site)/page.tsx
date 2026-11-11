@@ -9,6 +9,7 @@ import {
   principles,
   projects,
   quotes,
+  resumeLink,
   sections,
   tools,
   wins,
@@ -89,7 +90,7 @@ export default function Home() {
             >
               <span className="pt-[6px] font-mono text-[13px] text-muted max-md:pt-0">{j.when}</span>
               <div className="max-md:order-last max-md:col-span-2">
-                <p className="m-0 text-[22px] tracking-[-0.015em] max-sm:text-[20px]">{j.role}</p>
+                <p className="m-0 text-[22px] tracking-[-0.015em] max-sm:text-[20px]"><span className="ul">{j.role}</span></p>
                 <p className="m-[8px_0_0] leading-[1.6] text-muted">{j.what}</p>
               </div>
               <span className="pt-[6px] text-right text-[15px] text-muted max-md:pt-0 max-md:text-[14px]">{j.org}</span>
@@ -121,7 +122,7 @@ export default function Home() {
               className="row grid grid-cols-[140px_minmax(0,1fr)_120px_24px] items-baseline gap-6 border-b border-line p-[24px_0] no-underline max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-4 max-md:gap-y-2 max-md:p-[20px_0]"
             >
               <span className="font-mono text-[13px] text-muted">{b.date}</span>
-              <span className="text-[22px] tracking-[-0.015em] max-md:order-last max-md:col-span-2 max-sm:text-[20px]">{b.title}</span>
+              <span className="text-[22px] tracking-[-0.015em] max-md:order-last max-md:col-span-2 max-sm:text-[20px]"><span className="ul">{b.title}</span></span>
               <span className="text-right text-[14px] text-muted">{b.read}</span>
               <span aria-hidden="true" className="arrow text-accent max-md:hidden">
                 →
@@ -204,7 +205,7 @@ export default function Home() {
                 </a>
               ))}
               <AshOSLink className="link">{footer.ashos}</AshOSLink>
-              <a href={links.resume} download="" className="link">
+              <a {...resumeLink} className="link">
                 {footer.resume}
               </a>
             </div>

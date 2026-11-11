@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { hero, links } from "@/content";
+import { hero, resumeLink } from "@/content";
 import { AshOSLink } from "./AshOS";
+import { onHashClick } from "./scroll";
 
 const CLIP = "[clip-path:polygon(0_0,100%_0,100%_60%,34%_100%,20%_100%,42%_60%,0_60%)]";
 
@@ -32,7 +33,7 @@ function Name() {
         {words.map((group, gi) => (
           <span key={gi} className="whitespace-nowrap max-[900px]:overflow-hidden max-[900px]:pb-[6px]">
             {group.map(({ ch, i }) => (
-              <span key={i} className="ltr" style={{ animationDelay: (0.2 + i * 0.04).toFixed(3) + "s", width: "auto" }}>
+              <span key={i} className="ltr" style={{ animationDelay: (0.2 + i * 0.045).toFixed(3) + "s", width: "auto" }}>
                 {ch}
               </span>
             ))}
@@ -160,14 +161,14 @@ export default function Hero() {
       <div className="up mt-[44px] flex flex-wrap gap-3 [animation-delay:1.3s] max-sm:mt-9">
         <a
           href={hero.primaryCta.href}
+          onClick={(e) => onHashClick(e)}
           data-magnet="7"
           className="rounded-[12px] bg-fg p-[16px_26px] font-medium text-bg no-underline max-sm:basis-full max-sm:text-center"
         >
           {hero.primaryCta.label}
         </a>
         <a
-          href={links.resume}
-          download=""
+          {...resumeLink}
           data-magnet="7"
           className="rounded-[12px] border border-line p-[16px_26px] font-medium no-underline max-sm:basis-full max-sm:text-center"
         >

@@ -48,7 +48,10 @@ export default function Thread() {
       const dy = TOP + (bot - TOP) * prog;
       drawRef.current?.setAttribute("stroke-dashoffset", (1 - prog).toFixed(4));
       if (dotRef.current) gsap.set(dotRef.current, { x: X(dy), y: dy });
-      endRef.current?.classList.toggle("lit", prog > 0.97);
+      const done = prog > 0.97;
+      endRef.current?.classList.toggle("lit", done);
+      // the lead dot hands over to the semicolon's own dot instead of sitting on it
+      dotRef.current?.classList.toggle("done", done);
     };
 
     // Reduced motion: no scrubbing, just the finished line.

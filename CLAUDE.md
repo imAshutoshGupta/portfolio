@@ -102,35 +102,30 @@ Decisions made along the way (keep unless the user says otherwise):
   hero letter blur, the thread drawing in, the dark-mode clip-path reveal, its
   fade fallback, and the footer CTA colour change.
 
-**Next step: verify and fix.** The user had queued this before stopping:
+**Verified 2026-11-11** (Playwright, 1440px + iPhone 13 at 390px, production
+build): all 10 interactions, Semi sway (inner layer rocks -3°↔3° while idle),
+dark mode (toggle, reload, OS-dark first visit, ashOS iframe gets `?theme=`),
+mobile menu, no sideways scroll, reduced motion, and every motion item.
+Lighthouse (sandbox): desktop 100, mobile 89–91, CLS 0.
 
-1. Check each item in a real browser (Playwright) at 1440px and at 390px
-   (mobile, touch): the 10 interactions, dark mode (toggle, persistence after
-   reload, first visit with the OS set to dark, ashOS opening in the same
-   theme), the mobile menu, no sideways scroll, and each motion item above.
-2. Semi sway: Semi has three nested elements, drop (outer) › hop › sway (inner).
-   The inner one should sway forever: 3.4s ease-in-out infinite,
-   transform-origin 50% 100%, rotate -3deg → 3deg → -3deg. Watch it for ~10s
-   while idle to confirm.
-3. Lenis anchors: every in-page link (logo, nav, mobile menu, hero "See
-   selected work") should go through `lenis.scrollTo`. Lenis must stay in sync
-   after native scrolls (scrollbar drag, keyboard). The logo must always reach
-   scrollY 0, even after `document.documentElement.scrollTop = 3000`.
-4. Reduced motion: no animation at all, and magnetic buttons and card tilt off.
-5. Known gaps:
-   - **No favicon.** Add `app/icon.svg`: a violet (#5B3FD6) rounded square
-     with a white semicolon.
-   - **No `public/resume.pdf`** (there's no `public/` folder), so résumé links
-     404. Don't create a fake PDF; tell the user.
-   - **Résumé links don't match.** `content.ts` exports `resumeLink` (href,
-     download, target, rel), but nothing uses it. `Nav.tsx` uses
-     `download=""` and `Hero.tsx` uses neither. They should all point to
-     `/resume.pdf` with `target="_blank"` and
-     `download="Ashutosh-Gupta-Resume.pdf"`. In Chrome, `download` wins over
-     `target` for same-origin files, so report what actually happens.
-6. Deliver a table (feature | works / broken / missing | what's wrong | file),
-   marking which rows were fixed. Keep fixes small and don't redo work that
-   passes.
+Fixed in that pass:
+- In-page links (logo, nav, mobile menu, hero CTA) go through
+  `components/site/scroll.ts`, which resyncs Lenis before `lenis.scrollTo`
+  (Lenis ignores native scrolls mid-glide and no-ops when the target equals
+  a stale targetScroll). Lenis `anchors` is off. Keyboard scroll keys and
+  scrollbar presses stop a running glide. The logo always lands on 0.
+- Nav auto-hide: only *keyboard* focus (`:focus-visible`) keeps it shown; a
+  mouse click on a nav link used to pin it open for good.
+- Résumé links all spread `resumeLink` from `content.ts`. In Chrome the click
+  downloads (download beats target for same-origin).
+- `app/icon.svg` favicon. Row titles get the draw-in underline (`.ul`).
+  Letter stagger 0.045s, Semi drop at 1.1s. Thread lead dot fades out as the
+  semicolon lights. Reduced motion also drops the card zoom and row shift.
+
+Still open:
+- **`public/resume.pdf` doesn't exist**, so résumé links 404. Don't create a
+  fake one; the user adds it.
+- Experience rows have no arrow (they aren't links); writing rows do.
 
 **Later / optional**
 
