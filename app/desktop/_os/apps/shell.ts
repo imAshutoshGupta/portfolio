@@ -342,6 +342,7 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
           [s("email     ", "accent"), s(contact.emailLabel)],
           [s("github    ", "accent"), s(contact.github ?? "not linked yet", contact.github ? "cyan" : "muted")],
           [s("linkedin  ", "accent"), s(contact.linkedin ?? "not linked yet", contact.linkedin ? "cyan" : "muted")],
+          [s("x         ", "accent"), s(contact.x ?? "not linked yet", contact.x ? "cyan" : "muted")],
           [s("web       ", "accent"), s(contact.site, "cyan")],
           [],
           [s(workWithMe.title, "bold")],

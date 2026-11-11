@@ -219,6 +219,7 @@ function StartPage({ go }: { go: (u: string) => void }) {
           <Tile label="Portfolio" sub={person.siteHost} letter={person.initials} hue={255} onClick={() => go("/")} />
           <Tile label="GitHub" letter="G" hue={220} onClick={open(contact.github)} />
           <Tile label="LinkedIn" letter="in" hue={205} onClick={open(contact.linkedin)} />
+          <Tile label="X" letter="X" hue={270} onClick={open(contact.x)} />
           {moreLinks.allProjects && <Tile label="All projects" letter="P" hue={150} onClick={open(moreLinks.allProjects)} />}
           {moreLinks.allPosts && <Tile label="All posts" letter="W" hue={20} onClick={open(moreLinks.allPosts)} />}
         </div>

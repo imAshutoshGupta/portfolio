@@ -12,7 +12,7 @@ export default function FooterCta() {
   return (
     <a
       href={links.email}
-      className="cta flex flex-wrap items-end gap-[18px] no-underline max-md:block"
+      className="cta block no-underline"
       onMouseEnter={enter}
       onMouseLeave={leave}
       onFocus={enter}
@@ -22,7 +22,7 @@ export default function FooterCta() {
       {/* words reveal one by one as the headline enters (data-words, motionEngine.ts) */}
       <span
         data-words=""
-        className="max-w-[920px] text-[76px] leading-[1.04] tracking-[-0.04em] max-md:inline max-md:text-[60px] max-sm:text-[44px]"
+        className="text-[64px] leading-[1.04] tracking-[-0.04em] max-lg:text-[56px] max-sm:text-[44px]"
       >
         {footer.cta.split(" ").map((word, i, all) => (
           <span key={i}>
@@ -31,11 +31,11 @@ export default function FooterCta() {
           </span>
         ))}
       </span>
-      {/* below md, Semi sits inline after the last word, its tail dipping under the baseline like a semicolon.
+      {/* Semi sits inline after the last word, its tail dipping under the baseline like a semicolon.
           Outer span: placement + responsive scale only. Inner .fsemi: the hover look-up transform only. */}
       <span
         aria-hidden="true"
-        className="mb-[10px] block max-md:ml-[10px] max-md:inline-block max-md:origin-bottom max-md:-mt-4 max-md:mb-[-10px] max-md:[scale:.85] max-sm:[scale:.7]"
+        className="ml-[12px] -mt-4 mb-[-10px] inline-block origin-bottom [scale:.9] max-lg:[scale:.85] max-sm:[scale:.7]"
       >
         <span className="fsemi block" style={{ transform: on ? "translateY(-10px) rotate(-8deg)" : "none" }}>
           <span className="relative block h-[26px] w-[26px] rounded-[99px] bg-accent">

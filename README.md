@@ -42,6 +42,9 @@ desktop. The design spec and current status are in `CLAUDE.md`.
   to remove it from the site and ashOS.
 - **ashOS** reads everything from `content.ts`, so content changes show up in
   both places.
+- **Footer:** the social rows (LinkedIn, GitHub, X, with handles) come from
+  `footer.socials`; the bottom bar shows the `footer.wordmark` + sign-off,
+  ashOS, Résumé, the counters and Back to top.
 
 ## Email
 

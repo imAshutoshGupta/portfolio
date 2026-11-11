@@ -100,6 +100,7 @@ export const contact = {
   emailLabel: links.emailLabel,
   github: realHref(links.github),
   linkedin: realHref(links.linkedin),
+  x: realHref(links.x),
   resume: links.resume,
   resumeFile: resumeLink.download,
   site: meta.url,
