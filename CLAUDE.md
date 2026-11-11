@@ -167,7 +167,6 @@ A macOS-inspired desktop, rebuilt 2026-11-11. It is fully separate from the site
   `delivered: true`.
 - The Résumé app checks for `public/resume.pdf` at build time (`page.tsx`), so
   no 404 probe runs in the browser.
-- `lib/repl.ts` (the old terminal engine with outdated copy) is no longer used.
 
 ## Testing notes
 
