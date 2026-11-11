@@ -55,7 +55,34 @@ const toTrack = (item: SpotifyItem, isPlaying: boolean): Track => ({
   url: item.external_urls?.spotify,
 });
 
+// Free alternative to the Spotify Web API (which now needs Premium on the app
+// owner's account): Last.fm scrobbles Spotify plays, and its API is free.
+async function loadLastFm(key: string, user: string): Promise<Track> {
+  try {
+    const url =
+      "https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&limit=1&format=json" +
+      `&api_key=${encodeURIComponent(key)}&user=${encodeURIComponent(user)}`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return { live: false };
+    const data = await res.json();
+    const t = data.recenttracks?.track?.[0];
+    if (!t) return { live: false };
+    return {
+      live: true,
+      isPlaying: t["@attr"]?.nowplaying === "true",
+      title: t.name,
+      artist: t.artist?.["#text"] ?? t.artist?.name ?? "",
+      url: t.url,
+    };
+  } catch {
+    return { live: false };
+  }
+}
+
 async function loadTrack(): Promise<Track> {
+  const { LASTFM_API_KEY, LASTFM_USERNAME } = process.env;
+  if (LASTFM_API_KEY && LASTFM_USERNAME) return loadLastFm(LASTFM_API_KEY, LASTFM_USERNAME);
+
   const { SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN } = process.env;
 
   // No creds → the client shows the placeholder from content.ts.
