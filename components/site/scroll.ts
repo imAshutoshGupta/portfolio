@@ -12,8 +12,29 @@ export type LenisLike = {
 
 let lenis: LenisLike | null = null;
 
+/**
+ * A native smooth scroll started before Lenis loaded. Setting Lenis up (and
+ * ScrollTrigger's first refresh) cuts that scroll short, leaving the page
+ * partway, so Lenis finishes the trip once it's ready. Any scroll input from
+ * the visitor in the meantime cancels it: they've taken over.
+ */
+let pending: { target: number | HTMLElement; until: number } | null = null;
+const TAKEOVER = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
+const cancelPending = () => {
+  pending = null;
+};
+
 export function setLenis(l: LenisLike | null) {
   lenis = l;
+  const p = pending;
+  pending = null;
+  if (!l || !p || performance.now() > p.until) return;
+  // wait a frame so the rest of the motion setup has run first
+  requestAnimationFrame(() => {
+    if (lenis !== l) return;
+    l.sync();
+    l.scrollTo(p.target);
+  });
 }
 
 /**
@@ -41,6 +62,11 @@ function scrollToHash(hash: string) {
     const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const y = top ? 0 : el!.getBoundingClientRect().top + window.scrollY;
     window.scrollTo({ top: y, behavior: smooth ? "smooth" : "auto" });
+    if (smooth) {
+      pending = { target: top ? 0 : el!, until: performance.now() + 4000 };
+      // `once` + the same handler means re-adding never stacks listeners
+      TAKEOVER.forEach((t) => window.addEventListener(t, cancelPending, { once: true, passive: true }));
+    }
   }
   if (!top) history.replaceState(null, "", hash);
   else if (location.hash) history.replaceState(null, "", location.pathname + location.search);

@@ -210,6 +210,7 @@ function Tile({ label, sub, letter, hue, onClick }: { label: string; sub?: strin
 }
 
 function StartPage({ go }: { go: (u: string) => void }) {
+  const os = useOS();
   const open = (href: string | null) => (href ? () => go(href) : undefined);
   return (
     <div className="ashos-start ashos-scroll">
@@ -220,6 +221,7 @@ function StartPage({ go }: { go: (u: string) => void }) {
           <Tile label="GitHub" letter="G" hue={220} onClick={open(contact.github)} />
           <Tile label="LinkedIn" letter="in" hue={205} onClick={open(contact.linkedin)} />
           <Tile label="X" letter="X" hue={270} onClick={open(contact.x)} />
+          <Tile label="Contact" sub={contact.emailLabel} letter="@" hue={280} onClick={() => os.launch("mail")} />
           {moreLinks.allProjects && <Tile label="All projects" letter="P" hue={150} onClick={open(moreLinks.allProjects)} />}
           {moreLinks.allPosts && <Tile label="All posts" letter="W" hue={20} onClick={open(moreLinks.allPosts)} />}
         </div>

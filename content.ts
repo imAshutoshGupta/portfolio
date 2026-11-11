@@ -47,6 +47,7 @@ export const nav = {
     { label: "Experience", href: "#experience" },
     { label: "Writing", href: "#writing" },
     { label: "About", href: "#about" },
+    { label: "Contact", href: "#contact" },
   ],
   ashos: "ashOS ↗",
   resume: "Résumé ↓",

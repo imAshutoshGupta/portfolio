@@ -229,6 +229,9 @@ Parked; ask before starting:
 - Writing rows keep the "LinkedIn" source label; the user may bring up "Blog"
   later themselves.
 - The thread stays (see Ground rules).
+- Nav links: Work · Experience · Writing · About · Contact (`#contact` = the
+  footer), same list on desktop and the mobile menu. The user declined a Wins
+  link (2026-11-12). ashOS: Contact tile on Safari's Start Page opens Mail.
 - `public/Ashutosh_Gupta_Resume.pdf` is the user's final résumé. Replace it only
   with a file they send; never edit or regenerate it.
 - LinkedIn is `linkedin.com/in/ashutoshgupta08` (matches the résumé). Toolkit

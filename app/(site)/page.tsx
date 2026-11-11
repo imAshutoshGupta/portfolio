@@ -363,7 +363,7 @@ export default function Home() {
         </section>
         </main>
 
-        <footer className="border-t border-line p-[100px_0_48px] max-sm:p-[72px_0_40px]">
+        <footer id="contact" className="border-t border-line p-[100px_0_48px] max-sm:p-[72px_0_40px]">
           {/* two columns: the ask on the left, every way to answer it on the right */}
           <div className="grid grid-cols-[1.1fr_1fr] gap-x-20 gap-y-12 max-md:grid-cols-1 max-sm:gap-y-10">
             <div>
