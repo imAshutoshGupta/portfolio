@@ -22,10 +22,10 @@ export const links = {
   // Cloudflare Email Routing forwards hello@ to the personal inbox.
   email: "mailto:hello@iamashutosh.com",
   emailLabel: "hello@iamashutosh.com",
-  linkedin: "https://linkedin.com/in/imAshutoshGupta",
+  linkedin: "https://www.linkedin.com/in/ashutoshgupta08",
   github: "https://github.com/imAshutoshGupta",
   allProjects: "#",
-  allPosts: "https://www.linkedin.com/in/imAshutoshGupta/recent-activity/all/",
+  allPosts: "https://www.linkedin.com/in/ashutoshgupta08/recent-activity/all/",
   ashos: "/desktop",
 };
 

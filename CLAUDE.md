@@ -198,7 +198,8 @@ Still open:
   text to 28px.
 - Writing rows are placeholders until the user sends LinkedIn post links.
   LinkedIn blocks automated reading, so don't try to scrape them.
-- Skill groups (Toolkit) are waiting on the user.
+- LinkedIn is `linkedin.com/in/ashutoshgupta08` (matches the résumé). Toolkit
+  and Experience match the résumé too.
 - Draft copy to confirm: `footer.intro`, `footer.help`, the two headlines,
   the hobby lines.
 
