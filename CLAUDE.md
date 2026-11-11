@@ -204,19 +204,22 @@ Waiting on the user's content (don't invent it):
   LinkedIn blocks automated reading, so don't try to scrape them.
 - **Kind words**: both quotes are placeholders.
 
-Waiting on the user to check:
-- Nav frosted glass in Safari on their iPhone (headless WebKit can't show it).
-- The reworked footer on a real phone.
-
-Parked; ask before starting:
-- Font change: the user liked the reference site's fonts (Josefin Sans, DM Sans,
-  Fraunces). Don't touch type without asking.
+Parked; ask before starting (the user said hold, 2026-11-12):
 - Mobile Lighthouse headroom: the largest remaining cost is a ~147KB font,
   probably Newsreader italic with its optical-size axis. It changes how the
   font looks, so ask first.
-- Floating glass-pill nav: offered as a bigger nav option; build only if asked.
 
 ### Closed (don't reopen unless the user does)
+
+- Nav frosted glass in Safari on the user's iPhone and the reworked footer on
+  a real phone: both checked by the user and working (2026-11-12).
+- Floating glass-pill nav: built and tried on 2026-11-12 (the frosted layer
+  gathered into a pill on scroll); the user preferred the existing full-width
+  bar and had it reverted. Don't offer it again.
+- Fonts: the user tried the reference site's fonts on 2026-11-12 (DM Sans body,
+  Josefin Sans headings, Fraunces italic accents), disliked them and had them
+  reverted. Inter Tight / Newsreader italic / Sacramento / JetBrains Mono stay:
+  in the user's words, "absolutely the best". Don't suggest a font change again.
 
 - Hackathons & wins: RootCause (Paytm Build for India) is the only win.
 - About photo: kept. The user likes it. Still don't spread it elsewhere.
@@ -246,7 +249,7 @@ Parked; ask before starting:
   to be hidden); the About photo and hobby chips are centred under 640px.
 - Nav glass: the frosted blur never rendered before (see the nav note under
   "Decisions"). Now it does, at the original 72% tint + 14px blur. The user
-  hasn't confirmed Safari on their iPhone yet (see Open).
+  confirmed it in Safari on their iPhone (2026-11-12).
 - Now playing (hero + ashOS Control Centre) always links to the user's Spotify
   profile (`links.spotify`), not a Last.fm track page; the API no longer returns
   a track URL. With no track it shows paused bars and "Silence, for now;"
