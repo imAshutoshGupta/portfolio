@@ -1,34 +1,94 @@
 # Portfolio v4 — project notes for Claude
 
 Personal portfolio for Ashutosh Gupta: a Next.js rebuild of a "v4" design, plus
-the older interactive **ashOS** terminal desktop at `/desktop`. See `README.md`
-for the stack, file map and env vars.
+the interactive **ashOS** desktop at `/desktop`. This file holds every technical
+and project note. `README.md` is for visitors (what the site is, how to look
+around, links) and should stay free of history and internals.
 
 ## Ground rules
 
 - **Never push to `main` on your own.** Cloudflare Workers Builds deploys
   `main` to the live site; other branches get preview builds. Work on a feature
   branch off `main` and let the user merge. Only merge + push `main` when the
-  user explicitly asks in that conversation (they did on 2026-11-12); that
-  doesn't carry over to later sessions. Delete merged branches afterwards.
+  user explicitly asks in that conversation; that permission doesn't carry over
+  to later requests or sessions. Delete merged branches afterwards. The user
+  sometimes works from cloud sessions, which only see what's on GitHub.
 - **Don't commit unless asked.** The user reviews first.
 - Run `npm run typecheck` before calling anything done.
+- **Next.js 16 has breaking changes** from what you may know. Before writing
+  Next-specific code, read the relevant guide in `node_modules/next/dist/docs/`
+  and heed deprecation notices. (`agentRules: false` in `next.config.mjs` stops
+  `next dev` writing this rule to an AGENTS.md.)
 - All copy lives in `content.ts`. `[bracketed]` text and `"#"` hrefs are
   placeholders the user will fill in. Don't invent real content for them.
 - **Every site change also goes into ashOS**, without being asked: wire new
-  content through `app/desktop/_os/data/portfolio.ts` and the apps/docs/shell
-  that show it, and say what changed there.
+  content through `app/desktop/_os/data/portfolio.ts` and the places that show
+  it (`apps/About.tsx`, `apps/Projects.tsx`, `apps/shell.ts`, `data/fs.ts` docs,
+  `ui/Panels.tsx`), never hardcoded, and say what changed there.
 - New features borrowed from elsewhere get re-themed to this site (Semi, the
-  semicolon, the violet accent, italic-serif accents), not copied as-is.
+  semicolon, the thread, the violet accent, Newsreader italic accents, a calm
+  and slightly wry voice), not copied as-is. Examples the user approved: the
+  view counter uses Semi's blinking eyes, the poke counter a tiny Semi.
 - `features.thread` in `content.ts` turns the left-gutter scroll line on and off.
   It's `true`, and on 2026-11-12 the user settled it: they like it and are
   keeping it. Don't suggest replacing it.
 
+## Codebase
+
+**Stack:** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript ·
+Tailwind CSS v4 (exact source values as arbitrary values, no preflight) ·
+Lenis + GSAP ScrollTrigger · fonts via `next/font` · deployed on Cloudflare
+Workers (OpenNext, `wrangler.jsonc`).
+
+| Path | What it is |
+| --- | --- |
+| `content.ts` | All site copy, links and feature flags |
+| `app/(site)/page.tsx` | The home page sections |
+| `app/(site)/site.css` | Design tokens (light/dark), keyframes, component classes |
+| `components/site/` | Nav, `Bulb.tsx` (theme switch), hero + Semi, project cards, footer CTA, copy-email, footer stats, back to top, `Motion.tsx` → `motionEngine.ts` (Lenis + GSAP), `scroll.ts`, `Thread.tsx`, ashOS takeover |
+| `components/HobbyIcon.tsx` | Hobby chip icons, shared by the site and ashOS |
+| `app/desktop/` | ashOS (see its section below) |
+| `app/api/now-playing` | Now / last played (Last.fm, or Spotify's API), edge-cached 10s |
+| `app/api/views`, `app/api/pokes` | Footer counters in Cloudflare KV (`app/api/_lib/counter.ts`) |
+| `public/projects/` | Project demo videos (`.mp4`) + first frames (`.webp`) |
+| `public/wins/`, `public/about/` | Hackathon screenshot, About photo |
+| `public/brand/` | The user's brand kit (logos, favicons, OG images). Not referenced by the site code, but `README.md` uses the logo and OG images. Keep it. |
+| `public/Ashutosh_Gupta_Resume.pdf` | The résumé (see Closed) |
+
+**Commands:** `npm install` · `npm run dev` (:3000) · `npm run build && npm run start` ·
+`npm run typecheck`.
+
+**Environment** (all optional, see `.env.example`):
+- `LASTFM_API_KEY` / `LASTFM_USERNAME`: what the live site uses. Spotify's
+  Last.fm connection scrobbles every play (free, no Premium). Win over the
+  Spotify vars when set.
+- `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` / `SPOTIFY_REFRESH_TOKEN`:
+  real-time, but needs Premium on the app owner's account (the user has none).
+- With neither set, Now playing shows `hero.nowPlaying.fallback`.
+
+**Footer counters:** one KV namespace bound as `COUNTERS` (namespace
+`portfolio-counters`, in `wrangler.jsonc`). Without it the counters hide
+themselves; `next dev` counts in memory. To move namespaces:
+`npx wrangler kv namespace create COUNTERS` and swap the id in `wrangler.jsonc`.
+
+**Behaviour notes:**
+- Theme: `data-theme` on `<html>`; first visit follows the OS, the bulb saves
+  the choice to `localStorage`; ashOS gets it via `?theme=`.
+- Feature flags in `content.ts`: `features.thread` (also hides the "That thin
+  line…" About note), `features.aboutPhoto` (site and ashOS).
+- At desktop widths the page matches the source values exactly; `max-*:`
+  Tailwind variants add the responsive layout the source didn't have.
+- Reduced motion: all animations and transitions off, Lenis disabled.
+
 ## The design spec
 
-The design came from `portfolio-v4-source.html` (a design-canvas export) and
-`HANDOFF.md`. Both are research files kept **only on the user's Mac**, not in
-the repo. The parts that matter are copied here.
+The design came from `portfolio-v4-source.html`, a design-canvas export kept
+**only on the user's Mac** (excluded via `.git/info/exclude`, not
+`.gitignore`). The handoff brief that came with it has been retired; everything
+that matters from it is below. If you ever read the source: `<x-dc>` is the
+page JSX, `<helmet>` the global CSS, `{{name}}` a value from `renderVals()`,
+`<sc-for>` / `<sc-if>` are `map` / conditionals, and inline styles are the exact
+design values.
 
 **Fonts:** Inter Tight (400/500/600) · Newsreader italic · Sacramento · JetBrains Mono
 
@@ -97,16 +157,45 @@ the source, and all 10 interactions behave the same. The additions under
 
 `hello@iamashutosh.com` (`links.email` / `links.emailLabel` in `content.ts`).
 Cloudflare Email Routing forwards it to the user's personal Gmail. Never put
-the personal address on the site, in ashOS or in committed files.
+the personal address on the site, in ashOS, in the README or in committed files.
 
 There is no server-side email. The user declined Resend (2026-11-12) and doesn't
 want visitors sending mail through the site, so `/api/contact` was removed. Don't
 add a sending service back, and don't remove ashOS Mail either: its Send opens
 the visitor's own email app via `mailto:`.
 
+## ashOS (`/desktop`)
+
+A macOS-inspired desktop, rebuilt 2026-11-11, opened from the site in a
+full-screen iframe. It is fully separate from the site:
+
+- **Content:** everything comes from `content.ts` through
+  `app/desktop/_os/data/portfolio.ts`. Never hardcode personal facts in ashOS.
+  Placeholders show as-is; `"#"` links show as "not linked yet".
+- **Styles:** `app/desktop/os.css` is plain CSS, every selector under `.ashos`,
+  keyframes prefixed `ashos-`, no Tailwind, no `:root`/`html`/`body` rules.
+  Write `-webkit-backdrop-filter` *before* `backdrop-filter`: the minifier keeps
+  only the last of the pair, and Chromium needs the unprefixed one. ashOS uses
+  system fonts, not the site's.
+- **Settings** live in `localStorage` under `ashos:*` keys and never touch the
+  site's `theme`. "Auto" appearance starts from the `?theme=` the site passes in.
+- **Structure:** `_os/data` (apps, virtual file system, docs, wallpapers),
+  `_os/state` (prefs, window-manager reducer, OS context), `_os/ui` (window,
+  menu bar, dock, Spotlight, panels, desktop icons), `_os/apps` (Finder, About
+  Me, Projects, Terminal + `shell.ts`, Safari, Mail, Résumé/Preview/Photos,
+  System Settings). Wallpapers in `public/ashos/wallpapers/`.
+- Browsers keep ⌘W/⌘Q/⌘Tab, so ashOS shortcuts also work with ⌥ (menus show ⌥).
+- Mail's Send opens the visitor's email app (`mailto:` to `hello@`), then files
+  the message under Sent as "Opened in your email app" with Copy Message /
+  Copy Address in case no mail app opened. It never claims the mail was sent.
+- Shared with the site: `components/HobbyIcon.tsx` (hobby chip icons) and the
+  About photo (`person.photo`, shown while `features.aboutPhoto` is on).
+- The Résumé app checks for the résumé PDF (`links.resume`) at build time
+  (`page.tsx`), so no 404 probe runs in the browser.
+
 ## Status (as of 2026-11-12)
 
-**Done**
+### Done
 
 - Full v4 rebuild: every section, the 10 interactions, dark mode, responsive
   layout below 860px, ashOS opening in a full-screen iframe.
@@ -136,6 +225,8 @@ Decisions made along the way (keep unless the user says otherwise):
 - Effects that animate something other than transform/opacity, on purpose:
   hero letter blur, the thread drawing in, the dark-mode clip-path reveal, its
   fade fallback, and the footer CTA colour change.
+
+### History
 
 **Verified 2026-11-11** (Playwright, 1440px + iPhone 13 at 390px, production
 build): all 10 interactions, Semi sway (inner layer rocks -3°↔3° while idle),
@@ -195,54 +286,6 @@ item was approved by the user):
   "Work With Me.md", `Me.webp` in Finder, `contact`/`writing` terminal output.
 - "All projects →" stays (points to `#` until there's more work to list).
 
-### Open (as of 2026-11-12)
-
-Waiting on the user's content (don't invent it):
-- **Projects one and four** are placeholders (`[Project one]`, `[Project four]`),
-  and "All projects →" plus the case-study links point to `#`.
-- **Writing** rows are placeholders until the user sends LinkedIn post links.
-  LinkedIn blocks automated reading, so don't try to scrape them.
-- **Kind words**: both quotes are placeholders.
-
-Parked; ask before starting (the user said hold, 2026-11-12):
-- Mobile Lighthouse headroom: the largest remaining cost is a ~147KB font,
-  probably Newsreader italic with its optical-size axis. It changes how the
-  font looks, so ask first.
-
-### Closed (don't reopen unless the user does)
-
-- Nav frosted glass in Safari on the user's iPhone and the reworked footer on
-  a real phone: both checked by the user and working (2026-11-12).
-- Floating glass-pill nav: built and tried on 2026-11-12 (the frosted layer
-  gathered into a pill on scroll); the user preferred the existing full-width
-  bar and had it reverted. Don't offer it again.
-- Fonts: the user tried the reference site's fonts on 2026-11-12 (DM Sans body,
-  Josefin Sans headings, Fraunces italic accents), disliked them and had them
-  reverted. Inter Tight / Newsreader italic / Sacramento / JetBrains Mono stay:
-  in the user's words, "absolutely the best". Don't suggest a font change again.
-
-- Hackathons & wins: RootCause (Paytm Build for India) is the only win.
-- About photo: kept. The user likes it. Still don't spread it elsewhere.
-- Footer: reworked and merged 2026-11-12 (details under "Footer rework"),
-  including the cramped phone spacing. Footer copy, the two section headlines
-  and the hobby lines are approved.
-- Now playing / Spotify: Last.fm feed, Spotify-profile link, idle line and
-  refresh timing are done (details under "Shipped 2026-11-12"). Reopen only if
-  the user reports a problem.
-- Writing rows keep the "LinkedIn" source label; the user may bring up "Blog"
-  later themselves.
-- The thread stays (see Ground rules).
-- Nav links: Work · Experience · Writing · About · Contact (`#contact` = the
-  footer), same list on desktop and the mobile menu. The user declined a Wins
-  link (2026-11-12). ashOS: Contact tile on Safari's Start Page opens Mail.
-- `public/Ashutosh_Gupta_Resume.pdf` is the user's final résumé. Replace it only
-  with a file they send; never edit or regenerate it.
-- LinkedIn is `linkedin.com/in/ashutoshgupta08` (matches the résumé). Toolkit
-  and Experience match the résumé too. X is `x.com/im_AshutoshG` (`links.x`).
-- Footer counters: `/api/views` and `/api/pokes` read the `COUNTERS` KV
-  binding (namespace `portfolio-counters`, in `wrangler.jsonc`).
-- Experience rows have no arrow (they aren't links); writing rows do.
-
 **Shipped 2026-11-12** (merged to `main` at the user's request):
 
 - Phones: the Hackathons screenshot shows below the story under 900px (it used
@@ -264,8 +307,9 @@ Parked; ask before starting (the user said hold, 2026-11-12):
   If it ever lags again, compare Last.fm's `user.getrecenttracks` with
   `/api/now-playing` first. Faster scrobblers (Pano Scrobbler on Android, Web
   Scrobbler for the web player) only matter if Last.fm itself falls behind.
-- Brand kit under `public/brand/` (logos, favicon variants, OG variants) isn't
-  referenced by code. It's the user's asset library: keep it.
+- Nav links: Work · Experience · Writing · About · Contact (`#contact` = the
+  footer), same list on desktop and the mobile menu. ashOS: Contact tile on
+  Safari's Start Page opens Mail.
 
 **Footer rework, 2026-11-12** (merged to `main` at the user's request; approved
 after a second look at manishluci.com's footer):
@@ -286,32 +330,58 @@ after a second look at manishluci.com's footer):
 - ashOS: X in the contact card, Contact folder, Portfolio Overview.pdf links, Mail
   (`xLogo` glyph; `x` is the close icon), Terminal `contact`, Safari start page.
 
-## ashOS (`/desktop`)
+**Docs cleanup, 2026-11-12:** `README.md` rewritten for visitors (logo, preview,
+links, ashOS tips, selected work, résumé, GitHub stats, contact; local setup
+folded away). Its technical content moved here. AGENTS.md and HANDOFF.md
+retired; Claude's memory notes folded into this file.
 
-A macOS-inspired desktop, rebuilt 2026-11-11. It is fully separate from the site:
+### Open
 
-- **Content:** everything comes from `content.ts` through
-  `app/desktop/_os/data/portfolio.ts`. Never hardcode personal facts in ashOS.
-  Placeholders show as-is; `"#"` links show as "not linked yet".
-- **Styles:** `app/desktop/os.css` is plain CSS, every selector under `.ashos`,
-  keyframes prefixed `ashos-`, no Tailwind, no `:root`/`html`/`body` rules.
-  Write `-webkit-backdrop-filter` *before* `backdrop-filter`: the minifier keeps
-  only the last of the pair, and Chromium needs the unprefixed one.
-- **Settings** live in `localStorage` under `ashos:*` keys and never touch the
-  site's `theme`. "Auto" appearance starts from the `?theme=` the site passes in.
-- **Structure:** `_os/data` (apps, virtual file system, docs, wallpapers),
-  `_os/state` (prefs, window-manager reducer, OS context), `_os/ui` (window,
-  menu bar, dock, Spotlight, panels, desktop icons), `_os/apps` (Finder, About
-  Me, Projects, Terminal + `shell.ts`, Safari, Mail, Résumé/Preview/Photos,
-  System Settings).
-- Browsers keep ⌘W/⌘Q/⌘Tab, so ashOS shortcuts also work with ⌥ (menus show ⌥).
-- Mail's Send opens the visitor's email app (`mailto:` to `hello@`), then files
-  the message under Sent as "Opened in your email app" with Copy Message /
-  Copy Address in case no mail app opened. It never claims the mail was sent.
-- Shared with the site: `components/HobbyIcon.tsx` (hobby chip icons) and the
-  About photo (`person.photo`, shown while `features.aboutPhoto` is on).
-- The Résumé app checks for the résumé PDF (`links.resume`) at build time (`page.tsx`), so
-  no 404 probe runs in the browser.
+Waiting on the user's content (don't invent it; the user is keeping these open):
+- **Projects one and four** are placeholders (`[Project one]`, `[Project four]`),
+  and "All projects →" plus the case-study links point to `#`.
+- **Writing** rows are placeholders until the user sends LinkedIn post links.
+  LinkedIn blocks automated reading, so don't try to scrape them.
+- **Kind words**: both quotes are placeholders.
+
+When real projects land, add them to the README's "Selected work" table too.
+
+Parked; ask before starting (the user said hold, 2026-11-12):
+- Mobile Lighthouse headroom: the largest remaining cost is a ~147KB font,
+  probably Newsreader italic with its optical-size axis. It changes how the
+  font looks, so ask first.
+
+### Closed (don't reopen unless the user does)
+
+- Fonts: the user tried the reference site's fonts on 2026-11-12 (DM Sans body,
+  Josefin Sans headings, Fraunces italic accents), disliked them and had them
+  reverted. Inter Tight / Newsreader italic / Sacramento / JetBrains Mono stay:
+  in the user's words, "absolutely the best". Don't suggest a font change again.
+- Floating glass-pill nav: built and tried on 2026-11-12 (the frosted layer
+  gathered into a pill on scroll); the user preferred the existing full-width
+  bar and had it reverted. Don't offer it again.
+- Nav frosted glass in Safari on the user's iPhone and the reworked footer on
+  a real phone: both checked by the user and working (2026-11-12).
+- Hackathons & wins: RootCause (Paytm Build for India) is the only win.
+- About photo: kept; the user likes it. Don't put it anywhere else (hero,
+  favicon, OG) unless asked: "no need to bombard the website with our photo."
+- Footer: reworked and merged 2026-11-12 (details under "Footer rework"),
+  including the cramped phone spacing. Footer copy, the two section headlines
+  and the hobby lines are approved.
+- Now playing / Spotify: Last.fm feed, Spotify-profile link, idle line and
+  refresh timing are done (details under "Shipped 2026-11-12"). Reopen only if
+  the user reports a problem.
+- Writing rows keep the "LinkedIn" source label; the user may bring up "Blog"
+  later themselves.
+- The thread stays (see Ground rules).
+- Nav links: the user declined a Wins link (2026-11-12).
+- `public/Ashutosh_Gupta_Resume.pdf` is the user's final résumé. Replace it only
+  with a file they send; never edit or regenerate it.
+- LinkedIn is `linkedin.com/in/ashutoshgupta08` (matches the résumé). Toolkit
+  and Experience match the résumé too. X is `x.com/im_AshutoshG` (`links.x`).
+- Footer counters: `/api/views` and `/api/pokes` read the `COUNTERS` KV
+  binding (namespace `portfolio-counters`, in `wrangler.jsonc`).
+- Experience rows have no arrow (they aren't links); writing rows do.
 
 ## Testing notes
 
