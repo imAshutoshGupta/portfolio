@@ -32,7 +32,7 @@ import { DEFAULT_PREFS, hostTheme, KEYS, load, save, type Prefs } from "./prefs"
 import { clampRect, initialWm, topWindow, wmReducer, type Rect, type Win, type WinMode } from "./wm";
 
 export const MENUBAR_H = 28;
-export const MOBILE_BP = 760;
+const MOBILE_BP = 760;
 
 export type MenuItem =
   | { sep: true }

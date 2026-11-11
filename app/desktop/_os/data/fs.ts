@@ -20,7 +20,7 @@ import {
   writing,
 } from "./portfolio";
 
-export type NodeKind = "volume" | "folder" | "app" | "document" | "image" | "link";
+type NodeKind = "volume" | "folder" | "app" | "document" | "image" | "link";
 
 export type FolderGlyph =
   | "generic"

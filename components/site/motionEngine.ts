@@ -20,10 +20,6 @@ gsap.registerPlugin(ScrollTrigger);
 
 const EASE = "power3.out";
 
-let lenis: Lenis | null = null;
-/** The running Lenis instance (null under reduced motion or before init). */
-export const getLenis = () => lenis;
-
 export function initMotion(): () => void {
   const root = document.documentElement;
   const cleanups: (() => void)[] = [];
@@ -42,7 +38,6 @@ export function initMotion(): () => void {
     // keep scrolling inside the ashOS iframe native
     prevent: (node) => node.nodeName === "IFRAME",
   });
-  lenis = l;
   // Lenis.reset() is public at runtime but typed private; it's exactly the
   // "forget the glide, re-read the real scroll position" step we need.
   const resetLenis = () => (l as unknown as { reset: () => void }).reset();
@@ -193,7 +188,6 @@ export function initMotion(): () => void {
     mo.disconnect();
     gsap.ticker.remove(tick);
     l.destroy();
-    lenis = null;
     setLenis(null);
     delete root.dataset.motionReady;
   };

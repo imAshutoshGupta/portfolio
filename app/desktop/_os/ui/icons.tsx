@@ -699,7 +699,7 @@ const FOLDER_GLYPH: Record<FolderGlyph, GlyphName | null> = {
   trash: "trash",
 };
 
-export function FolderIcon({ glyph = "generic" }: { glyph?: FolderGlyph }) {
+function FolderIcon({ glyph = "generic" }: { glyph?: FolderGlyph }) {
   const [a, b] = useIds(2);
   const g = FOLDER_GLYPH[glyph];
   return (

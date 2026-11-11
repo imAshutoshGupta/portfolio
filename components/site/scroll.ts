@@ -23,13 +23,13 @@ export function setLenis(l: LenisLike | null) {
  * the logo could fail to return to the top after a scrollbar drag, a keyboard
  * scroll or a scripted `scrollTop = …`.
  */
-export function syncLenis() {
+function syncLenis() {
   if (!lenis) return;
   lenis.sync();
 }
 
 /** Scroll to "#top" / "#" (the very top) or the element a hash points at. */
-export function scrollToHash(hash: string) {
+function scrollToHash(hash: string) {
   const top = hash === "#" || hash === "#top";
   const el = top ? null : document.getElementById(decodeURIComponent(hash.slice(1)));
   if (!top && !el) return false;

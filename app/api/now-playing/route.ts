@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-// Fetched on demand; real results sit in Cloudflare's edge cache for ~30s
-// (same pattern as /api/github), so Spotify is hit at most about twice a
+// Fetched on demand; real results sit in Cloudflare's edge cache for ~30s,
+// so Spotify is hit at most about twice a
 // minute per location.
 export const dynamic = "force-dynamic";
 

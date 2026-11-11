@@ -23,10 +23,10 @@ import {
 } from "@/content";
 
 /** True when a string still holds a `[placeholder]`. */
-export const isPlaceholder = (s?: string | null) => !!s && /\[[^\]]*\]/.test(s);
+const isPlaceholder = (s?: string | null) => !!s && /\[[^\]]*\]/.test(s);
 
 /** A usable href, or null for "#" / placeholder links. */
-export function realHref(href?: string | null): string | null {
+function realHref(href?: string | null): string | null {
   if (!href || href === "#" || isPlaceholder(href)) return null;
   return href;
 }
