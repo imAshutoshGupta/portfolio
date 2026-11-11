@@ -7,8 +7,8 @@ import { docToLines } from "../data/doc";
 import { basename, formatSize, HOME, resolvePath, type Fs, type FsNode } from "../data/fs";
 import { achievements, approach, contact, experience, localNow, person, toolkit, work, writing } from "../data/portfolio";
 
-export type Tone = "accent" | "green" | "blue" | "cyan" | "yellow" | "red" | "magenta" | "muted" | "bold";
-export type Seg = { t: string; c?: Tone };
+type Tone = "accent" | "green" | "blue" | "cyan" | "yellow" | "red" | "magenta" | "muted" | "bold";
+type Seg = { t: string; c?: Tone };
 export type Line = Seg[];
 
 export type ShellCtx = {
@@ -22,7 +22,7 @@ export type ShellCtx = {
   viewport: { w: number; h: number };
 };
 
-export type Effect =
+type Effect =
   | { type: "cd"; path: string }
   | { type: "clear" }
   | { type: "open"; path: string }
@@ -35,7 +35,7 @@ export type Result = { lines: Line[]; effects?: Effect[] };
 const s = (t: string, c?: Tone): Seg => ({ t, c });
 const plain = (t: string): Line => [s(t)];
 
-export const COMMANDS: Record<string, string> = {
+const COMMANDS: Record<string, string> = {
   help: "list commands",
   about: "who I am",
   whoami: "the short version",
@@ -61,7 +61,7 @@ export const COMMANDS: Record<string, string> = {
 };
 
 /** Split a command line, honouring quotes and backslash-escaped spaces. */
-export function tokenize(line: string): string[] {
+function tokenize(line: string): string[] {
   const out: string[] = [];
   let cur = "";
   let q: string | null = null;

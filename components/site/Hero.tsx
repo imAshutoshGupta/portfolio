@@ -13,6 +13,7 @@ function Name() {
   const [pokes, setPokes] = useState(0);
   const lines = hero.semiLines;
   const said = lines[Math.min(pokes, lines.length - 1)];
+  const done = pokes >= lines.length - 1; // on the last line: eyes go sleepy
 
   // Letters keep their global index for the stagger; grouped per word so the
   // name only ever wraps between words on narrow screens.
@@ -51,8 +52,8 @@ function Name() {
             <span key={"h" + pokes} className={"block " + (pokes ? "hop" : "")}>
               <span className="sway block">
                 <span aria-hidden="true" className="relative block h-[34px] w-[34px] rounded-[99px] bg-accent">
-                  <span className="eye absolute top-[11px] left-[8px] w-[6px] rounded-[99px] bg-bg" style={{ height: pokes >= 4 ? "3px" : "9px" }} />
-                  <span className="eye absolute top-[11px] right-[8px] w-[6px] rounded-[99px] bg-bg" style={{ height: pokes >= 4 ? "3px" : "9px" }} />
+                  <span className="eye absolute top-[11px] left-[8px] w-[6px] rounded-[99px] bg-bg" style={{ height: done ? "3px" : "9px" }} />
+                  <span className="eye absolute top-[11px] right-[8px] w-[6px] rounded-[99px] bg-bg" style={{ height: done ? "3px" : "9px" }} />
                 </span>
                 <span aria-hidden="true" className={"m-[7px_0_0_3px] block h-[43px] w-[29px] rounded-[99px_99px_99px_9px] bg-accent " + CLIP} />
               </span>
@@ -64,8 +65,29 @@ function Name() {
         key={"s" + pokes}
         aria-live="polite"
         className="say m-[0_0_20px_16px] font-script text-[30px] font-normal tracking-[0] text-muted max-sm:m-[6px_0_0] max-sm:min-h-[30px] max-sm:basis-full"
+        // the hint waits for Semi to land (drop starts 1.1s, lasts 0.9s)
+        style={pokes ? undefined : { animationDelay: "2s" }}
       >
-        {said}
+        {said || (
+          <span className="relative">
+            {/* hand-drawn arrow curling back up to Semi, sitting in the gap so it takes no space;
+                on mobile Semi is above-right, so it moves to the end and flips */}
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 28 20"
+              className="absolute right-full bottom-[8px] mr-[1px] h-[16px] w-[22px] max-sm:right-auto max-sm:left-full max-sm:ml-[4px] max-sm:-scale-x-100"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M26 17C18 18 8 14 5 5" />
+              <path d="M3.6 9.8 5 5 9 8" />
+            </svg>
+            {hero.semiHint}
+          </span>
+        )}
       </span>
     </h1>
   );

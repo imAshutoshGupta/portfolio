@@ -1,7 +1,7 @@
 // A tiny structured-document model. Preview renders it as a page; the
 // Terminal's `cat` renders it as text. UI-free.
 
-export type Block =
+type Block =
   | { t: "title"; text: string; sub?: string }
   | { t: "h"; text: string }
   | { t: "p"; text: string }

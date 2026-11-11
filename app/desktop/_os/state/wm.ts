@@ -3,7 +3,7 @@
 import { APPS, type AppArgs, type AppId } from "../data/apps";
 
 export type WinMode = "normal" | "zoomed" | "fullscreen";
-export type Phase = "opening" | "open" | "closing" | "minimizing" | "restoring";
+type Phase = "opening" | "open" | "closing" | "minimizing" | "restoring";
 export type Rect = { x: number; y: number; w: number; h: number };
 
 export type Win = Rect & {
