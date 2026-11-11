@@ -11,7 +11,7 @@ import { useClock } from "./MenuBar";
 
 /* ---------- Now playing (the portfolio's own /api/now-playing route) ---------- */
 
-type Track = { live: false } | { live: true; isPlaying: boolean; title: string; artist: string; url?: string };
+type Track = { live: false } | { live: true; isPlaying: boolean; title: string; artist: string };
 
 function useNowPlaying() {
   const [t, setT] = useState<Track | null>(null);
@@ -37,7 +37,8 @@ function NowPlaying() {
   const live = t?.live ? t : null;
   const label = live ? (live.isPlaying ? nowPlaying.label : nowPlaying.lastPlayedLabel) : nowPlaying.label;
   const text = live ? `${live.title} — ${live.artist}` : nowPlaying.fallback;
-  const href = live?.url ?? nowPlaying.href;
+  // Always the Spotify profile (null until content.ts has it).
+  const href = nowPlaying.href;
   return (
     <div className="ashos-cc__module ashos-np">
       <span className={"ashos-np__art" + (live?.isPlaying ? " is-playing" : "")} aria-hidden="true">

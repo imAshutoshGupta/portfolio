@@ -123,7 +123,7 @@ function LocalTime() {
 
 /* ---------------- now playing ---------------- */
 
-type Track = { live: boolean; isPlaying?: boolean; title?: string; artist?: string; url?: string };
+type Track = { live: boolean; isPlaying?: boolean; title?: string; artist?: string };
 
 function NowPlaying() {
   const [track, setTrack] = useState<Track>({ live: false });
@@ -144,14 +144,17 @@ function NowPlaying() {
 
   const np = hero.nowPlaying;
   const live = track.live && track.title;
-  const playing = !live || track.isPlaying;
-  const label = playing ? np.label : np.lastPlayedLabel;
+  // Bars move only while something is actually playing; idle and "last played"
+  // both show them paused.
+  const playing = Boolean(live && track.isPlaying);
+  const label = live && !track.isPlaying ? np.lastPlayedLabel : np.label;
   const text = live ? `${track.title} — ${track.artist}` : np.fallback;
+  const external = np.href !== "#";
 
   return (
     <a
-      href={(live && track.url) || np.href}
-      {...(live && track.url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      href={np.href}
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className="block no-underline"
     >
       <p className="m-0 flex items-center gap-2 text-muted">

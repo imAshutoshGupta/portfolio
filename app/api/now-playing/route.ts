@@ -14,12 +14,11 @@ const RECENT_URL = "https://api.spotify.com/v1/me/player/recently-played?limit=1
 type SpotifyItem = {
   name: string;
   artists: { name: string }[];
-  external_urls?: { spotify?: string };
 };
 
 type Track =
   | { live: false }
-  | { live: true; isPlaying: boolean; title: string; artist: string; url?: string };
+  | { live: true; isPlaying: boolean; title: string; artist: string };
 
 type EdgeCache = {
   match(req: Request): Promise<Response | undefined>;
@@ -52,7 +51,6 @@ const toTrack = (item: SpotifyItem, isPlaying: boolean): Track => ({
   isPlaying,
   title: item.name,
   artist: item.artists.map((a) => a.name).join(", "),
-  url: item.external_urls?.spotify,
 });
 
 // Free alternative to the Spotify Web API (which now needs Premium on the app
@@ -72,7 +70,6 @@ async function loadLastFm(key: string, user: string): Promise<Track> {
       isPlaying: t["@attr"]?.nowplaying === "true",
       title: t.name,
       artist: t.artist?.["#text"] ?? t.artist?.name ?? "",
-      url: t.url,
     };
   } catch {
     return { live: false };

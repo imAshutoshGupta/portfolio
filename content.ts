@@ -23,6 +23,9 @@ export const links = {
   emailLabel: "hello@iamashutosh.com",
   linkedin: "https://www.linkedin.com/in/ashutoshgupta08",
   github: "https://github.com/imAshutoshGupta",
+  // Personal Spotify profile (open.spotify.com/user/…). The now-playing widget
+  // always links here, whatever track it shows.
+  spotify: "https://open.spotify.com/user/luzxyw9wz3d2felvulp35eqqo",
   allProjects: "#",
   allPosts: "https://www.linkedin.com/in/ashutoshgupta08/recent-activity/all/",
   ashos: "/desktop",
@@ -103,8 +106,9 @@ export const hero = {
   nowPlaying: {
     label: "Now playing",
     lastPlayedLabel: "Last played",
-    fallback: "[Track] — [Artist]",
-    href: "#",
+    // Shown when the API has no track (no scrobbles, or Last.fm is down).
+    fallback: "Silence, for now;",
+    href: links.spotify,
   },
 };
 
