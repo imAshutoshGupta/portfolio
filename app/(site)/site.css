@@ -155,8 +155,11 @@
     transform:scaleX(0);transform-origin:right;transition:transform .45s cubic-bezier(.65,0,.35,1)}
   .row:hover .ul::after,.row:focus-visible .ul::after{transform:scaleX(1);transform-origin:left}
 
-  /* 10. nav: sticky; hides on scroll down, returns on scroll up */
-  .site-nav{position:sticky;top:0;z-index:50;animation:fadeIn .6s ease-out both;
+  /* 10. nav: sticky; hides on scroll down, returns on scroll up.
+     The fade-in fills backwards only: an opacity animation that holds its end
+     state ("both"/"forwards") makes the nav a backdrop root, and then the
+     ::before blur below sees nothing behind the nav. */
+  .site-nav{position:sticky;top:0;z-index:50;animation:fadeIn .6s ease-out backwards;
     transition:transform .5s cubic-bezier(.2,.8,.2,1)}
   .site-nav[data-hidden]{transform:translateY(-101%)}
   .site-nav::before{content:"";position:absolute;inset:0 calc(50% - 50vw);z-index:-1;pointer-events:none;
