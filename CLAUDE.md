@@ -204,8 +204,10 @@ full-screen iframe. It is fully separate from the site:
   link, row hover shift with arrow and draw-in underline, word-by-word footer
   headline, circular dark-mode reveal (View Transitions API, fade fallback),
   nav that hides on scroll down and shows on scroll up.
-- Lighthouse performance: 100 desktop, 91 mobile, 0ms blocking time, 0 layout
-  shift.
+- Lighthouse performance: 100 desktop, 0ms blocking time, 0 layout shift.
+  Mobile scored 89–91 in the cloud sandbox and 88 on the user's Mac (Lighthouse
+  12.8, after the font trim below); scores vary by machine, so only compare
+  runs made on the same machine.
 
 Decisions made along the way (keep unless the user says otherwise):
 
@@ -346,17 +348,21 @@ Waiting on the user's content (don't invent it; the user is keeping these open):
 
 When real projects land, add them to the README's "Selected work" table too.
 
-Parked; ask before starting (the user said hold, 2026-11-12):
-- Mobile Lighthouse headroom: the largest remaining cost is a ~147KB font,
-  probably Newsreader italic with its optical-size axis. It changes how the
-  font looks, so ask first.
-
 ### Closed (don't reopen unless the user does)
 
 - Fonts: the user tried the reference site's fonts on 2026-11-12 (DM Sans body,
   Josefin Sans headings, Fraunces italic accents), disliked them and had them
   reverted. Inter Tight / Newsreader italic / Sacramento / JetBrains Mono stay:
   in the user's words, "absolutely the best". Don't suggest a font change again.
+- Newsreader's optical-size axis: dropped 2026-11-12 (user compared it on a dev
+  server and approved). The italic file went 147KB → 64.5KB (preloaded fonts
+  246KB → 164KB). Large italics look a touch sturdier; the user is fine with it.
+  Mobile Lighthouse on the user's Mac: 85–87 → 88, LCP ~4.2s → 3.9s.
+- Mobile LCP is the hero heading, and ~89% of it is render delay from the
+  letter rise-in intro, not fonts or network. Any further mobile gain would
+  mean changing that intro, a design call: don't do it unasked. Headless
+  Lighthouse often fails with NO_LCP on this page; rerun and count only the
+  runs that complete.
 - Floating glass-pill nav: built and tried on 2026-11-12 (the frosted layer
   gathered into a pill on scroll); the user preferred the existing full-width
   bar and had it reverted. Don't offer it again.
@@ -371,8 +377,9 @@ Parked; ask before starting (the user said hold, 2026-11-12):
 - Now playing / Spotify: Last.fm feed, Spotify-profile link, idle line and
   refresh timing are done (details under "Shipped 2026-11-12"). Reopen only if
   the user reports a problem.
-- Writing rows keep the "LinkedIn" source label; the user may bring up "Blog"
-  later themselves.
+- Writing source labels ("LinkedIn" / "Blog"): closed 2026-11-12. The user
+  will set the labels themselves when they add their real writing. Don't list
+  it as an open or later item.
 - The thread stays (see Ground rules).
 - Nav links: the user declined a Wins link (2026-11-12).
 - `public/Ashutosh_Gupta_Resume.pdf` is the user's final résumé. Replace it only

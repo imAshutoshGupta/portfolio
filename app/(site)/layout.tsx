@@ -13,7 +13,6 @@ const interTight = Inter_Tight({
 const newsreader = Newsreader({
   subsets: ["latin"],
   style: ["italic"],
-  axes: ["opsz"],
   variable: "--font-newsreader",
   display: "swap",
 });
