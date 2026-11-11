@@ -94,9 +94,12 @@ the source, and all 10 interactions behave the same. The additions under
 
 `hello@iamashutosh.com` (`links.email` / `links.emailLabel` in `content.ts`).
 Cloudflare Email Routing forwards it to the user's personal Gmail. Never put
-the personal address on the site, in ashOS or in committed files. It's fine as
-the `CONTACT_TO_EMAIL` secret for `/api/contact` (skips the forwarding hop);
-that's set by the user in the Cloudflare dashboard.
+the personal address on the site, in ashOS or in committed files.
+
+There is no server-side email. The user declined Resend (2026-11-12) and doesn't
+want visitors sending mail through the site, so `/api/contact` was removed. Don't
+add a sending service back, and don't remove ashOS Mail either: its Send opens
+the visitor's own email app via `mailto:`.
 
 ## Status (as of 2026-11-12)
 
@@ -157,7 +160,7 @@ manishluci.com; each item was approved by the user):
   on **Writing and Beyond work only**. The user had the other six removed;
   don't add them back.
 - Footer contact block: intro paragraph + "I can help with" numbered list
-  (`footer.intro`, `footer.help`, draft copy). The intro is Inter Tight 18px
+  (`footer.intro`, `footer.help`, approved for now). The intro is Inter Tight 18px
   muted: the user rejected Newsreader italic there ("extremely terrible").
 - Footer email: 26px with a ↗ arrow, small "Copy" button under it
   (`CopyEmail.tsx`, announces to screen readers).
@@ -173,7 +176,7 @@ manishluci.com; each item was approved by the user):
   so the caption lines up with the last chip row). Phones: headline → photo →
   text. Hobbies are chips with line icons (`components/HobbyIcon.tsx`, shared
   with ashOS): Music, Netflix, Gym.
-- About photo (trial): `public/about/ashutosh.webp`, 480×600, **not mirrored**
+- About photo (kept): `public/about/ashutosh.webp`, 480×600, **not mirrored**
   (the user wants it as shot), tilted +2.5deg, straightens on hover, caption
   "me, mid-hackathon".
 - Accessibility: job/win/toolkit/principle/post titles are `h3`; every section
@@ -183,29 +186,31 @@ manishluci.com; each item was approved by the user):
   "Work With Me.md", `Me.webp` in Finder, `contact`/`writing` terminal output.
 - "All projects →" stays (points to `#` until there's more work to list).
 
-Still open:
-- **`public/resume.pdf` doesn't exist**, so résumé links 404. Don't create a
-  fake one; the user adds it.
-- Experience rows have no arrow (they aren't links); writing rows do.
-- **Footer counters need a KV binding.** `/api/views` and `/api/pokes` read
-  `COUNTERS` (see README). Until the user creates the namespace and adds it
-  to `wrangler.jsonc`, both counters stay hidden in production.
-- **About photo is a trial** (`features.aboutPhoto`, `public/about/`). The
-  user hasn't decided whether to keep it. `false` also restores the About
-  text to 28px.
-- Writing rows are placeholders until the user sends LinkedIn post links.
+Still open (waiting on the user's content):
+- **Projects one and four** are placeholders (`[Project one]`, `[Project four]`),
+  and "All projects →" plus the case-study links point to `#`.
+- **Writing** rows are placeholders until the user sends LinkedIn post links.
   LinkedIn blocks automated reading, so don't try to scrape them.
-- Skill groups (Toolkit) are waiting on the user.
-- Draft copy to confirm: `footer.intro`, `footer.help`, the two headlines,
-  the hobby lines.
+- **Kind words**: both quotes are placeholders.
+
+Settled (2026-11-12, don't reopen unless the user does):
+- Hackathons & wins: RootCause (Paytm Build for India) is the only win. Done.
+- About photo: kept. The user likes it. Still don't spread it elsewhere.
+- Footer copy, the two section headlines and the hobby lines are approved for
+  now. The user plans to rework the footer later; wait for them.
+- `public/Ashutosh_Gupta_Resume.pdf` is the user's final résumé. Replace it only
+  with a file they send; never edit or regenerate it.
+- LinkedIn is `linkedin.com/in/ashutoshgupta08` (matches the résumé). Toolkit
+  and Experience match the résumé too.
+- Footer counters: `/api/views` and `/api/pokes` read the `COUNTERS` KV
+  binding (namespace `portfolio-counters`, in `wrangler.jsonc`).
+- Experience rows have no arrow (they aren't links); writing rows do.
 
 **Later / optional**
 
 - Mobile Lighthouse headroom: the largest remaining cost is a ~147KB font,
   probably Newsreader italic with its optical-size axis. It affects how the
   font looks, so ask before changing it.
-- Fill in the `[placeholder]` content in `content.ts` (jobs, wins, quotes,
-  posts, project one and four).
 - The user liked the reference site's fonts (Josefin Sans, DM Sans, Fraunces).
   A font change is parked for later; ask before touching type.
 
@@ -228,11 +233,12 @@ A macOS-inspired desktop, rebuilt 2026-11-11. It is fully separate from the site
   Me, Projects, Terminal + `shell.ts`, Safari, Mail, Résumé/Preview/Photos,
   System Settings).
 - Browsers keep ⌘W/⌘Q/⌘Tab, so ashOS shortcuts also work with ⌥ (menus show ⌥).
-- Mail sends through `/api/contact` and only reports "sent" when the API says
-  `delivered: true`.
+- Mail's Send opens the visitor's email app (`mailto:` to `hello@`), then files
+  the message under Sent as "Opened in your email app" with Copy Message /
+  Copy Address in case no mail app opened. It never claims the mail was sent.
 - Shared with the site: `components/HobbyIcon.tsx` (hobby chip icons) and the
   About photo (`person.photo`, shown while `features.aboutPhoto` is on).
-- The Résumé app checks for `public/resume.pdf` at build time (`page.tsx`), so
+- The Résumé app checks for the résumé PDF (`links.resume`) at build time (`page.tsx`), so
   no 404 probe runs in the browser.
 
 ## Testing notes

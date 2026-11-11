@@ -1556,6 +1556,7 @@
 }
 .ashos-banner {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
   margin: 10px 14px;
@@ -1573,7 +1574,7 @@
   height: 16px;
 }
 .ashos-banner span {
-  flex: 1;
+  flex: 1 1 220px;
 }
 .ashos-pre {
   white-space: pre-wrap;

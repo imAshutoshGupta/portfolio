@@ -281,7 +281,7 @@ function build(): Fs {
   const desktop = folder("/", "Desktop", "desktop", "Files on the desktop.");
   doc(desktop, "Welcome.pdf", "A short guide to ashOS.", welcome);
   doc(desktop, "Portfolio Overview.pdf", "The whole portfolio on one page.", overview);
-  add(desktop, { name: "Resume.pdf", kind: "document", ext: "pdf", app: "resume", info: "Opens the latest résumé." });
+  add(desktop, { name: contact.resumeFile, kind: "document", ext: "pdf", app: "resume", info: "Opens the latest résumé." });
 
   /* Documents */
   const documents = folder("/", "Documents", "documents", "Background, experience and writing.");

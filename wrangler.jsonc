@@ -8,6 +8,8 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  // Footer counters (page views, Semi pokes): app/api/_lib/counter.ts
+  "kv_namespaces": [{ "binding": "COUNTERS", "id": "adc6d0c1554943d3824766538e38918b" }],
   "observability": {
     "enabled": true
   },
