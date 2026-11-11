@@ -1,23 +1,18 @@
+import type { Metadata } from "next";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { person } from "./_os/data/portfolio";
 import "./os.css";
 
-// ashOS keeps its own fonts and styles, separate from the portfolio site.
+// ashOS has its own fonts and styles, separate from the portfolio. Every rule
+// in os.css is scoped under `.ashos`, and nothing here touches <html>/<body>.
+const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--ashos-inter", display: "swap", preload: false });
+const mono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--ashos-mono", display: "swap", preload: false });
+
+export const metadata: Metadata = {
+  title: `ashOS — ${person.name}`,
+  description: `${person.name}'s portfolio as an interactive desktop.`,
+};
+
 export default function DesktopLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-      <link
-        rel="stylesheet"
-        href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&display=swap"
-        precedence="default"
-      />
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
-        precedence="default"
-      />
-      {children}
-    </>
-  );
+  return <div className={`${inter.variable} ${mono.variable}`}>{children}</div>;
 }

@@ -144,6 +144,31 @@ Still open:
   font looks, so ask before changing it.
 - Fill in the `[placeholder]` content in `content.ts`.
 
+## ashOS (`/desktop`)
+
+A macOS-inspired desktop, rebuilt 2026-11-11. It is fully separate from the site:
+
+- **Content:** everything comes from `content.ts` through
+  `app/desktop/_os/data/portfolio.ts`. Never hardcode personal facts in ashOS.
+  Placeholders show as-is; `"#"` links show as "not linked yet".
+- **Styles:** `app/desktop/os.css` is plain CSS, every selector under `.ashos`,
+  keyframes prefixed `ashos-`, no Tailwind, no `:root`/`html`/`body` rules.
+  Write `-webkit-backdrop-filter` *before* `backdrop-filter`: the minifier keeps
+  only the last of the pair, and Chromium needs the unprefixed one.
+- **Settings** live in `localStorage` under `ashos:*` keys and never touch the
+  site's `theme`. "Auto" appearance starts from the `?theme=` the site passes in.
+- **Structure:** `_os/data` (apps, virtual file system, docs, wallpapers),
+  `_os/state` (prefs, window-manager reducer, OS context), `_os/ui` (window,
+  menu bar, dock, Spotlight, panels, desktop icons), `_os/apps` (Finder, About
+  Me, Projects, Terminal + `shell.ts`, Safari, Mail, Résumé/Preview/Photos,
+  System Settings).
+- Browsers keep ⌘W/⌘Q/⌘Tab, so ashOS shortcuts also work with ⌥ (menus show ⌥).
+- Mail sends through `/api/contact` and only reports "sent" when the API says
+  `delivered: true`.
+- The Résumé app checks for `public/resume.pdf` at build time (`page.tsx`), so
+  no 404 probe runs in the browser.
+- `lib/repl.ts` (the old terminal engine with outdated copy) is no longer used.
+
 ## Testing notes
 
 - `npm run dev` serves on :3000. For Lighthouse, use a production build
