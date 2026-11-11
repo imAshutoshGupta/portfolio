@@ -1674,6 +1674,30 @@
   line-height: 1.5;
   user-select: text;
 }
+.ashos-timeline__points {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  color: var(--text-2);
+  line-height: 1.5;
+  user-select: text;
+}
+.ashos .ashos-timeline__points li {
+  display: block;
+  position: relative;
+  padding: 0 0 0 14px;
+  border: 0;
+}
+.ashos .ashos-timeline__points li + li {
+  margin-top: 4px;
+}
+.ashos-timeline__points li::before {
+  content: "–";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--accent);
+}
 .ashos-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -1717,6 +1741,20 @@
 }
 .ashos-groups .ashos-h3 {
   margin-top: 8px;
+}
+.ashos-area + .ashos-area {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 0.5px solid var(--sep);
+}
+.ashos-area__title {
+  margin: 0 0 2px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.ashos-area__title span {
+  color: var(--accent);
 }
 .ashos-principles li {
   display: flex;
@@ -3795,4 +3833,30 @@
   font-size: 11.5px;
   line-height: 1.5;
   color: var(--text-3);
+}
+
+/* About Me avatar: the site's About photo, while that trial is on */
+.ashos .ashos-avatar--photo {
+  overflow: hidden;
+  padding: 0;
+}
+.ashos .ashos-avatar--photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+  display: block;
+}
+
+/* About Me: hobby chips with a small line icon (components/HobbyIcon.tsx) */
+.ashos .ashos-chip--icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ashos .ashos-chip__icon {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  color: var(--accent);
 }

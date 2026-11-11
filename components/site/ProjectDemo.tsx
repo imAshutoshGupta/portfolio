@@ -10,7 +10,7 @@ type Demo = NonNullable<(typeof projects)[number]["demo"]>;
 // reduced motion it stays on the poster until someone presses play. The button
 // is there because anything that autoplays for more than 5s needs a way to
 // pause it (WCAG 2.2.2).
-export default function ProjectDemo({ name, demo }: { name: string; demo: Demo }) {
+export default function ProjectDemo({ name, demo, alt }: { name: string; demo: Demo; alt: string }) {
   const box = useRef<HTMLDivElement>(null);
   const video = useRef<HTMLVideoElement>(null);
   const sync = useRef<() => void>(() => {});
@@ -55,7 +55,8 @@ export default function ProjectDemo({ name, demo }: { name: string; demo: Demo }
 
   return (
     <div ref={box} className="relative h-full w-full">
-      <div className="shot h-full w-full">
+      {/* the video itself is hidden from screen readers; this describes what it shows */}
+      <div className="shot h-full w-full" role="img" aria-label={alt}>
         <video
           ref={video}
           className="block h-full w-full object-cover"

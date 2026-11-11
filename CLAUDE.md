@@ -7,12 +7,17 @@ for the stack, file map and env vars.
 ## Ground rules
 
 - **Never push to `main`.** Cloudflare Workers Builds deploys `main` to the live
-  site; other branches get preview builds. Work on `redesign-v4` (or a branch
-  off it) and let the user merge.
+  site; other branches get preview builds. `redesign-v4` is merged; work on a
+  feature branch off `main` and let the user merge the PR.
 - **Don't commit unless asked.** The user reviews first.
 - Run `npm run typecheck` before calling anything done.
 - All copy lives in `content.ts`. `[bracketed]` text and `"#"` hrefs are
   placeholders the user will fill in. Don't invent real content for them.
+- **Every site change also goes into ashOS**, without being asked: wire new
+  content through `app/desktop/_os/data/portfolio.ts` and the apps/docs/shell
+  that show it, and say what changed there.
+- New features borrowed from elsewhere get re-themed to this site (Semi, the
+  semicolon, the violet accent, italic-serif accents), not copied as-is.
 - `features.thread` in `content.ts` turns the left-gutter scroll line on and off.
   The user has gone back and forth on it (switched off once for looking
   "cringe", then asked for it back). It's currently `true`. Leave it as set
@@ -82,9 +87,18 @@ Keep ashOS linked from the nav, the hero ("prefer a terminal? launch ashOS →")
 and the footer.
 
 **Done means:** at 1440px and 390px wide, layout, spacing, type and colour match
-the source, and all 10 interactions behave the same.
+the source, and all 10 interactions behave the same. The additions under
+"Added 2026-11-12" below are deliberate departures from the source.
 
-## Status (as of 2026-11-11)
+## Contact email
+
+`hello@iamashutosh.com` (`links.email` / `links.emailLabel` in `content.ts`).
+Cloudflare Email Routing forwards it to the user's personal Gmail. Never put
+the personal address on the site, in ashOS or in committed files. It's fine as
+the `CONTACT_TO_EMAIL` secret for `/api/contact` (skips the forwarding hop);
+that's set by the user in the Cloudflare dashboard.
+
+## Status (as of 2026-11-12)
 
 **Done**
 
@@ -132,17 +146,68 @@ Fixed in that pass:
   Letter stagger 0.045s, Semi drop at 1.1s. Thread lead dot fades out as the
   semicolon lights. Reduced motion also drops the card zoom and row shift.
 
+**Added 2026-11-12** (branch `footer-contact-pokes`, inspired by a teardown of
+manishluci.com; each item was approved by the user):
+
+- Hero badge: "Open to full-stack & AI engineering roles · Mumbai or Bangalore ·
+  remote or relocation" (`hero.status` + `hero.statusDetail`), faint green wash
+  (`.open-badge`).
+- Skip-to-content link and a `<main id="main">` landmark.
+- Section headlines (`sections.*.line` + `accent`, plain + italic-serif accent)
+  on **Writing and Beyond work only**. The user had the other six removed;
+  don't add them back.
+- Footer contact block: intro paragraph + "I can help with" numbered list
+  (`footer.intro`, `footer.help`, draft copy). The intro is Inter Tight 18px
+  muted: the user rejected Newsreader italic there ("extremely terrible").
+- Footer email: 26px with a ↗ arrow, small "Copy" button under it
+  (`CopyEmail.tsx`, announces to screen readers).
+- Footer stats pill (`FooterStats.tsx`): page views (Semi's blinking eyes) │
+  Semi pokes (Semi's 12px head, click to poke; hero pokes count too, 20 per
+  visitor). Plus "Back to top ↑" (`BackToTop.tsx`). Data: `/api/views`,
+  `/api/pokes`, `app/api/_lib/counter.ts` (KV, in-memory under `next dev`).
+- Writing rows show where each post lives (`posts[].where`, "LinkedIn" now,
+  "Blog" later); external links open in a new tab; "More on LinkedIn ↗" goes to
+  the LinkedIn activity page. The user wants to keep "mostly on LinkedIn".
+- Beyond work: label column 180px; headline + text on the left, the photo on
+  the right level with the headline (`sm:mt-[28px] sm:mr-5`, tuned by the user
+  so the caption lines up with the last chip row). Phones: headline → photo →
+  text. Hobbies are chips with line icons (`components/HobbyIcon.tsx`, shared
+  with ashOS): Music, Netflix, Gym.
+- About photo (trial): `public/about/ashutosh.webp`, 480×600, **not mirrored**
+  (the user wants it as shot), tilted +2.5deg, straightens on hover, caption
+  "me, mid-hackathon".
+- Accessibility: job/win/toolkit/principle/post titles are `h3`; every section
+  has `aria-labelledby`; project demos have alt text (`projects[].alt`).
+- JSON-LD `Person` (name, url, jobTitle, email, LinkedIn, GitHub) in `page.tsx`.
+- ashOS mirrors all of it: status + location pills, photo avatar, hobby icons,
+  "Work With Me.md", `Me.webp` in Finder, `contact`/`writing` terminal output.
+- "All projects →" stays (points to `#` until there's more work to list).
+
 Still open:
 - **`public/resume.pdf` doesn't exist**, so résumé links 404. Don't create a
   fake one; the user adds it.
 - Experience rows have no arrow (they aren't links); writing rows do.
+- **Footer counters need a KV binding.** `/api/views` and `/api/pokes` read
+  `COUNTERS` (see README). Until the user creates the namespace and adds it
+  to `wrangler.jsonc`, both counters stay hidden in production.
+- **About photo is a trial** (`features.aboutPhoto`, `public/about/`). The
+  user hasn't decided whether to keep it. `false` also restores the About
+  text to 28px.
+- Writing rows are placeholders until the user sends LinkedIn post links.
+  LinkedIn blocks automated reading, so don't try to scrape them.
+- Skill groups (Toolkit) are waiting on the user.
+- Draft copy to confirm: `footer.intro`, `footer.help`, the two headlines,
+  the hobby lines.
 
 **Later / optional**
 
 - Mobile Lighthouse headroom: the largest remaining cost is a ~147KB font,
   probably Newsreader italic with its optical-size axis. It affects how the
   font looks, so ask before changing it.
-- Fill in the `[placeholder]` content in `content.ts`.
+- Fill in the `[placeholder]` content in `content.ts` (jobs, wins, quotes,
+  posts, project one and four).
+- The user liked the reference site's fonts (Josefin Sans, DM Sans, Fraunces).
+  A font change is parked for later; ask before touching type.
 
 ## ashOS (`/desktop`)
 
@@ -165,6 +230,8 @@ A macOS-inspired desktop, rebuilt 2026-11-11. It is fully separate from the site
 - Browsers keep ⌘W/⌘Q/⌘Tab, so ashOS shortcuts also work with ⌥ (menus show ⌥).
 - Mail sends through `/api/contact` and only reports "sent" when the API says
   `delivered: true`.
+- Shared with the site: `components/HobbyIcon.tsx` (hobby chip icons) and the
+  About photo (`person.photo`, shown while `features.aboutPhoto` is on).
 - The Résumé app checks for `public/resume.pdf` at build time (`page.tsx`), so
   no 404 probe runs in the browser.
 

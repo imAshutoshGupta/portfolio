@@ -7,6 +7,7 @@
 
 import {
   about,
+  features,
   footer,
   hero,
   jobs,
@@ -18,6 +19,7 @@ import {
   quotes,
   resumeLink,
   sections,
+  toolAreas,
   tools,
   wins,
 } from "@/content";
@@ -47,13 +49,20 @@ export const person = {
   firstName: hero.name.split(/\s+/)[0],
   initials,
   status: hero.status,
+  /** Where: "Mumbai or Bangalore · remote or relocation". */
+  availability: hero.statusDetail,
+  statusLine: `${hero.status} · ${hero.statusDetail}`,
+  /** The site's About photo, while that trial is on (features.aboutPhoto). */
+  photo: features.aboutPhoto ? about.photo : null,
   tagline: meta.description,
   lead: hero.lead + hero.leadAccent,
   role: fact("Role"),
   experience: fact("Experience"),
   facts: hero.facts,
   bio: about.body,
-  hobbies: about.hobbies,
+  hobbies: about.hobbies.map((h) => h.label),
+  /** Hobbies with their icon names, for the About Me chips. */
+  hobbyChips: about.hobbies,
   // "Favourite punctuation: ;" — the site renders the semicolon after it.
   punctuation: about.punctuation + ";",
   semiLines: hero.semiLines.filter(Boolean),
@@ -98,6 +107,13 @@ export const contact = {
 
 export const sectionTitles = sections;
 
+/** The footer's "open to roles / I can help with" block. */
+export const workWithMe = {
+  intro: footer.intro,
+  title: footer.helpTitle,
+  items: footer.help,
+};
+
 const isImageSrc = (s: string) => /^(\/|https?:\/\/)/.test(s) && !isPlaceholder(s);
 
 export type Work = {
@@ -110,6 +126,8 @@ export type Work = {
   stack: string[];
   screenshot: string;
   screenshotSrc: string | null;
+  /** What the screenshot/demo shows, for screen readers. */
+  alt: string;
   live: string | null;
   code: string | null;
   caseStudy: string | null;
@@ -127,6 +145,7 @@ export const work: Work[] = projects.map((p, i) => ({
   stack: p.stack,
   screenshot: p.screenshot,
   screenshotSrc: isImageSrc(p.screenshot) ? p.screenshot : null,
+  alt: p.alt,
   live: realHref(p.live.href),
   code: realHref(p.code.href),
   caseStudy: p.caseStudy ? realHref(p.caseStudy.href) : null,
@@ -135,11 +154,19 @@ export const work: Work[] = projects.map((p, i) => ({
 
 export const experience = jobs.map((j, i) => ({ id: `job-${pad(i + 1)}`, num: pad(i + 1), ...j }));
 
-export const achievements = wins.map((w, i) => ({ id: `win-${pad(i + 1)}`, num: pad(i + 1), ...w }));
+export const achievements = wins.map((w, i) => ({
+  id: `win-${pad(i + 1)}`,
+  num: pad(i + 1),
+  ...w,
+  live: realHref(w.live?.href),
+  code: realHref(w.code?.href),
+}));
 
 export const writing = posts.map((p, i) => ({ id: `post-${pad(i + 1)}`, num: pad(i + 1), ...p, link: realHref(p.href) }));
 
 export const toolkit = tools;
+/** The toolkit split into its areas (AI engineering, Full-stack), as the site shows it. */
+export const toolkitAreas = toolAreas.map((a) => ({ ...a, groups: tools.filter((g) => g.area === a.id) }));
 export const approach = principles;
 export const kindWords = quotes.map((q) => ({ ...q, quote: q.quote.replace(/^"|"$/g, "") }));
 

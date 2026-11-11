@@ -5,7 +5,7 @@
 import { APPS, APP_ORDER, type AppArgs, type AppId } from "../data/apps";
 import { docToLines } from "../data/doc";
 import { basename, formatSize, HOME, resolvePath, type Fs, type FsNode } from "../data/fs";
-import { achievements, approach, contact, experience, localNow, person, toolkit, work, writing } from "../data/portfolio";
+import { achievements, approach, contact, experience, localNow, person, toolkitAreas, work, workWithMe, writing } from "../data/portfolio";
 
 type Tone = "accent" | "green" | "blue" | "cyan" | "yellow" | "red" | "magenta" | "muted" | "bold";
 type Seg = { t: string; c?: Tone };
@@ -164,7 +164,7 @@ function neofetch(ctx: ShellCtx): Line[] {
     ["Appearance", ctx.appearance === "dark" ? "Dark" : "Light"],
     ["Role", person.role],
     ["Experience", person.experience],
-    ["Status", person.status],
+    ["Status", person.statusLine],
     ["Local time", `${localNow().time} ${localNow().zone}`],
   ];
   const head: Line[] = [
@@ -216,7 +216,7 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
       return {
         lines: [
           [s(person.name, "bold"), s(" — " + person.role, "muted")],
-          [s(person.status, "green")],
+          [s(person.statusLine, "green")],
           [],
           plain(person.lead),
           [],
@@ -305,23 +305,33 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
       return {
         lines: experience.flatMap((j): Line[] => [
           [s(j.when.padEnd(18), "accent"), s(j.role, "bold"), s(" · " + j.org, "muted")],
-          [s(" ".repeat(18) + j.what)],
+          ...j.points.map((p): Line => [s(" ".repeat(18) + "– " + p)]),
         ]),
       };
 
     case "skills":
     case "toolkit":
-      return { lines: toolkit.map((g): Line => [s(g.title.padEnd(8), "accent"), s(g.items.join(" · "))]) };
+      return {
+        lines: toolkitAreas.flatMap((a): Line[] => [
+          [s(a.title + ";", "bold")],
+          ...a.groups.map((g): Line => [s("  " + g.title.padEnd(24), "accent"), s(g.items.join(" · "))]),
+        ]),
+      };
 
     case "wins":
     case "achievements":
       return {
-        lines: achievements.map((w): Line => [s(w.place.padEnd(12), "yellow"), s(w.event, "bold"), s(` (${w.year}) — ${w.what}`, "muted")]),
+        lines: achievements.flatMap((w): Line[] => [
+          [s(w.place.padEnd(12), "yellow"), s(w.event, "bold"), s(` (${w.year})`, "muted")],
+          [s(" ".repeat(12) + (w.project ? `${w.project}: ` : "") + w.what)],
+          ...(w.live ? [[s(" ".repeat(12) + "live  " + w.live, "muted")] as Line] : []),
+          ...(w.code ? [[s(" ".repeat(12) + "code  " + w.code, "muted")] as Line] : []),
+        ]),
       };
 
     case "writing":
     case "posts":
-      return { lines: writing.map((p): Line => [s(p.date.padEnd(12), "muted"), s(p.title), s(`  ${p.read}`, "muted")]) };
+      return { lines: writing.map((p): Line => [s(p.date.padEnd(12), "muted"), s(p.title), s(`  on ${p.where}`, "muted")]) };
 
     case "approach":
       return { lines: approach.flatMap((p): Line[] => [[s(p.title, "bold")], [s("  " + p.body, "muted")]]) };
@@ -333,6 +343,9 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
           [s("github    ", "accent"), s(contact.github ?? "not linked yet", contact.github ? "cyan" : "muted")],
           [s("linkedin  ", "accent"), s(contact.linkedin ?? "not linked yet", contact.linkedin ? "cyan" : "muted")],
           [s("web       ", "accent"), s(contact.site, "cyan")],
+          [],
+          [s(workWithMe.title, "bold")],
+          ...workWithMe.items.map((h, i): Line => [s(`  ${String(i + 1).padStart(2, "0")}  `, "accent"), s(h)]),
           [],
           [s("Write a message: ", "muted"), s("open -a Mail")],
         ],

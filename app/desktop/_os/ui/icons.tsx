@@ -808,11 +808,11 @@ function VolumeIcon() {
 }
 
 /** A generated "screenshot" cover, used until a real image exists. */
-export function Cover({ seed, title, caption, src }: { seed: number; title: string; caption?: string; src?: string | null }) {
+export function Cover({ seed, title, caption, src, alt }: { seed: number; title: string; caption?: string; src?: string | null; alt?: string }) {
   const [a, b] = useIds(2);
   if (src) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img className="ashos-cover-img" src={src} alt={title} draggable={false} />;
+    return <img className="ashos-cover-img" src={src} alt={alt ?? title} draggable={false} />;
   }
   const hues = [222, 262, 168, 18, 328, 196];
   const h = hues[seed % hues.length];

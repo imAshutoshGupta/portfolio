@@ -16,7 +16,9 @@ import {
   person,
   sectionTitles as S,
   toolkit,
+  toolkitAreas,
   work,
+  workWithMe,
   writing,
 } from "./portfolio";
 
@@ -114,7 +116,7 @@ export function kindLabel(n: FsNode): string {
     case "app":
       return "Application";
     case "image":
-      return "PNG image";
+      return n.ext === "webp" ? "WebP image" : "PNG image";
     case "link":
       return n.href?.startsWith("mailto:") ? "Email Link" : "Web Location";
     case "document":
@@ -185,6 +187,16 @@ function build(): Fs {
   };
   const link = (parent: string, name: string, href: string | null, info: string, extra: Partial<FsNode> = {}) =>
     add(parent, { name: name + ".webloc", kind: "link", ext: "webloc", href, info, ...extra });
+  /** A hackathon win as a document: what was built, how it works, stack and links. */
+  const winDoc = (w: (typeof achievements)[number]): Doc => [
+    { t: "title", text: w.project ?? w.event, sub: `${w.place} · ${w.event} · ${w.year}` },
+    { t: "p", text: w.what },
+    ...(w.steps.length ? ([{ t: "h", text: "How it works" }, { t: "list", items: w.steps.map((s) => `${s.label}: ${s.text}`) }] as Doc) : []),
+    ...(w.stack.length ? ([{ t: "h", text: "Built with" }, { t: "chips", items: w.stack }] as Doc) : []),
+    ...(w.live || w.code
+      ? ([{ t: "links", items: [{ label: "Live demo", href: w.live }, { label: "Source code", href: w.code }].filter((l) => l.href) }] as Doc)
+      : []),
+  ];
 
   add(null, { name: "Macintosh HD", kind: "volume", children: [], info: "The ashOS startup disk." });
 
@@ -198,23 +210,25 @@ function build(): Fs {
   /* Shared documents */
   const overview: Doc = [
     { t: "title", text: person.name, sub: person.title },
-    { t: "meta", text: person.status },
+    { t: "meta", text: person.statusLine },
     { t: "p", text: person.lead },
     { t: "p", text: person.bio },
     { t: "kv", rows: person.facts.map((f) => [f.label, f.value]) },
     { t: "h", text: S.work.title },
     { t: "list", items: work.map((w) => `${w.name} — ${w.kind}, ${w.year}. ${w.blurb}`) },
     { t: "h", text: S.experience.title },
-    { t: "list", items: experience.map((j) => `${j.when}: ${j.role}, ${j.org}. ${j.what}`) },
+    { t: "list", items: experience.map((j) => `${j.when}: ${j.role}, ${j.org}. ${j.points.join(" ")}`) },
     { t: "h", text: S.wins.title },
-    { t: "list", items: achievements.map((w) => `${w.place} at ${w.event} (${w.year}). ${w.what}`) },
+    { t: "list", items: achievements.map((w) => `${w.place} at ${w.event} (${w.year}). ${w.project ? `${w.project}: ` : ""}${w.what}`) },
     { t: "h", text: S.toolkit.title },
     { t: "kv", rows: toolkit.map((g) => [g.title, g.items.join(" · ")]) },
     { t: "h", text: S.approach.title },
     { t: "list", items: approach.map((p) => `${p.title}. ${p.body}`) },
     { t: "h", text: S.writing.title },
-    { t: "list", items: writing.map((p) => `${p.title} — ${p.date}, ${p.read}`) },
+    { t: "list", items: writing.map((p) => `${p.title} — ${p.date}, on ${p.where}`) },
     { t: "h", text: "Contact" },
+    { t: "p", text: workWithMe.intro },
+    { t: "list", items: workWithMe.items },
     {
       t: "links",
       items: [
@@ -275,7 +289,7 @@ function build(): Fs {
   const aboutDir = folder(documents, "About Me", "about", "Profile and approach.");
   doc(aboutDir, "About Me.md", "Profile.", [
     { t: "title", text: person.name, sub: person.role },
-    { t: "meta", text: person.status },
+    { t: "meta", text: person.statusLine },
     { t: "p", text: person.lead },
     { t: "p", text: person.bio },
     { t: "kv", rows: person.facts.map((f) => [f.label, f.value]) },
@@ -288,6 +302,15 @@ function build(): Fs {
     { t: "title", text: S.words.title },
     ...kindWords.map((q): Doc[number] => ({ t: "quote", text: q.quote, by: q.by })),
   ]);
+  if (person.photo) {
+    add(aboutDir, {
+      name: "Me.webp",
+      kind: "image",
+      ext: "webp",
+      info: person.photo.caption,
+      image: { src: person.photo.src, title: person.name, caption: person.photo.caption, seed: 1 },
+    });
+  }
   doc(aboutDir, "Beyond Work.md", S.about.title + ".", [
     { t: "title", text: S.about.title },
     { t: "p", text: person.bio },
@@ -301,7 +324,7 @@ function build(): Fs {
       expDir,
       `${j.num} ${j.role} — ${j.org}.md`,
       `${j.role} at ${j.org}, ${j.when}.`,
-      [{ t: "title", text: j.role, sub: j.org }, { t: "meta", text: j.when }, { t: "p", text: j.what }],
+      [{ t: "title", text: j.role, sub: j.org }, { t: "meta", text: j.when }, { t: "list", items: j.points }],
       { modified: j.when }
     );
   }
@@ -311,7 +334,10 @@ function build(): Fs {
   const skillsDir = folder(documents, "Skills", "skills", S.toolkit.title + ".");
   doc(skillsDir, "Toolkit.md", "Everything in the toolkit.", [
     { t: "title", text: S.toolkit.title },
-    ...toolkit.flatMap((g): Doc => [{ t: "h", text: g.title }, { t: "list", items: g.items }]),
+    ...toolkitAreas.flatMap((a): Doc => [
+      { t: "h", text: a.title },
+      ...a.groups.flatMap((g): Doc => [{ t: "p", text: g.title + ":" }, { t: "list", items: g.items }]),
+    ]),
   ]);
   for (const g of toolkit) {
     doc(skillsDir, `${g.title}.md`, g.items.join(", "), [{ t: "title", text: g.title }, { t: "list", items: g.items }]);
@@ -323,16 +349,16 @@ function build(): Fs {
       winsDir,
       `${w.num} ${w.place} — ${w.event}.md`,
       `${w.place} at ${w.event}, ${w.year}.`,
-      [{ t: "title", text: w.event, sub: `${w.place} · ${w.year}` }, { t: "p", text: w.what }],
+      winDoc(w),
       { modified: w.year }
     );
   }
 
   const writingDir = folder(documents, "Writing", "writing", S.writing.title + ".");
   for (const p of writing) {
-    link(writingDir, `${p.num} ${p.title}`, p.link, `${p.date} · ${p.read} read`, { modified: p.date });
+    link(writingDir, `${p.num} ${p.title}`, p.link, `${p.date} · on ${p.where}`, { modified: p.date });
   }
-  if (moreLinks.allPosts) link(writingDir, "All Posts", moreLinks.allPosts, "Every post.");
+  if (moreLinks.allPosts) link(writingDir, "All Posts", moreLinks.allPosts, "Every post, on LinkedIn.");
 
   const contactDir = folder(documents, "Contact", "contact", "Ways to get in touch.");
   doc(contactDir, `${person.name}.vcf`, "Contact card.", [
@@ -347,6 +373,12 @@ function build(): Fs {
         ["Time zone", `${localTime.timeZone} (${localTime.suffix})`],
       ],
     },
+  ]);
+  doc(contactDir, "Work With Me.md", workWithMe.title + ".", [
+    { t: "title", text: "Work with me", sub: person.statusLine },
+    { t: "p", text: workWithMe.intro },
+    { t: "h", text: workWithMe.title },
+    { t: "list", items: workWithMe.items },
   ]);
   link(contactDir, "Email", contact.email, contact.emailLabel);
   link(contactDir, "GitHub", contact.github, contact.github ?? "GitHub");
@@ -391,12 +423,9 @@ function build(): Fs {
   for (const w of achievements) {
     doc(
       extra,
-      `${w.num} ${w.event} build.md`,
+      `${w.num} ${w.project ?? `${w.event} build`}.md`,
       w.what,
-      [
-        { t: "title", text: w.event, sub: `${w.place} · ${w.year}` },
-        { t: "p", text: w.what },
-      ],
+      winDoc(w),
       { modified: w.year }
     );
   }
