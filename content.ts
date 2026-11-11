@@ -18,7 +18,7 @@ export const meta = {
 };
 
 export const links = {
-  resume: "/resume.pdf",
+  resume: "/Ashutosh_Gupta_Resume.pdf",
   // Cloudflare Email Routing forwards hello@ to the personal inbox.
   email: "mailto:hello@iamashutosh.com",
   emailLabel: "hello@iamashutosh.com",
@@ -32,7 +32,7 @@ export const links = {
 // Every résumé link on the site spreads these attributes.
 export const resumeLink = {
   href: links.resume,
-  download: "Ashutosh-Gupta-Resume.pdf",
+  download: links.resume.slice(1), // file name = URL name, so every save path gets it
   target: "_blank",
   rel: "noopener",
 };

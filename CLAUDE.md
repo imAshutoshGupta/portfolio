@@ -184,12 +184,15 @@ manishluci.com; each item was approved by the user):
 - "All projects →" stays (points to `#` until there's more work to list).
 
 Still open:
-- **`public/resume.pdf` doesn't exist**, so résumé links 404. Don't create a
-  fake one; the user adds it.
+- `public/Ashutosh_Gupta_Resume.pdf` is the user's final résumé (added 2026-11-12). Replace
+  it only with a file they send; never edit or regenerate it.
+- **Contact form needs Resend set up.** `/api/contact` sends from
+  `portfolio@iamashutosh.com`, so that domain must be verified in Resend, with
+  `RESEND_API_KEY` and `CONTACT_TO_EMAIL` added as Worker secrets.
 - Experience rows have no arrow (they aren't links); writing rows do.
-- **Footer counters need a KV binding.** `/api/views` and `/api/pokes` read
-  `COUNTERS` (see README). Until the user creates the namespace and adds it
-  to `wrangler.jsonc`, both counters stay hidden in production.
+- Footer counters: `/api/views` and `/api/pokes` read the `COUNTERS` KV
+  binding (namespace `portfolio-counters`, wired in `wrangler.jsonc` on
+  2026-11-12).
 - **About photo is a trial** (`features.aboutPhoto`, `public/about/`). The
   user hasn't decided whether to keep it. `false` also restores the About
   text to 28px.
@@ -232,7 +235,7 @@ A macOS-inspired desktop, rebuilt 2026-11-11. It is fully separate from the site
   `delivered: true`.
 - Shared with the site: `components/HobbyIcon.tsx` (hobby chip icons) and the
   About photo (`person.photo`, shown while `features.aboutPhoto` is on).
-- The Résumé app checks for `public/resume.pdf` at build time (`page.tsx`), so
+- The Résumé app checks for the résumé PDF (`links.resume`) at build time (`page.tsx`), so
   no 404 probe runs in the browser.
 
 ## Testing notes

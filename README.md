@@ -78,14 +78,6 @@ The footer shows page views (`app/api/views`) and a global count of Semi pokes
 (`app/api/_lib/counter.ts`). Without it the counters hide themselves;
 `next dev` counts in memory instead.
 
-One-time setup:
-
-```bash
-npx wrangler kv namespace create COUNTERS
-```
-
-Then add the id it prints to `wrangler.jsonc`:
-
-```jsonc
-"kv_namespaces": [{ "binding": "COUNTERS", "id": "<id from the command>" }]
-```
+The namespace is `portfolio-counters`, already bound in `wrangler.jsonc`.
+To move to a new one, create it (`npx wrangler kv namespace create COUNTERS`)
+and swap its id into the `kv_namespaces` entry there.

@@ -64,7 +64,7 @@ export type OS = {
   reduced: boolean;
   area: Rect;
   bootedAt: number;
-  /** Whether /resume.pdf ships with the site (null = unknown). */
+  /** Whether the résumé PDF (links.resume) ships with the site (null = unknown). */
   resumeAvailable: boolean | null;
   /* files */
   fs: Fs;

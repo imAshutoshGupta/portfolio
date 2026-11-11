@@ -12,7 +12,7 @@ import { Cover, Glyph } from "../ui/icons";
 import { DragRegion, TitleBar, useWin } from "../ui/Window";
 
 /* ============================================================
-   Résumé — shows /resume.pdf when the site has one.
+   Résumé — shows the résumé PDF (links.resume) when the site has one.
    ============================================================ */
 export function Resume() {
   const os = useOS();
