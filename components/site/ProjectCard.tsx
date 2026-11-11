@@ -11,8 +11,23 @@ export default function ProjectCard({ p, i }: { p: Project; i: number }) {
   return (
     <div data-reveal="">
       <article data-tilt="" className="card relative rounded-[16px] border border-line bg-card p-[14px]">
-        <div className="aspect-[16/10] overflow-hidden rounded-[10px]" style={{ background: TINTS[i % TINTS.length] }}>
-          <div className="shot flex h-full w-full items-center justify-center text-[13px] text-muted">{p.screenshot}</div>
+        <div
+          className="aspect-[16/10] overflow-hidden rounded-[10px]"
+          style={{ background: p.screenshotBg ?? TINTS[i % TINTS.length] }}
+        >
+          {p.screenshot.startsWith("/") ? (
+            // Shown whole (not cropped): previews aren't 16:10, and screenshotBg fills the gap.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={p.screenshot}
+              alt={`${p.name} preview`}
+              loading="lazy"
+              decoding="async"
+              className="shot h-full w-full object-contain"
+            />
+          ) : (
+            <div className="shot flex h-full w-full items-center justify-center text-[13px] text-muted">{p.screenshot}</div>
+          )}
         </div>
         <div className="p-[18px_8px_6px]">
           <div className="flex items-baseline justify-between gap-3">
@@ -34,9 +49,11 @@ export default function ProjectCard({ p, i }: { p: Project; i: number }) {
             <a href={p.code.href} className="link">
               {p.code.label}
             </a>
-            <a href={p.caseStudy.href} className="link text-muted">
-              {p.caseStudy.label}
-            </a>
+            {p.caseStudy && (
+              <a href={p.caseStudy.href} className="link text-muted">
+                {p.caseStudy.label}
+              </a>
+            )}
           </div>
         </div>
       </article>

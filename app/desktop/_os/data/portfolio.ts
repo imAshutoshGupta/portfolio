@@ -113,6 +113,8 @@ export type Work = {
   live: string | null;
   code: string | null;
   caseStudy: string | null;
+  /** False when the project has no case study at all (vs. a "#" placeholder). */
+  hasCaseStudy: boolean;
 };
 
 export const work: Work[] = projects.map((p, i) => ({
@@ -127,7 +129,8 @@ export const work: Work[] = projects.map((p, i) => ({
   screenshotSrc: isImageSrc(p.screenshot) ? p.screenshot : null,
   live: realHref(p.live.href),
   code: realHref(p.code.href),
-  caseStudy: realHref(p.caseStudy.href),
+  caseStudy: p.caseStudy ? realHref(p.caseStudy.href) : null,
+  hasCaseStudy: p.caseStudy !== null,
 }));
 
 export const experience = jobs.map((j, i) => ({ id: `job-${pad(i + 1)}`, num: pad(i + 1), ...j }));

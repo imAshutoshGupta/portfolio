@@ -371,7 +371,7 @@ function build(): Fs {
         items: [
           { label: "Live demo", href: w.live },
           { label: "Source code", href: w.code },
-          { label: "Case study", href: w.caseStudy },
+          ...(w.hasCaseStudy ? [{ label: "Case study", href: w.caseStudy }] : []),
         ],
       },
     ], { project: w.id, modified: w.year });
@@ -385,7 +385,7 @@ function build(): Fs {
     });
     link(dir, "Live Demo", w.live, "Live demo.");
     link(dir, "Source Code", w.code, "Source code.");
-    link(dir, "Case Study", w.caseStudy, "Case study.");
+    if (w.hasCaseStudy) link(dir, "Case Study", w.caseStudy, "Case study.");
   }
   const extra = folder(projectsDir, "Additional Projects", "generic", "Hackathon builds and more.");
   for (const w of achievements) {

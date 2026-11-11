@@ -96,19 +96,59 @@ export const sections = {
   about: { num: "08", title: "Beyond work" },
 };
 
-export const projects = [
-  { name: "[Project one]", kind: "AI product", year: "[2026]" },
-  { name: "[Project two]", kind: "Full-stack app", year: "[2025]" },
-  { name: "[Project three]", kind: "AI agent", year: "[2025]" },
-  { name: "[Project four]", kind: "Tool", year: "[2024]" },
-].map((p) => ({
-  ...p,
-  screenshot: "[Screenshot]",
-  blurb: "[One or two lines: the problem and what you built.]",
-  stack: ["[Stack]", "[Stack]"],
-  live: { label: "Live ↗", href: "#" },
-  code: { label: "Code ↗", href: "#" },
-  caseStudy: { label: "Case study →", href: "#" },
+type ProjectInput = {
+  name: string;
+  kind: string;
+  year: string;
+  blurb?: string;
+  stack?: string[];
+  liveHref?: string;
+  codeHref?: string;
+  /** Write-up page. Leave out on a real project to hide the link. */
+  caseStudyHref?: string;
+  /** Image path in public/ (e.g. "/projects/x.webp"), shown whole. */
+  screenshot?: string;
+  /** Fills the space around a screenshot that isn't 16:10; match the image's edge. */
+  screenshotBg?: string;
+};
+
+// Fields a project leaves out fall back to the placeholders below.
+export const projects = ([
+  { name: "[Project one]", kind: "AI product", year: "[2026]", caseStudyHref: "#" },
+  {
+    name: "GlyphX",
+    kind: "React library",
+    year: "2026",
+    blurb: "A fast, accessible ⌘K command palette for React, with fuzzy search, light and dark themes, and full TypeScript support.",
+    stack: ["React", "TypeScript", "Radix UI", "Zustand"],
+    liveHref: "https://imashutoshgupta.github.io/glyphx/",
+    codeHref: "https://github.com/imAshutoshGupta/glyphx",
+    screenshot: "/projects/glyphx.webp",
+    screenshotBg: "#09090b",
+  },
+  {
+    name: "Smudge",
+    kind: "Chrome extension",
+    year: "2026",
+    blurb: "A Chrome extension that blurs personal details before you share your screen.",
+    stack: ["JavaScript", "Manifest V3", "Local-first"],
+    liveHref: "https://imashutoshgupta.github.io/smudge/",
+    codeHref: "https://github.com/imAshutoshGupta/smudge",
+    screenshot: "/projects/smudge.webp",
+    screenshotBg: "#0d0c12",
+  },
+  { name: "[Project four]", kind: "Tool", year: "[2024]", caseStudyHref: "#" },
+] satisfies ProjectInput[]).map((p: ProjectInput) => ({
+  name: p.name,
+  kind: p.kind,
+  year: p.year,
+  screenshot: p.screenshot ?? "[Screenshot]",
+  screenshotBg: p.screenshotBg ?? null,
+  blurb: p.blurb ?? "[One or two lines: the problem and what you built.]",
+  stack: p.stack ?? ["[Stack]", "[Stack]"],
+  live: { label: "Live ↗", href: p.liveHref ?? "#" },
+  code: { label: "Code ↗", href: p.codeHref ?? "#" },
+  caseStudy: p.caseStudyHref ? { label: "Case study →", href: p.caseStudyHref } : null,
 }));
 
 export const jobs = [

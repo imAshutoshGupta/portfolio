@@ -166,7 +166,7 @@ function ProjectDetail({ w, visit }: { w: Work; visit: (h: string | null) => voi
       <div className="ashos-proj__links">
         <LinkButton label="Live demo" href={w.live} glyph="globe" visit={visit} primary />
         <LinkButton label="Source code" href={w.code} glyph="code" visit={visit} />
-        <LinkButton label="Case study" href={w.caseStudy} glyph="doc" visit={visit} />
+        {w.hasCaseStudy && <LinkButton label="Case study" href={w.caseStudy} glyph="doc" visit={visit} />}
       </div>
     </article>
   );
