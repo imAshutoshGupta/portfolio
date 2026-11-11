@@ -86,8 +86,8 @@ export const hero = {
 export const sections = {
   work: { num: "01", title: "Selected work", more: "All projects →" },
   experience: { num: "02", title: "Experience" },
-  wins: { num: "03", title: "Hackathons & wins" },
-  words: { num: "04", title: "Kind words" },
+  words: { num: "03", title: "Kind words" },
+  wins: { num: "04", title: "Hackathons & wins" },
   toolkit: { num: "05", title: "Toolkit" },
   approach: { num: "06", title: "How I work" },
   writing: { num: "07", title: "Writing", more: "All posts →" },
