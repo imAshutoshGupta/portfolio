@@ -43,7 +43,9 @@ export const nav = {
   ],
   ashos: "ashOS ↗",
   resume: "Résumé ↓",
-  toggleLabel: "Toggle dark mode",
+  lightsOn: "Turn lights on",
+  lightsOff: "Turn lights off",
+  lightsToggle: "Toggle the lights",
   menuOpen: "Open menu",
   menuClose: "Close menu",
 };

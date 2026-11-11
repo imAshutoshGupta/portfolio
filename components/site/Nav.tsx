@@ -1,56 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { nav, resumeLink } from "@/content";
 import { AshOSLink } from "./AshOS";
+import Bulb from "./Bulb";
 import { onHashClick } from "./scroll";
-
-/** Switches theme with a circle growing out of the toggle (View Transitions),
- *  a short colour fade where that API is missing, and instantly under reduced motion. */
-function toggleTheme(e: MouseEvent<HTMLButtonElement>) {
-  const root = document.documentElement;
-  const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-  const apply = () => {
-    root.setAttribute("data-theme", next);
-    try {
-      localStorage.setItem("theme", next);
-    } catch {}
-  };
-
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return apply();
-
-  if (!document.startViewTransition) {
-    root.classList.add("theme-fade");
-    apply();
-    window.setTimeout(() => root.classList.remove("theme-fade"), 500);
-    return;
-  }
-
-  const r = e.currentTarget.getBoundingClientRect();
-  const x = r.left + r.width / 2;
-  const y = r.top + r.height / 2;
-  const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-  document.startViewTransition(apply).ready.then(() => {
-    root.animate(
-      { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
-      { duration: 650, easing: "cubic-bezier(.65,0,.35,1)", pseudoElement: "::view-transition-new(root)" },
-    );
-  });
-}
 
 const iconBtn =
   "flex h-10 w-10 cursor-pointer items-center justify-center rounded-[8px] border border-line bg-transparent text-fg";
-
-function ThemeButton() {
-  return (
-    <button onClick={toggleTheme} aria-label={nav.toggleLabel} className={iconBtn}>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-        <circle cx="12" cy="12" r="8" />
-        <path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor" />
-      </svg>
-    </button>
-  );
-}
 
 /** Hide on scroll down, show on scroll up; blurred backdrop once off the top. */
 function useAutoHide(ref: React.RefObject<HTMLElement | null>, pinned: boolean) {
@@ -138,12 +95,12 @@ export default function Nav() {
         <a {...resumeLink} className="link text-fg no-underline">
           {nav.resume}
         </a>
-        <ThemeButton />
+        <Bulb top={28} />
       </div>
 
-      {/* mobile: theme + menu button */}
+      {/* mobile: bulb + menu button */}
       <div className="hidden items-center gap-2 max-[860px]:flex">
-        <ThemeButton />
+        <Bulb top={20} />
         <button
           onClick={() => setMenu((m) => !m)}
           aria-label={menu ? nav.menuClose : nav.menuOpen}

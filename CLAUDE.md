@@ -70,7 +70,12 @@ social proof → skills → personality → contact. Keep it.
    then code", <18 "deep in the work", else "extra-hours mode".
 8. Footer CTA hover: text turns accent, small Semi looks up (eyes open, -8deg).
 9. Dark mode toggle: saved in localStorage, follows prefers-color-scheme on the
-   first visit.
+   first visit. Since 2026-11-11 the toggle is a hanging light bulb
+   (`components/site/Bulb.tsx`, user's request): Verlet rope from the nav's top
+   edge, click = impulse + theme switch, lights on = light theme. The light
+   spreads out of the bulb (View Transition clip-path) and draws back in when
+   turned off; the bulb has its own `view-transition-name` so it keeps swinging
+   on top. The rAF loop stops once the bulb is at rest.
 10. prefers-reduced-motion turns all animation off.
 
 Keep ashOS linked from the nav, the hero ("prefer a terminal? launch ashOS →")

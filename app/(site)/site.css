@@ -160,11 +160,38 @@
   .thread-end{opacity:.25;transform-box:fill-box;transform-origin:center;
     transition:opacity .5s, transform .6s cubic-bezier(.3,1.4,.5,1)}
   .thread-end.lit{opacity:1;transform:scale(1.08)}
+
+  /* 8. the hanging bulb. Off (dark): clear glass, the filament a dim ember.
+     On (light): warm glass, bright filament, soft bloom around it. */
+  .bulb-btn{-webkit-tap-highlight-color:transparent}
+  .bulb-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+  .bulb-svg .cord{stroke:var(--muted);opacity:.75}
+  .bulb-svg .socket{fill:var(--muted)}
+  .bulb-svg .socket-ridge{stroke:var(--bg);opacity:.55}
+  .bulb-svg .glass{fill:color-mix(in srgb,var(--fg) 6%,transparent);stroke:var(--muted);
+    transition:fill .8s ease,stroke .8s ease}
+  .bulb-svg .fil{stroke:#d4925a;opacity:.7;filter:drop-shadow(0 0 1px rgba(255,150,70,.35));transition:stroke .6s ease,opacity .6s ease,filter .6s ease}
+  .bulb-svg .bloom{opacity:0;transition:opacity 1s ease}
+  .bulb-btn:hover .fil{opacity:.8}
+  .bulb-btn:hover .glass{stroke:var(--fg)}
+  [data-theme="light"] .bulb-svg .glass{fill:#ffecbf;stroke:#e0a945}
+  [data-theme="light"] .bulb-svg .fil{stroke:#ff8a1a;opacity:1;filter:drop-shadow(0 0 1.5px #ffb347)}
+  [data-theme="light"] .bulb-svg .bloom{opacity:1}
+  [data-theme="light"] .bulb-btn:hover .glass{stroke:#c98e2c}
+  /* the bloom reaches past the nav; don't leave it floating when the nav hides */
+  .site-nav[data-hidden] .bulb-svg .bloom{opacity:0}
 }
 
-/* 8. theme switch: a circle grows from the toggle (Nav.tsx drives the clip-path);
+/* 8. theme switch: the hanging bulb (Bulb.tsx). Lights on: the light spreads
+   out of the bulb (clip-path on the new view). Lights off: it draws back in
+   (clip-path on the old view, raised above the new one). The bulb gets its own
+   live layer for the transition so it keeps swinging on top.
    .theme-fade is the fallback where View Transitions aren't supported */
 ::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+.vt-off::view-transition-old(root){z-index:2}
+.vt-bulb .bulb-svg{view-transition-name:bulb}
+::view-transition-group(bulb),::view-transition-new(bulb){animation:none}
+::view-transition-old(bulb){display:none}
 .theme-fade,.theme-fade *{transition:background-color .45s,color .45s,border-color .45s,fill .45s,stroke .45s !important}
 
 @media (max-width: 1100px){.thread{display:none}}
