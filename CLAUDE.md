@@ -6,9 +6,11 @@ for the stack, file map and env vars.
 
 ## Ground rules
 
-- **Never push to `main`.** Cloudflare Workers Builds deploys `main` to the live
-  site; other branches get preview builds. `redesign-v4` is merged; work on a
-  feature branch off `main` and let the user merge the PR.
+- **Never push to `main` on your own.** Cloudflare Workers Builds deploys
+  `main` to the live site; other branches get preview builds. Work on a feature
+  branch off `main` and let the user merge. Only merge + push `main` when the
+  user explicitly asks in that conversation (they did on 2026-11-12); that
+  doesn't carry over to later sessions. Delete merged branches afterwards.
 - **Don't commit unless asked.** The user reviews first.
 - Run `npm run typecheck` before calling anything done.
 - All copy lives in `content.ts`. `[bracketed]` text and `"#"` hrefs are
@@ -19,9 +21,8 @@ for the stack, file map and env vars.
 - New features borrowed from elsewhere get re-themed to this site (Semi, the
   semicolon, the violet accent, italic-serif accents), not copied as-is.
 - `features.thread` in `content.ts` turns the left-gutter scroll line on and off.
-  The user has gone back and forth on it (switched off once for looking
-  "cringe", then asked for it back). It's currently `true`. Leave it as set
-  unless they ask.
+  It's `true`, and on 2026-11-12 the user settled it: they like it and are
+  keeping it. Don't suggest replacing it.
 
 ## The design spec
 
@@ -124,6 +125,11 @@ Decisions made along the way (keep unless the user says otherwise):
 - Scroll-reveal content is hidden before first paint only when motion is
   allowed. If JS never loads, everything still shows.
 - Underlines show on hover only. The nav is sticky.
+- The nav's frosted glass (`.site-nav::before`, 72% bg + 14px blur) only works
+  because its fade-in uses `animation-fill-mode: backwards`. A held opacity
+  animation (`both`/`forwards`) on the nav makes it a backdrop root and kills
+  the blur, which is how it shipped until 2026-11-12. Playwright's headless
+  WebKit never renders backdrop-filter, so check Safari on a real device.
 - The magnetic return settles with one soft overshoot (it used to wobble twice).
 - Effects that animate something other than transform/opacity, on purpose:
   hero letter blur, the thread drawing in, the dark-mode clip-path reveal, its
@@ -149,8 +155,8 @@ Fixed in that pass:
   Letter stagger 0.045s, Semi drop at 1.1s. Thread lead dot fades out as the
   semicolon lights. Reduced motion also drops the card zoom and row shift.
 
-**Added 2026-11-12** (branch `footer-contact-pokes`, inspired by a teardown of
-manishluci.com; each item was approved by the user):
+**Added 2026-11-12** (merged; inspired by a teardown of manishluci.com; each
+item was approved by the user):
 
 - Hero badge: "Open to full-stack & AI engineering roles · Mumbai or Bangalore ·
   remote or relocation" (`hero.status` + `hero.statusDetail`), faint green wash
@@ -205,9 +211,37 @@ Settled (2026-11-12, don't reopen unless the user does):
 - Footer counters: `/api/views` and `/api/pokes` read the `COUNTERS` KV
   binding (namespace `portfolio-counters`, in `wrangler.jsonc`).
 - Experience rows have no arrow (they aren't links); writing rows do.
+- Writing rows keep the "LinkedIn" source label. Closed 2026-11-12; the user may
+  bring up "Blog" later themselves.
+- The thread stays (see Ground rules).
 
-**Later / optional**
+**Shipped 2026-11-12** (merged to `main` at the user's request):
 
+- Phones: the Hackathons screenshot shows below the story under 900px (it used
+  to be hidden); the About photo and hobby chips are centred under 640px.
+- Nav glass: the frosted blur never rendered before (see the nav note under
+  "Decisions"). Now it does, at the original 72% tint + 14px blur. The user
+  hasn't confirmed Safari on their iPhone yet. A floating glass-pill nav was
+  floated as a bigger option; only build it if they ask.
+- Now playing (hero + ashOS Control Centre) always links to the user's Spotify
+  profile (`links.spotify`), not a Last.fm track page; the API no longer returns
+  a track URL. With no track it shows paused bars and "Silence, for now;"
+  (`hero.nowPlaying.fallback`).
+- Now-playing data comes from Last.fm (`LASTFM_*` env vars win over the Spotify
+  ones). The user has no Spotify Premium, so Spotify's Web API (real-time) is
+  out. Lag of a few minutes comes from Spotify's built-in Last.fm link, not the
+  site (the site adds ≤ ~1 min: 30s poll + 30s edge cache). Faster scrobblers
+  (Pano Scrobbler on Android, Web Scrobbler extension for the web player) fix
+  it on the user's side; iPhone has no option. Check Last.fm's own
+  `user.getrecenttracks` before debugging the site.
+- Brand kit under `public/brand/` (logos, favicon variants, OG variants) isn't
+  referenced by code. It's the user's asset library: keep it.
+
+**Later / optional** (still open as of 2026-11-12: footer rework, font change,
+mobile Lighthouse)
+
+- Footer rework: the user plans it; wait for them to bring it. Fold in the
+  phone spacing too: the footer feels cramped at 390px (noted 2026-11-12).
 - Mobile Lighthouse headroom: the largest remaining cost is a ~147KB font,
   probably Newsreader italic with its optical-size axis. It affects how the
   font looks, so ask before changing it.

@@ -21,7 +21,7 @@ desktop. The design spec and current status are in `CLAUDE.md`.
 | `components/HobbyIcon.tsx`   | Line icons for the hobby chips, shared by the site and ashOS        |
 | `app/desktop/`               | ashOS, a macOS-inspired desktop (opened in a full-screen iframe). `_os/data` = content adapter + virtual file system, `_os/state` = window manager, `_os/ui` + `_os/apps` = UI. Styles in `os.css`, all scoped under `.ashos` |
 | `public/ashos/wallpapers/`   | Original ashOS wallpapers (light + dark SVGs) |
-| `app/api/now-playing`        | Spotify now / last played, edge-cached ~30s                        |
+| `app/api/now-playing`        | Now / last played (Last.fm, or Spotify's API), edge-cached ~30s. The widget always links to the Spotify profile (`links.spotify`) |
 | `app/api/views`, `app/api/pokes` | Footer counters, stored in Cloudflare KV (`app/api/_lib/counter.ts`) |
 | `public/projects/`           | Project demo videos (`.mp4`) and their first frames (`.webp`)      |
 | `public/about/`              | The About photo (behind `features.aboutPhoto`)                     |
@@ -63,10 +63,15 @@ npm run typecheck
 
 All optional. See `.env.example`.
 
-- `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` / `SPOTIFY_REFRESH_TOKEN`: without
-  them, "Now playing" shows the placeholder from `content.ts`
-- `LASTFM_API_KEY` / `LASTFM_USERNAME`: free alternative to Spotify's API
-  (Last.fm scrobbles Spotify plays). Used instead of the Spotify vars when set.
+- `LASTFM_API_KEY` / `LASTFM_USERNAME`: what the live site uses. Last.fm
+  scrobbles Spotify plays; it is free but only as fresh as the scrobbler
+  feeding it (Spotify's built-in Last.fm link can lag by minutes; Pano Scrobbler
+  on Android or the Web Scrobbler extension report within seconds). Used
+  instead of the Spotify vars when set.
+- `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` / `SPOTIFY_REFRESH_TOKEN`:
+  real-time, but Spotify's Web API needs Premium on the app owner's account.
+- With neither set, "Now playing" shows the idle line from `content.ts`
+  ("Silence, for now;").
 
 ## Footer counters (Cloudflare KV)
 
