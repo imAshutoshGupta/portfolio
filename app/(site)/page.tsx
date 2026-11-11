@@ -98,18 +98,6 @@ export default function Home() {
           ))}
         </Section>
 
-        <Section id="words">
-          <Heading {...sections.words} mb="mb-8" />
-          <div className="grid grid-cols-2 gap-10 max-md:grid-cols-1 max-md:gap-9">
-            {quotes.map((q, i) => (
-              <figure key={i} data-reveal="" className="m-0">
-                <blockquote className="m-0 font-serif text-[30px] leading-[1.35] italic max-sm:text-[24px]">{q.quote}</blockquote>
-                <figcaption className="mt-[18px] text-[14px] text-muted">{q.by}</figcaption>
-              </figure>
-            ))}
-          </div>
-        </Section>
-
         <Section id="wins">
           <Heading {...sections.wins} mb="mb-8" />
           <div className="grid grid-cols-3 gap-5 max-[900px]:grid-cols-1 max-[900px]:gap-4">
@@ -120,6 +108,18 @@ export default function Home() {
                 <p className="m-[6px_0_0] text-[14px] leading-[1.5] text-muted">{w.what}</p>
                 <p className="m-[16px_0_0] font-mono text-[12px] text-muted">{w.year}</p>
               </div>
+            ))}
+          </div>
+        </Section>
+
+        <Section id="words">
+          <Heading {...sections.words} mb="mb-8" />
+          <div className="grid grid-cols-2 gap-10 max-md:grid-cols-1 max-md:gap-9">
+            {quotes.map((q, i) => (
+              <figure key={i} data-reveal="" className="m-0">
+                <blockquote className="m-0 font-serif text-[30px] leading-[1.35] italic max-sm:text-[24px]">{q.quote}</blockquote>
+                <figcaption className="mt-[18px] text-[14px] text-muted">{q.by}</figcaption>
+              </figure>
             ))}
           </div>
         </Section>
