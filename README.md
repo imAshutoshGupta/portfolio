@@ -22,7 +22,6 @@ desktop. The design spec and current status are in `CLAUDE.md`.
 | `app/desktop/`               | ashOS, a macOS-inspired desktop (opened in a full-screen iframe). `_os/data` = content adapter + virtual file system, `_os/state` = window manager, `_os/ui` + `_os/apps` = UI. Styles in `os.css`, all scoped under `.ashos` |
 | `public/ashos/wallpapers/`   | Original ashOS wallpapers (light + dark SVGs) |
 | `app/api/now-playing`        | Spotify now / last played, edge-cached ~30s                        |
-| `app/api/contact`            | Contact form (Resend), used by ashOS Mail                          |
 | `app/api/views`, `app/api/pokes` | Footer counters, stored in Cloudflare KV (`app/api/_lib/counter.ts`) |
 | `public/projects/`           | Project demo videos (`.mp4`) and their first frames (`.webp`)      |
 | `public/about/`              | The About photo (behind `features.aboutPhoto`)                     |
@@ -48,7 +47,8 @@ desktop. The design spec and current status are in `CLAUDE.md`.
 
 The site's address is `hello@iamashutosh.com` (`links.email` in `content.ts`).
 Cloudflare Email Routing forwards it to a personal inbox, which is never shown
-on the site.
+on the site. The site never sends email itself: ashOS Mail's Send opens the
+visitor's own email app (`mailto:`) with the message filled in.
 
 ## Getting started
 
@@ -67,9 +67,6 @@ All optional. See `.env.example`.
   them, "Now playing" shows the placeholder from `content.ts`
 - `LASTFM_API_KEY` / `LASTFM_USERNAME`: free alternative to Spotify's API
   (Last.fm scrobbles Spotify plays). Used instead of the Spotify vars when set.
-- `RESEND_API_KEY` / `CONTACT_TO_EMAIL`: the ashOS Mail contact form. Setting
-  `CONTACT_TO_EMAIL` to the personal inbox (as a Cloudflare secret) delivers
-  messages directly, without going through the `hello@` forwarding.
 
 ## Footer counters (Cloudflare KV)
 

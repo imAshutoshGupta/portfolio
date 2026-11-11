@@ -7,8 +7,10 @@ import { Glyph } from "../ui/icons";
 import { DragRegion, useWin } from "../ui/Window";
 
 type Box = "inbox" | "sent";
-type Sent = { id: number; to: string; subject: string; body: string; from: string; at: Date; delivered: boolean };
-type Status = { kind: "idle" } | { kind: "sending" } | { kind: "error"; text: string } | { kind: "manual"; text: string };
+// The site never sends mail itself: Send hands the message to the visitor's
+// own email app (mailto:), addressed to the site's hello@ address.
+type Sent = { id: number; to: string; subject: string; body: string; at: Date };
+type Status = { kind: "idle" } | { kind: "error"; text: string };
 
 const WELCOME = {
   from: person.name,
@@ -24,8 +26,9 @@ export function Mail() {
   const [composing, setComposing] = useState(!!win.args.compose);
   const [sent, setSent] = useState<Sent[]>([]);
   const [openSent, setOpenSent] = useState<number | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", subject: "", body: "" });
+  const [form, setForm] = useState({ subject: "", body: "" });
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
     if (win.args.compose) setComposing(true);
@@ -33,44 +36,30 @@ export function Mail() {
 
   useEffect(() => os.setTitle(win.id, composing ? "New Message" : box === "inbox" ? "Inbox" : "Sent"), [os, win.id, composing, box]);
 
-  const mailto = contact.email
-    ? `${contact.email}?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(form.body)}`
-    : null;
+  const copy = (what: string, text: string) => {
+    navigator.clipboard?.writeText(text).then(
+      () => setCopied(what),
+      () => setCopied(null),
+    );
+  };
 
-  const send = async () => {
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) return setStatus({ kind: "error", text: "Add your email address so I can reply." });
+  const send = () => {
+    if (!contact.email) return setStatus({ kind: "error", text: "The contact address isn't set up yet. Try LinkedIn instead." });
     if (!form.body.trim()) return setStatus({ kind: "error", text: "Write a message first." });
-    setStatus({ kind: "sending" });
-    let delivered = false;
-    try {
-      const r = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: form.name, email: form.email, message: (form.subject ? `Subject: ${form.subject}\n\n` : "") + form.body }),
-      });
-      const d = await r.json().catch(() => ({}));
-      delivered = r.ok && d.delivered === true;
-    } catch {
-      delivered = false;
-    }
-    if (!delivered) {
-      // The site's mail provider isn't set up (or failed): never pretend it sent.
-      setStatus({
-        kind: "manual",
-        text: mailto
-          ? "This site can't send mail by itself right now. Your message is still here; send it from your own email app instead."
-          : "This site can't send mail by itself right now, and the contact address is still being set up. Copy your message and try LinkedIn instead.",
-      });
-      return;
-    }
-    const msg: Sent = { id: Date.now(), to: contact.emailLabel, subject: form.subject || "(no subject)", body: form.body, from: form.email, at: new Date(), delivered };
+    // A real link click inside the user's gesture is the most reliable way to
+    // reach the OS mail handler, including from inside the site's iframe.
+    const a = document.createElement("a");
+    a.href = `${contact.email}?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(form.body)}`;
+    a.click();
+    const msg: Sent = { id: Date.now(), to: contact.emailLabel, subject: form.subject || "(no subject)", body: form.body, at: new Date() };
     setSent((s) => [msg, ...s]);
-    setForm({ name: "", email: "", subject: "", body: "" });
+    setForm({ subject: "", body: "" });
     setStatus({ kind: "idle" });
+    setCopied(null);
     setComposing(false);
     setBox("sent");
     setOpenSent(msg.id);
-    os.notify({ app: "mail", title: "Message sent", body: `Thanks${form.name ? ", " + form.name : ""}. ${person.firstName} will reply to ${msg.from}.` });
+    os.notify({ app: "mail", title: "Opened in your email app", body: `Press send there and it reaches ${person.firstName}.` });
   };
 
   useWindowMenus(win.id, () => [
@@ -78,7 +67,7 @@ export function Mail() {
       title: "File",
       items: [
         { label: "New Message", shortcut: "⌥N", run: () => setComposing(true) },
-        { label: "Send", disabled: !composing || status.kind === "sending", run: send },
+        { label: "Send", disabled: !composing, run: send },
         { sep: true },
         { label: "Close Window", shortcut: "⌥W", run: () => os.close(win.id) },
       ],
@@ -146,8 +135,8 @@ export function Mail() {
               <button type="button" className="ashos-tbtn" aria-label="Discard draft" title="Discard" onClick={() => (setComposing(false), setStatus({ kind: "idle" }))}>
                 <Glyph name="trash" />
               </button>
-              <button type="button" className="ashos-btn ashos-btn--primary" disabled={status.kind === "sending"} onClick={send}>
-                <Glyph name="paperplane" /> {status.kind === "sending" ? "Sending…" : "Send"}
+              <button type="button" className="ashos-btn ashos-btn--primary" title="Opens in your email app" onClick={send}>
+                <Glyph name="paperplane" /> Send
               </button>
             </>
           ) : (
@@ -171,19 +160,10 @@ export function Mail() {
                 {person.name} &lt;{contact.emailLabel}&gt;
               </span>
             </div>
-            <label className="ashos-compose__row">
+            <div className="ashos-compose__row">
               <span>From:</span>
-              <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Your name" aria-label="Your name" autoComplete="name" />
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="you@example.com"
-                aria-label="Your email"
-                autoComplete="email"
-                required
-              />
-            </label>
+              <span className="ashos-muted">You, from your own email app. Send opens it with this message ready.</span>
+            </div>
             <label className="ashos-compose__row">
               <span>Subject:</span>
               <input value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} aria-label="Subject" />
@@ -195,20 +175,10 @@ export function Mail() {
               placeholder={`Hi ${person.firstName},`}
               aria-label="Message"
             />
-            {(status.kind === "error" || status.kind === "manual") && (
-              <div className={"ashos-banner" + (status.kind === "error" ? " is-error" : "")} role="alert">
+            {status.kind === "error" && (
+              <div className="ashos-banner is-error" role="alert">
                 <Glyph name="info" />
                 <span>{status.text}</span>
-                {status.kind === "manual" &&
-                  (mailto ? (
-                    <a className="ashos-btn ashos-btn--sm" href={mailto}>
-                      Open in Mail App
-                    </a>
-                  ) : (
-                    <button type="button" className="ashos-btn ashos-btn--sm" onClick={() => navigator.clipboard?.writeText(`${form.subject}\n\n${form.body}`)}>
-                      Copy Message
-                    </button>
-                  ))}
               </div>
             )}
           </form>
@@ -267,12 +237,26 @@ export function Mail() {
                 <>
                   <header>
                     <div>
-                      <b>From: {sentMsg.from}</b>
-                      <small>To: {sentMsg.to}</small>
+                      <b>To: {sentMsg.to}</b>
+                      <small>Opened in your email app</small>
                     </div>
                   </header>
                   <h1>{sentMsg.subject}</h1>
                   <p className="ashos-pre">{sentMsg.body}</p>
+                  <div className="ashos-banner" role="status">
+                    <Glyph name="info" />
+                    <span>
+                      {copied
+                        ? `${copied} copied.`
+                        : `Nothing opened? Copy the message and email it to ${sentMsg.to}.`}
+                    </span>
+                    <button type="button" className="ashos-btn ashos-btn--sm" onClick={() => copy("Message", sentMsg.subject === "(no subject)" ? sentMsg.body : `${sentMsg.subject}\n\n${sentMsg.body}`)}>
+                      Copy Message
+                    </button>
+                    <button type="button" className="ashos-btn ashos-btn--sm" onClick={() => copy("Address", sentMsg.to)}>
+                      Copy Address
+                    </button>
+                  </div>
                 </>
               ) : (
                 <div className="ashos-empty">No message selected</div>

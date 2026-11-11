@@ -94,9 +94,12 @@ the source, and all 10 interactions behave the same. The additions under
 
 `hello@iamashutosh.com` (`links.email` / `links.emailLabel` in `content.ts`).
 Cloudflare Email Routing forwards it to the user's personal Gmail. Never put
-the personal address on the site, in ashOS or in committed files. It's fine as
-the `CONTACT_TO_EMAIL` secret for `/api/contact` (skips the forwarding hop);
-that's set by the user in the Cloudflare dashboard.
+the personal address on the site, in ashOS or in committed files.
+
+There is no server-side email. The user declined Resend (2026-11-12) and doesn't
+want visitors sending mail through the site, so `/api/contact` was removed. Don't
+add a sending service back, and don't remove ashOS Mail either: its Send opens
+the visitor's own email app via `mailto:`.
 
 ## Status (as of 2026-11-12)
 
@@ -189,9 +192,6 @@ Still open (waiting on the user's content):
 - **Writing** rows are placeholders until the user sends LinkedIn post links.
   LinkedIn blocks automated reading, so don't try to scrape them.
 - **Kind words**: both quotes are placeholders.
-- **Contact form needs Resend set up.** `/api/contact` sends from
-  `portfolio@iamashutosh.com`, so that domain must be verified in Resend, with
-  `RESEND_API_KEY` and `CONTACT_TO_EMAIL` added as Worker secrets.
 
 Settled (2026-11-12, don't reopen unless the user does):
 - Hackathons & wins: RootCause (Paytm Build for India) is the only win. Done.
@@ -233,8 +233,9 @@ A macOS-inspired desktop, rebuilt 2026-11-11. It is fully separate from the site
   Me, Projects, Terminal + `shell.ts`, Safari, Mail, Résumé/Preview/Photos,
   System Settings).
 - Browsers keep ⌘W/⌘Q/⌘Tab, so ashOS shortcuts also work with ⌥ (menus show ⌥).
-- Mail sends through `/api/contact` and only reports "sent" when the API says
-  `delivered: true`.
+- Mail's Send opens the visitor's email app (`mailto:` to `hello@`), then files
+  the message under Sent as "Opened in your email app" with Copy Message /
+  Copy Address in case no mail app opened. It never claims the mail was sent.
 - Shared with the site: `components/HobbyIcon.tsx` (hobby chip icons) and the
   About photo (`person.photo`, shown while `features.aboutPhoto` is on).
 - The Résumé app checks for the résumé PDF (`links.resume`) at build time (`page.tsx`), so
