@@ -1,61 +1,40 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import "./globals.css";
-
-const SITE = "https://ashutoshgupta.dev";
+import { meta } from "@/content";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE),
-  title: "Ashutosh Gupta — Full-Stack Engineer",
-  description:
-    "Full-stack engineer shipping products end-to-end — from Postgres schema to the last pixel. Six years building software at scale.",
-  keywords: [
-    "full-stack engineer",
-    "Next.js",
-    "NestJS",
-    "React",
-    "TypeScript",
-    "AWS",
-    "portfolio",
-  ],
+  metadataBase: new URL(meta.url),
+  title: meta.title,
+  description: meta.description,
   authors: [{ name: "Ashutosh Gupta" }],
   openGraph: {
-    title: "Ashutosh Gupta — Full-Stack Engineer",
-    description:
-      "Full-stack engineer shipping products end-to-end — from Postgres schema to the last pixel.",
-    url: SITE,
+    title: meta.title,
+    description: meta.description,
+    url: meta.url,
     siteName: "Ashutosh Gupta",
     type: "website",
-    images: [{ url: "/og", width: 1200, height: 630, alt: "Ashutosh Gupta — Full-Stack Engineer" }],
+    images: [{ url: "/og", width: 1200, height: 630, alt: meta.title }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ashutosh Gupta — Full-Stack Engineer",
-    description:
-      "Full-stack engineer shipping products end-to-end — from Postgres schema to the last pixel.",
+    title: meta.title,
+    description: meta.description,
     images: ["/og"],
   },
 };
 
-// Honors a ?theme= query param before paint (the ashOS takeover iframe passes
-// the parent's current theme). Mirrors the desktop takeover behavior.
-const THEME_SCRIPT = `(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
+// Runs before paint.
+// Theme: ?theme= (passed into the ashOS iframe) wins, then the saved choice,
+// then the OS preference on a first visit.
+// Motion: html.motion pre-hides scroll-revealed content (site.css) unless the
+// user prefers reduced motion. If the page hasn't hydrated within 4s (JS
+// blocked or failing), the class comes off so nothing stays hidden.
+const THEME_SCRIPT = `(function(){var d=document.documentElement;try{var q=new URLSearchParams(location.search).get('theme'),s=localStorage.getItem('theme'),t=q==='light'||q==='dark'?q:s==='light'||s==='dark'?s:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');d.setAttribute('data-theme',t)}catch(e){}try{if(!matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('motion');setTimeout(function(){if(!('motionPending' in d.dataset)&&!('motionReady' in d.dataset))d.classList.remove('motion')},4000)}}catch(e){}})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="dark" suppressHydrationWarning>
+    <html lang="en" data-theme="light" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=satoshi@400,500,700&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
-          rel="stylesheet"
-        />
         <Script id="theme-init" strategy="beforeInteractive">
           {THEME_SCRIPT}
         </Script>
