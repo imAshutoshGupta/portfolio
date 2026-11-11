@@ -71,8 +71,9 @@ social proof → skills → personality → contact. Keep it.
    to the footer. An accent copy draws with scroll (ScrollTrigger scrub), led by
    a glowing dot, ending in a semicolon. Hidden under 1100px.
 6. Now playing: three equalizer bars + track/artist from Spotify (server route,
-   cached ~30s; "last played" when nothing is playing). Since 2026-11-12: 10s
-   edge cache, 15s poll, skipped in background tabs, refetched on tab focus.
+   cached ~30s; "last played" when nothing is playing). As built (closed
+   2026-11-12): data via Last.fm, 10s edge cache, 15s poll, skipped in
+   background tabs, refetched on tab focus, links to the Spotify profile.
 7. Local time (Asia/Kolkata) with a mood: <6 "probably shipping", <12 "coffee,
    then code", <18 "deep in the work", else "extra-hours mode".
 8. Footer CTA hover: text turns accent, small Semi looks up (eyes open, -8deg).
@@ -212,6 +213,9 @@ Settled (2026-11-12, don't reopen unless the user does):
 - Footer counters: `/api/views` and `/api/pokes` read the `COUNTERS` KV
   binding (namespace `portfolio-counters`, in `wrangler.jsonc`).
 - Experience rows have no arrow (they aren't links); writing rows do.
+- Now playing / Spotify: **closed 2026-11-12.** Last.fm feed, Spotify-profile
+  link, idle line and refresh timing are all done (details under "Shipped
+  2026-11-12"). Don't reopen unless the user reports a problem.
 - Writing rows keep the "LinkedIn" source label. Closed 2026-11-12; the user may
   bring up "Blog" later themselves.
 - The thread stays (see Ground rules).

@@ -63,11 +63,10 @@ npm run typecheck
 
 All optional. See `.env.example`.
 
-- `LASTFM_API_KEY` / `LASTFM_USERNAME`: what the live site uses. Last.fm
-  scrobbles Spotify plays; it is free but only as fresh as the scrobbler
-  feeding it (Spotify's built-in Last.fm link can lag by minutes; Pano Scrobbler
-  on Android or the Web Scrobbler extension report within seconds). Used
-  instead of the Spotify vars when set.
+- `LASTFM_API_KEY` / `LASTFM_USERNAME`: what the live site uses. Spotify's
+  built-in Last.fm connection scrobbles every play (free, no Premium needed),
+  and the widget picks a change up within ~25s, or as soon as the tab is shown
+  again. Used instead of the Spotify vars when set.
 - `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` / `SPOTIFY_REFRESH_TOKEN`:
   real-time, but Spotify's Web API needs Premium on the app owner's account.
 - With neither set, "Now playing" shows the idle line from `content.ts`
