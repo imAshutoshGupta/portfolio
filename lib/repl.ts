@@ -109,7 +109,8 @@ export function runCommand(raw: string): ReplResult {
       if (arg === "linkedin") return { rows: [[m("→ linkedin.com/in/imAshutoshGupta")]], action: { type: "nav", href: "https://linkedin.com/in/imAshutoshGupta", external: true } };
       if (arg === "resume" || arg === "resume.pdf") return { rows: [[m("→ resume.pdf")]], action: { type: "nav", href: "/resume.pdf", external: true } };
       const p = PROJECTS.find((x) => x.slug === arg || x.name.toLowerCase() === arg);
-      if (p) return { rows: [[m("→ /work/" + p.slug)]], action: { type: "nav", href: "/work/" + p.slug } };
+      // case-study pages were removed with the old home page; point at the work section
+      if (p) return { rows: [[m("→ /#work")]], action: { type: "nav", href: "/#work" } };
       return { rows: [[m("open: don't know how to open "), f(arg || "that")]] };
     }
 

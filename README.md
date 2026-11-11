@@ -1,40 +1,38 @@
 # Ashutosh Gupta — Portfolio
 
-A terminal-themed personal portfolio built with Next.js, TypeScript, and
-Tailwind CSS v4. It pairs an editorial "Luxe Terminal" home page with a
-fully interactive **ashOS** desktop takeover, plus a real in-browser REPL and
-a command palette.
+Portfolio v4, built with Next.js and TypeScript, plus the interactive **ashOS**
+desktop. The design spec and current status are in `CLAUDE.md`.
 
 ## Stack
 
-- **Next.js 15** (App Router) · **React 19** · **TypeScript**
-- **Tailwind CSS v4** (CSS-first, `@theme` tokens)
-- Fonts: Clash Display + Satoshi (Fontshare), JetBrains Mono (Google)
+- **Next.js 16** (App Router, Turbopack) · **React 19** · **TypeScript**
+- **Tailwind CSS v4**, with exact values from the source as arbitrary values
+- **Lenis** for smooth scroll · **GSAP ScrollTrigger** for scroll-linked motion
+- Fonts via `next/font`: Inter Tight, Newsreader italic, Sacramento, JetBrains Mono
 
-## Routes
+## Where things live
 
-| Route              | What it is                                                                          |
-| ------------------ | ----------------------------------------------------------------------------------- |
-| `/`                | Luxe Terminal home (hero, work, experience, skills, writing, now-playing, contact)  |
-| `/desktop`         | ashOS desktop — draggable glass windows, dock, menu bar (loaded in the takeover iframe) |
-| `/work/[slug]`     | Project case studies (`ledger`, `atlas`, `pulse`, `drift`)                          |
-| `/api/now-playing` | Spotify "now playing" (falls back to a simulated rotation)                          |
-| `/api/github`      | Live repo stars (falls back to static numbers)                                      |
-| `/api/contact`     | Contact delivery (logs when no provider is set)                                     |
-| `/og`              | Dynamically generated Open Graph image                                              |
+| Path                         | What it is                                                         |
+| ---------------------------- | ------------------------------------------------------------------ |
+| `content.ts`                 | **All site copy and links.** `[bracketed]` text is placeholder.    |
+| `app/(site)/page.tsx`        | The home page sections                                             |
+| `app/(site)/site.css`        | Design tokens (light/dark), keyframes and classes from the source  |
+| `components/site/`           | Interactive pieces: nav, hero + Semi, project cards, footer CTA, Lenis, thread, ashOS takeover |
+| `app/desktop/`               | ashOS desktop (own fonts + `os.css`), opened in a full-screen iframe |
+| `app/api/now-playing`        | Spotify now / last played, edge-cached ~30s                        |
+| `app/api/github`, `app/api/contact`, `app/og` | Unchanged API routes and OG image                   |
 
-## Features
+## Notes
 
-- **Interactive hero terminal** — the prompt is a real REPL. Click it and type
-  `help`, `ls`, `cat ledger`, `open ashos`, `theme light`, `sudo hire-me`…
-  (shared engine in `lib/repl.ts`).
-- **⌘K command palette** — jump to sections, open case studies, launch ashOS,
-  copy email, toggle theme. (`Esc` to close.)
-- **Project case studies** — each work card links to a detail page.
-- **Live data APIs** with graceful fallbacks, so the UI is identical with or
-  without secrets configured.
-- **SEO/OG** metadata + a dynamic OG image; **a11y** (aria-labels, dialog roles,
-  focus restore); honors `prefers-reduced-motion`.
+- **Theme:** `data-theme` on `<html>`. A first visit follows the OS setting;
+  the toggle saves the choice to `localStorage`. ashOS gets the theme via `?theme=`.
+- **The thread** (the scroll-drawn line in the left gutter) is on.
+  Set `features.thread` in `content.ts` to `false` to remove it, along with
+  the "That thin line…" sentence in About.
+- **Desktop vs mobile:** at desktop widths the page matches the source
+  values exactly. The `max-*:` Tailwind variants add the responsive layout
+  the source didn't have (menu button below 860px, stacked grids, smaller type).
+- **Reduced motion:** all animations and transitions are off and Lenis is disabled.
 
 ## Getting started
 
@@ -42,19 +40,14 @@ a command palette.
 npm install
 npm run dev        # http://localhost:3000
 npm run build && npm run start
+npm run typecheck
 ```
 
 ## Environment
 
-All optional — without them the live features fall back to static data.
-See `.env.example`:
+All optional. See `.env.example`.
 
-- `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` / `SPOTIFY_REFRESH_TOKEN`
+- `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET` / `SPOTIFY_REFRESH_TOKEN`: without
+  them, "Now playing" shows the placeholder from `content.ts`
 - `GITHUB_TOKEN` / `GITHUB_USERNAME`
 - `RESEND_API_KEY` / `CONTACT_TO_EMAIL`
-
-## Notes
-
-- Theme switching is driven entirely by CSS variables under `[data-theme]`, so
-  flipping the attribute on `<html>` re-themes the whole page with no JS repaint.
-  The ashOS iframe receives the parent's theme via `?theme=`.
