@@ -14,6 +14,11 @@ export const meta = {
   title: "Ashutosh Gupta — Full-stack · AI engineer",
   description: "I build products end to end, and the AI inside them.",
   url: "https://iamashutosh.com",
+  // Job title for search engines (JSON-LD Person), as on the résumé: jobs[0].role.
+  jobTitle: "Software Developer",
+  // Sitemap <lastmod> for every page (app/sitemap.ts). Bump it by hand when
+  // the content changes (YYYY-MM-DD).
+  updated: "2026-11-12",
 };
 
 export const links = {
@@ -351,4 +356,8 @@ export const ashos = {
   status: "ashOS — desktop mode · running",
   exit: "✕ Exit to site",
   frameTitle: "ashOS desktop",
+  // /desktop's page title and description (tab, search results, share
+  // previews), also server-rendered as a visually hidden heading for crawlers.
+  pageTitle: `ashOS — ${hero.name}`,
+  pageDescription: `${hero.name}'s portfolio as an interactive desktop.`,
 };

@@ -257,7 +257,8 @@ Decisions made along the way (keep unless the user says otherwise):
   focus in the nav); downward jumps land at the top as the nav slides away.
 - `/robots.txt` and `/sitemap.xml` are Next metadata routes (`app/robots.ts`,
   `app/sitemap.ts`) built from `meta.url`. `/desktop` has its own canonical and
-  is in the sitemap.
+  is in the sitemap. Every sitemap `<lastmod>` is `meta.updated` in
+  `content.ts`: bump it by hand (YYYY-MM-DD) whenever the content changes.
 - The nav's frosted glass (`.site-nav::before`, 72% bg + 14px blur) only works
   because its fade-in uses `animation-fill-mode: backwards`. A held opacity
   animation (`both`/`forwards`) on the nav makes it a backdrop root and kills
