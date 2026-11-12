@@ -32,6 +32,31 @@ around, links) and should stay free of history and internals.
 - `features.thread` in `content.ts` turns the left-gutter scroll line on and off.
   It's `true`, and on 2026-11-12 the user settled it: they like it and are
   keeping it. Don't suggest replacing it.
+- **Git identity:** the user works from an office laptop whose global git
+  identity is their office account. This repo has a repo-local
+  `user.name`/`user.email` (imAshutoshGupta, personal) and an `origin` URL with
+  the personal username; the push token lives in Git Credential Manager. Check
+  `git config --local user.email` before committing; never change the global
+  config, never write a token into files or the remote URL. If a push asks for
+  credentials, stop and ask the user.
+
+## How the user likes work run
+
+Fix work goes in **batches**. Per batch: a branch off `main`
+(`fix/<area>-batch-<x>`), fixes, `npm run typecheck`, a production build,
+Playwright tests that **fail on the old code and pass on the new** (run the
+earlier suites too), review the diff, commit (personal identity, detailed
+message), push the branch, then — only when the user has said so in that
+conversation — merge `--no-ff` into `main`, push, delete the branch, wait for
+the deploy and rerun the batch's tests against https://iamashutosh.com.
+
+The user wants Claude to **orchestrate**: spawn Opus agents for the fixing,
+testing and reviewing, run independent work **in parallel** (separate git
+worktrees, separate ports), and keep the main thread for briefing, reviewing
+diffs, re-running tests and merging. Give each agent a full brief (items with
+file:line, CLAUDE.md rules, how to test, "don't commit"). Merge batches one at
+a time; rebase/retest a later batch on the new `main` before merging it.
+Agents' claims get checked: rerun their tests yourself before committing.
 
 ## Codebase
 
@@ -160,8 +185,11 @@ the source, and all 10 interactions behave the same. The additions under
 ## Contact email
 
 `hello@iamashutosh.com` (`links.email` / `links.emailLabel` in `content.ts`).
-Cloudflare Email Routing forwards it to the user's personal Gmail. Never put
-the personal address on the site, in ashOS, in the README or in committed files.
+Cloudflare Email Routing forwards it to the user's personal Gmail. It stays the
+address the site shows. Since 2026-11-12 the user is fine with their personal
+Gmail and phone number appearing publicly (the résumé PDF has both; "hello@
+might not always work, so my personal one should work"). Don't flag them as a
+leak; don't add the personal address to the site unless the user asks.
 
 There is no server-side email. The user declined Resend (2026-11-12) and doesn't
 want visitors sending mail through the site, so `/api/contact` was removed. Don't
@@ -258,7 +286,7 @@ Fixed in that pass:
   mouse click on a nav link used to pin it open for good.
 - Résumé links all spread `resumeLink` from `content.ts`. In Chrome the click
   downloads (download beats target for same-origin).
-- `app/icon.svg` favicon. Row titles get the draw-in underline (`.ul`).
+- Favicons (`public/favicon.svg` / `.ico`, wired in `app/layout.tsx`). Row titles get the draw-in underline (`.ul`).
   Letter stagger 0.045s, Semi drop at 1.1s. Thread lead dot fades out as the
   semicolon lights. Reduced motion also drops the card zoom and row shift.
 
@@ -349,7 +377,143 @@ links, ashOS tips, selected work, résumé, GitHub stats, contact; local setup
 folded away). Its technical content moved here. AGENTS.md and HANDOFF.md
 retired; Claude's memory notes folded into this file.
 
+**Review fixes, 2026-11-12** (each batch merged to `main` at the user's
+request, tested before/after and against the live site; suites in
+`C:\Users\admin\portfolio-qa`, see Testing notes):
+- Batch 1: counters only take same-origin writes, rate-limited per IP
+  (`COUNTER_LIMIT`), errors answer the current count; preview builds get the
+  counter bindings; ashOS nested-folder duplication, AltGr/⌥ typing vs
+  shortcuts, Terminal in a deleted folder.
+- A (ashOS): boot splash, focus follows the active window, Photos keys, Finder
+  Back, menu Esc, Dock auto-hide, ⌥M in full screen, icon keys.
+- B (touch): touch drag/resize on tablets, pointerType from pointerdown
+  (Safari), long-press context menus (`ui/longPress.ts`).
+- C (content): project demos in ashOS (`ui/Demo.tsx`, Demo.mp4 nodes), login
+  from content, alt text from content, full Overview, `approach` in help.
+- D (rough edges + a11y): `open` typos, Safari self-framing and `//host`,
+  `theme` validation, Screenshot.webp, platform key labels, rename guards,
+  menu/submenu/context-menu focus, toast buttons, Finder activedescendant,
+  Mail list, `words`, Safari reload, reduced motion from frame one, Safari
+  address field select race.
+- E (site): nav-clear in-page jumps (scroll-margin + `scroll.ts`), bulb double
+  switch, project links in new tabs (`components/site/external.ts`),
+  robots.txt + sitemap.xml, /desktop canonical, site's ashOS link inside
+  ashOS's Safari.
+
 ### Open
+
+**Review round 2 backlog (found 2026-11-12, not fixed yet).** Order the user
+chose: F, then G, then H, then I, then J. Verify each before fixing.
+
+F — live site:
+1. Now playing can freeze up to 4h: on an edge-cache hit Cloudflare rewrites
+   `/api/now-playing`'s `max-age=10` to `max-age=14400` (zone Browser Cache
+   TTL), so browsers answer every poll from cache. Fix: return `no-store` to
+   browsers (keep max-age=10 only on the copy put in `caches.default`), and
+   `cache: "no-store"` on the fetches in `components/site/Hero.tsx` and
+   `app/desktop/_os/ui/Panels.tsx`. Likely the real cause of the "lag" noted
+   under Shipped. Verify live with `curl -sD- …/api/now-playing` twice.
+2. `/_next/static/*` is served `max-age=0, must-revalidate`; add
+   `public/_headers` with `/_next/static/*` → `public, max-age=31536000,
+   immutable` (OpenNext's documented way; files are content-hashed, so
+   updates still show at once). Nothing else gets long caching.
+3. Print / Save as PDF drops every scroll-reveal block (`.motion
+   [data-reveal]{opacity:0}` in site.css, no print rule). Add `@media print`.
+4. At 390px, Shift+Tab upward lands focus under the shown sticky nav (WCAG
+   2.4.11). Don't use `scroll-padding-top` on html (Lenis subtracts it and
+   breaks batch E's landing logic).
+5. Semi's speech (`Hero.tsx` ~68) is a keyed `aria-live` span inside the h1, so
+   each poke inserts a new live region and screen readers likely say nothing.
+6. No security headers on HTML: add HSTS (after Always Use HTTPS is on),
+   `X-Content-Type-Options`, `Referrer-Policy`, CSP `frame-ancestors 'self'`
+   (ashOS frames the site), `object-src 'none'`, `base-uri 'self'`; set
+   `poweredByHeader: false`. A strict script CSP isn't practical here.
+7. No JS on phones: the nav has no links (desktop links hidden <860px, menu
+   button needs JS). Give it a no-JS route (e.g. `<details>` or links to #ids).
+8. `FooterStats.tsx` marks the session's view as counted before the POST
+   succeeds.
+
+G — ashOS round 2 (two are regressions from batches 1/A, do those first):
+1. `Desktop.tsx` early `getModifierState("AltGraph")` return probably kills
+   every ⌥ shortcut in Firefox on Mac (it reports AltGraph for Option). Only
+   treat it as AltGr when `ctrlKey` is also set.
+2. Focus falls to <body> when Spotlight or a menu closes without changing the
+   active window (Window.tsx focus effect only runs when `active` changes).
+3. Non-QWERTY (AZERTY): shortcuts match `e.code`, so Alt+A (KeyQ) quits the
+   app. Map by layout (`e.key` when it's a plain letter, else
+   `navigator.keyboard.getLayoutMap()`, else `e.code`).
+4. Closing a window mid-drag leaves `data-gesture` on `.ashos` (listeners were
+   on the removed title bar): iframes stop taking clicks, cursors stuck.
+5. With Dock auto-hide, the Dock slides away under its own context menu.
+6. A mouse-opened menu stays open behind Spotlight; first Esc closes the menu.
+7. `longPress.ts`: after a long-press the window click blocker lives until the
+   next pointerdown, swallowing a keyboard Enter on the menu.
+8. Space on Quick Look's demo play/pause button closes Quick Look
+   (Panels.tsx capture handler exempts only input/textarea).
+9. On a Mac, ⌥W/⌥Q never work in Terminal (⌥ types there by design now);
+   decide a working route (e.g. accept ⌥ shortcuts in Terminal's input when
+   the typed char isn't printable, or document ⌃-based alternatives).
+10. Windows scroll sideways at their minimum width, hiding traffic lights:
+    About (tabs → dropdown only under 900px *screen* width, not window),
+    Finder 520px, Mail 520px (`data/apps.ts` min sizes).
+11. Spotlight hides any path starting with "/Trash" (`Spotlight.tsx` ~92 uses
+    `startsWith(TRASH)`; use `TRASH + "/"` or equality).
+12. Safari ignores in-frame navigation on local pages: address bar, Reload and
+    Open in New Tab keep the original URL (`Safari.tsx` ~91, ~107, ~168, ~216).
+13. Saved Recents pointing at renamed files show as bare disabled paths
+    (`MenuBar.tsx` ~72); drop entries that no longer exist.
+14. `open ../Nope` prints "/Documents/../Nope": normalise `.`/`..` in the
+    missing-path message (`shell.ts` ~293).
+15. Wiring gaps: `sections.writing/about` `line` + `accent` headlines and
+    `person.signoff` never shown in ashOS; the RootCause screenshot has no
+    image node (Finder/Quick Look/Photos); "Wins" tab label (`About.tsx` ~23)
+    and "Beyond work" (`shell.ts` ~230) hardcoded instead of `S.*.title`.
+
+H — SEO code, no wording needed:
+1. JSON-LD as one `@graph`: `WebSite` (name, url), `ProfilePage` (mainEntity →
+   Person), `Person` with `@id`, a clean `jobTitle` (new `meta.jobTitle`),
+   `worksFor` (jobs[0].org), `knowsAbout` (from `tools`), `award` (from `wins`),
+   sameAs as now. homeLocation/alumniOf/image wait for the user (see I).
+2. /desktop share preview: its own `openGraph`/`twitter` (url `/desktop`,
+   ashOS title/description). A child `openGraph` replaces the parent's whole
+   object, so export a shared base from `app/layout.tsx`.
+3. `twitter.creator: "@im_AshutoshG"`, `openGraph.locale: "en_IN"`.
+4. Sitemap `lastModified` from a hand-bumped `meta.updated` date in content.ts.
+5. /desktop is an empty boot screen to crawlers (client-only): server-render
+   a short visually-hidden heading + sentence (from content.ts) + link to `/`.
+
+I — SEO needing the user's words or decisions (ask, don't invent):
+1. Meta description (~150 chars, role + Mumbai + proof) and maybe the title.
+2. A visible "based in Mumbai" (content.ts; mirror in ashOS).
+3. Move Semi's button and speech out of the `<h1>` with no visual change
+   (Hero.tsx; interactions 1–2 must still match at 1440/390).
+4. Placeholders reach crawlers ("[Project one]", "[Post title]", quotes):
+   fill, hide items starting with "[", or `data-nosnippet` — user decides.
+5. og.png still shows the old badge; refresh it under a new file name
+   (previews cache by URL). Site screenshot, not the photo.
+6. Confirm for JSON-LD: home location (Mumbai), college (Lokmanya Tilak
+   College of Engineering, from the résumé), whether to use the About photo
+   as `image`.
+7. Is Axiomic (on the résumé) the missing "[Project one]"?
+
+J — content (the biggest ranking lever; needs the user's writing):
+case-study pages `/work/glyphx`, `/work/smudge`, `/work/rootcause-ai`
+(per-page metadata, JSON-LD, sitemap, ashOS Projects, README table);
+optionally canonical copies of the best LinkedIn posts at `/writing/[slug]`;
+`/llms.txt` last and optional (Google says it doesn't use it).
+
+**Owner to-do outside the code** (Claude can't log in to these; give steps):
+- Cloudflare: Always Use HTTPS on (plain http:// serves a 200 duplicate);
+  `www` DNS record proxied and the www→apex redirect rule matching any scheme
+  (`http://www` returns 522/523); Security → Bots → Block AI bots = allow, AI
+  Crawl Control: allow search/answer bots, managed robots.txt off; Crawler
+  Hints on; HSTS later; optional Web Analytics.
+- Google Search Console (domain property, submit sitemap, request indexing),
+  Bing Webmaster Tools (import from GSC), LinkedIn (website + Featured +
+  headline, Post Inspector), GitHub (profile website/location/README, pins,
+  repo website fields), GlyphX `package.json` homepage/author.url, X bio,
+  Naukri/Wellfound/Peerlist, Reddit only via genuine participation (r/webdev
+  Showoff Saturday).
 
 Waiting on the user's content (don't invent it; the user is keeping these open):
 - **Projects one and four** are placeholders (`[Project one]`, `[Project four]`),
@@ -395,7 +559,8 @@ When real projects land, add them to the README's "Selected work" table too.
 - The thread stays (see Ground rules).
 - Nav links: the user declined a Wins link (2026-11-12).
 - `public/Ashutosh_Gupta_Resume.pdf` is the user's final résumé. Replace it only
-  with a file they send; never edit or regenerate it.
+  with a file they send; never edit or regenerate it. Its personal Gmail and
+  phone number are there on purpose (see Contact email).
 - LinkedIn is `linkedin.com/in/ashutoshgupta08` (matches the résumé). Toolkit
   and Experience match the résumé too. X is `x.com/im_AshutoshG` (`links.x`).
 - Footer counters: `/api/views` and `/api/pokes` read the `COUNTERS` KV
@@ -415,3 +580,23 @@ When real projects land, add them to the README's "Selected work" table too.
   sandbox, use Playwright's own Chromium (`npx playwright install chromium`).
 - When hovering rounded elements in tests, aim inside the corners. The corner
   pixel misses the hit area.
+- **Test suites live in `C:\Users\admin\portfolio-qa`** (outside the repo, with
+  Playwright in its own node_modules; browsers in the user's ms-playwright
+  cache). Each takes the base URL as its first argument and prints one
+  PASS/FAIL line per check: `smoke.mjs`, `ashos-test.mjs` (batch 1),
+  `batch-a.mjs` … `batch-e.mjs` (`node --no-warnings` for c, d, e), plus
+  `review2-*.mjs` repro scripts for the open backlog. `site-counters.mjs` is
+  hardcoded to `wrangler dev` on :8787. Run them all after every batch.
+- Playwright's bundled Chromium can't play the H.264 demos: tests that need
+  video launch installed Chrome (`channel: "chrome"`).
+- Running browser tests against the live site adds real page views (each fresh
+  session counts one). Prefer the local build; on live, run only the batch's
+  own suite and `smoke.mjs`. `curl` GETs don't count.
+- On Windows, stopping a background `npx next start` can leave its node child
+  listening: free the port with PowerShell
+  `Get-NetTCPConnection -LocalPort 3100 -State Listen | % { Stop-Process -Id $_.OwningProcess -Force }`.
+  Parallel agents need their own worktree and port (3101, 3102, …) — two
+  `next build`s in one working tree clobber each other's `.next`.
+- To see when a push to `main` is live, compare the `/_next/static/…js` list
+  in the page's HTML before and after (the first-party robots.txt can't be
+  used: Cloudflare serves a managed one when the app has none).
