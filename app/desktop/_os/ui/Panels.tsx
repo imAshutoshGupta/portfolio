@@ -231,23 +231,25 @@ export function Toasts() {
   return (
     <div className="ashos-toasts" aria-live="polite">
       {os.notes.map((n) => (
-        <div
-          key={n.id}
-          role="status"
-          className="ashos-toast"
-          onClick={() => {
-            n.run?.();
-            os.dismiss(n.id);
-          }}
-        >
-          <AppIcon app={n.app} className="ashos-toast__icon" />
-          <div className="ashos-toast__text">
-            <div className="ashos-toast__top">
-              <b>{n.title}</b>
-              <span>now</span>
-            </div>
-            <p>{n.body}</p>
-          </div>
+        <div key={n.id} role="status" className="ashos-toast">
+          {/* The banner itself is a button (keyboard too); ✕ sits beside it, not in it. */}
+          <button
+            type="button"
+            className="ashos-toast__main"
+            onClick={() => {
+              n.run?.();
+              os.dismiss(n.id);
+            }}
+          >
+            <AppIcon app={n.app} className="ashos-toast__icon" />
+            <span className="ashos-toast__text">
+              <span className="ashos-toast__top">
+                <b>{n.title}</b>
+                <span>now</span>
+              </span>
+              <span className="ashos-toast__body">{n.body}</span>
+            </span>
+          </button>
           <button
             type="button"
             className="ashos-toast__x"

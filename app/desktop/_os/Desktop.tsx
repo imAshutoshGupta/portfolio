@@ -11,7 +11,7 @@ import { Safari } from "./apps/Safari";
 import { Settings } from "./apps/Settings";
 import { Terminal } from "./apps/Terminal";
 import { Photos, Preview, Resume } from "./apps/Viewers";
-import { OSProvider, useOS } from "./state/os";
+import { OSProvider, useKeyLabel, useOS } from "./state/os";
 import { ACCENTS, KEYS } from "./state/prefs";
 import type { Win } from "./state/wm";
 import { DesktopIcons } from "./ui/DesktopIcons";
@@ -169,6 +169,7 @@ function useShortcuts(setSwitcher: (s: { apps: AppId[]; i: number } | null) => v
 
 function Shell() {
   const os = useOS();
+  const key = useKeyLabel();
   const [switcher, setSwitcher] = useState<{ apps: AppId[]; i: number } | null>(null);
   useShortcuts(setSwitcher, switcher);
 
@@ -199,7 +200,7 @@ function Shell() {
           os.notify({
             app: "finder",
             title: "Welcome to ashOS",
-            body: os.mobile ? "Tap the dock to open apps. Open Finder to browse the portfolio." : "Press ⌘K or Ctrl+Space to search. Click here for a quick guide.",
+            body: os.mobile ? "Tap the dock to open apps. Open Finder to browse the portfolio." : key("Press ⌘K or Ctrl+Space to search. Click here for a quick guide."),
             run: () => os.openPath("/Desktop/Welcome.pdf"),
           }),
         900

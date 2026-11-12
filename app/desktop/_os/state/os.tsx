@@ -135,8 +135,10 @@ export function useWindowMenus(winId: string, get: () => MenuSection[]) {
   }, [winId, registerMenus, unregisterMenus]);
 }
 
-function useMedia(q: string, initial: boolean) {
-  const [v, setV] = useState(initial);
+// Read right away: this tree only renders on the client (see Root.tsx), so
+// the first windows already know about reduced motion and dark mode.
+function useMedia(q: string) {
+  const [v, setV] = useState(() => matchMedia(q).matches);
   useEffect(() => {
     const m = matchMedia(q);
     const on = () => setV(m.matches);
@@ -170,10 +172,10 @@ export function OSProvider({ children, resume = null }: { children: ReactNode; r
   const resetPrefs = useCallback(() => setPrefs(DEFAULT_PREFS), []);
 
   const [host] = useState(hostTheme);
-  const osDark = useMedia("(prefers-color-scheme: dark)", host === "dark");
+  const osDark = useMedia("(prefers-color-scheme: dark)");
   const systemDark = host ? host === "dark" : osDark;
   const appearance = prefs.appearance === "auto" ? (systemDark ? "dark" : "light") : prefs.appearance;
-  const reduced = useMedia("(prefers-reduced-motion: reduce)", false);
+  const reduced = useMedia("(prefers-reduced-motion: reduce)");
   const reducedRef = useRef(reduced);
   reducedRef.current = reduced;
 
@@ -389,6 +391,8 @@ export function OSProvider({ children, resume = null }: { children: ReactNode; r
     const n = fsRef.current[path];
     const name = raw.replace(/\//g, "∕").trim();
     if (!n?.user || !n.parent || !name || name === n.name) return null;
+    // ".", ".." and "~" mean something else to the shell's paths.
+    if (name === "." || name === ".." || name === "~") return null;
     const next = join(n.parent, uniqueName(fsRef.current, n.parent, name));
     setChanges((c) => relocate(c, path, next));
     return next;

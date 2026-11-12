@@ -86,3 +86,7 @@ export function docToLines(doc: Doc, width = 72): string[] {
 export const docSize = (doc: Doc) => new TextEncoder().encode(docToLines(doc).join("\n")).length;
 
 export const docText = (doc: Doc) => docToLines(doc, 1000).join(" ");
+
+/** Shortcut rows with this platform's key labels (`key` from useKeyLabel). */
+export const relabelKeys = (doc: Doc, key: (s: string) => string): Doc =>
+  doc.map((b) => (b.t === "keys" ? { ...b, rows: b.rows.map(([k, v]): [string, string] => [key(k), v]) } : b));

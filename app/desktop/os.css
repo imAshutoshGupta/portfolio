@@ -2276,6 +2276,7 @@
   color: var(--text-2);
 }
 .ashos-mail__subj {
+  display: block;
   font-size: 12.5px;
   margin-top: 2px;
 }
@@ -3367,17 +3368,23 @@
 }
 .ashos-toast {
   position: relative;
-  display: flex;
-  gap: 10px;
-  padding: 11px 12px;
   border-radius: 16px;
   animation: ashos-toast-in 0.4s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+.ashos-toast__main {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: inherit;
+  text-align: left;
 }
 .ashos-toast__icon {
   width: 34px;
   height: 34px;
 }
 .ashos-toast__text {
+  display: block;
   flex: 1;
   min-width: 0;
 }
@@ -3393,7 +3400,8 @@
   font-size: 11px;
   color: var(--text-2);
 }
-.ashos-toast p {
+.ashos-toast__body {
+  display: block;
   font-size: 12.5px;
   color: var(--text-2);
   margin-top: 1px;
@@ -3419,7 +3427,7 @@
   stroke-width: 2;
 }
 .ashos-toast:hover .ashos-toast__x,
-.ashos-toast__x:focus-visible {
+.ashos-toast:focus-within .ashos-toast__x {
   opacity: 1;
 }
 .ashos-switcher-layer {

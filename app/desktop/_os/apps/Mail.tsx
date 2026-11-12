@@ -217,17 +217,19 @@ export function Mail() {
           </div>
         ) : (
           <div className="ashos-mail__panes">
-            <div className="ashos-mail__list" role="list">
+            <div className="ashos-mail__list" role={sent.length ? "list" : undefined}>
               {sent.length ? (
                 sent.map((m) => (
-                  <button key={m.id} type="button" role="listitem" className={"ashos-mail__item" + (m.id === openSent ? " is-selected" : "")} onClick={() => setOpenSent(m.id)}>
-                    <div className="ashos-mail__top">
-                      <b>{person.name}</b>
-                      <small>{m.at.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</small>
-                    </div>
-                    <div className="ashos-mail__subj">{m.subject}</div>
-                    <div className="ashos-mail__prev">{m.body}</div>
-                  </button>
+                  <div key={m.id} role="listitem">
+                    <button type="button" aria-current={m.id === openSent || undefined} className={"ashos-mail__item" + (m.id === openSent ? " is-selected" : "")} onClick={() => setOpenSent(m.id)}>
+                      <span className="ashos-mail__top">
+                        <b>{person.name}</b>
+                        <small>{m.at.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</small>
+                      </span>
+                      <span className="ashos-mail__subj">{m.subject}</span>
+                      <span className="ashos-mail__prev">{m.body}</span>
+                    </button>
+                  </div>
                 ))
               ) : (
                 <div className="ashos-empty">No sent messages</div>
