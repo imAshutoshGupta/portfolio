@@ -402,6 +402,23 @@ request, tested before/after and against the live site; suites in
 
 ### Open
 
+**In progress (session of 2026-11-12, user near their usage limit).** If a
+new session starts mid-way, check `git branch -a` and `git worktree list`:
+- `fix/site-batch-f` (F1–F8 + new LinkedIn URL commit), `fix/ashos-batch-g`
+  (G1–G8), `fix/ashos-batch-g-apps` (G9–G15, to be merged into the G branch),
+  `fix/seo-batch-h` (H1–H5). Worktrees under `C:\Users\admin\portfolio-wt\`
+  (f, g, g-apps, h), ports 3101–3104; a baseline build of main runs on 3100.
+  Uncommitted agent work in those worktrees is local only.
+- New suites in `C:\Users\admin\portfolio-qa`: `batch-f.mjs`,
+  `batch-g-ui.mjs`, `batch-g-apps.mjs`, `batch-h.mjs`.
+- The user gave permission (this session) to merge F, G, H one at a time
+  (--no-ff), push, delete the branch, wait for deploy and rerun the batch
+  suite + smoke.mjs live. A new session needs that permission again.
+- LinkedIn changed to `linkedin.com/in/imashutoshgupta` (on the F branch;
+  live once F is merged).
+- The user asked for this file to be updated and pushed after each step so a
+  fresh session can resume from GitHub.
+
 **Review round 2 backlog (found 2026-11-12, not fixed yet).** Order the user
 chose: F, then G, then H, then I, then J. Verify each before fixing.
 
@@ -482,19 +499,28 @@ H — SEO code, no wording needed:
 5. /desktop is an empty boot screen to crawlers (client-only): server-render
    a short visually-hidden heading + sentence (from content.ts) + link to `/`.
 
-I — SEO needing the user's words or decisions (ask, don't invent):
-1. Meta description (~150 chars, role + Mumbai + proof) and maybe the title.
-2. A visible "based in Mumbai" (content.ts; mirror in ashOS).
-3. Move Semi's button and speech out of the `<h1>` with no visual change
-   (Hero.tsx; interactions 1–2 must still match at 1440/390).
-4. Placeholders reach crawlers ("[Project one]", "[Post title]", quotes):
-   fill, hide items starting with "[", or `data-nosnippet` — user decides.
-5. og.png still shows the old badge; refresh it under a new file name
-   (previews cache by URL). Site screenshot, not the photo.
-6. Confirm for JSON-LD: home location (Mumbai), college (Lokmanya Tilak
-   College of Engineering, from the résumé), whether to use the About photo
-   as `image`.
-7. Is Axiomic (on the résumé) the missing "[Project one]"?
+I — SEO, decided by the user on 2026-11-12 (do these after H is merged):
+1. Meta title + description: the user said "figure it out yourself" and will
+   ask for edits. Planned: title "Ashutosh Gupta — Full-stack & AI Engineer",
+   description "Ashutosh Gupta, full-stack & AI engineer: 2 years shipping
+   fintech apps, winner of Paytm's Build for India AI Hackathon. Open to roles
+   in Mumbai or Bangalore." (`meta` in content.ts; tell the user what went in.)
+2. NO visible "based in Mumbai" (declined: the hero badge already says
+   Mumbai or Bangalore). Closed.
+3. Approved: move Semi's button and speech out of the `<h1>` with absolutely
+   NO visual change: desktop, iPad, Safari, Chrome, phone. Check 1440, ~820
+   (iPad) and 390 in Chromium and WebKit, before/after screenshots diffed;
+   interactions 1–2 must behave the same.
+4. Placeholders: leave them as they are (the user will fill them with new
+   projects soon). No hiding, no data-nosnippet. Closed.
+5. Approved: refresh og.png from a screenshot of the site (not the photo),
+   under a new file name (previews cache by URL).
+6. JSON-LD: the user said "make the changes if you want". Add homeLocation
+   Mumbai and alumniOf Lokmanya Tilak College of Engineering (both from the
+   résumé). Leave the About photo out of `image` (the photo stays where it
+   is, see Closed).
+7. Axiomic IS the missing "[Project one]", but don't add anything about it
+   until the user finishes it and says what to do.
 
 J — content (the biggest ranking lever; needs the user's writing):
 case-study pages `/work/glyphx`, `/work/smudge`, `/work/rootcause-ai`
