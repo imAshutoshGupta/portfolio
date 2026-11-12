@@ -1,11 +1,12 @@
 "use client";
 
 import type { Doc } from "../data/doc";
-import { useOS } from "../state/os";
+import { useKeyLabel, useOS } from "../state/os";
 
 /** Renders a structured document as a page. Links open inside ashOS. */
 export function DocView({ doc, paper = true }: { doc: Doc; paper?: boolean }) {
   const os = useOS();
+  const key = useKeyLabel();
   const follow = (href: string) => {
     if (href.startsWith("mailto:")) os.launch("mail", { compose: true });
     else os.launch("safari", { url: href });
@@ -45,7 +46,7 @@ export function DocView({ doc, paper = true }: { doc: Doc; paper?: boolean }) {
               <dl key={i} className={b.t === "keys" ? "ashos-doc__keys" : undefined}>
                 {b.rows.map(([k, v], j) => (
                   <div key={j}>
-                    <dt>{b.t === "keys" ? <kbd>{k}</kbd> : k}</dt>
+                    <dt>{b.t === "keys" ? <kbd>{key(k)}</kbd> : k}</dt>
                     <dd>{v}</dd>
                   </div>
                 ))}

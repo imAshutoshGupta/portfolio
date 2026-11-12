@@ -15,18 +15,27 @@ const NO_FRAME = ["github.com", "linkedin.com", "x.com", "twitter.com", "google.
 type Page =
   | { kind: "start" }
   | { kind: "unlinked"; name: string }
+  | { kind: "self" }
   | { kind: "frame"; src: string; host: string; local: boolean }
   | { kind: "card"; url: string; host: string }
   | { kind: "search"; q: string };
+
+// A site path ("/about"), not a protocol-relative URL ("//host", which the
+// browser reads as another site).
+const isLocal = (url: string) => /^\/(?![/\\])/.test(url);
+
+// ashOS's own page: framing it would run ashOS inside itself.
+const isAshOS = (u: URL) => /^\/desktop(\/|$)/i.test(u.pathname);
 
 function toPage(url: string): Page {
   if (url === START) return { kind: "start" };
   if (url.startsWith("ashos:unlinked")) return { kind: "unlinked", name: new URLSearchParams(url.split("?")[1] ?? "").get("name") ?? "This link" };
   if (url.startsWith("ashos:search")) return { kind: "search", q: new URLSearchParams(url.split("?")[1] ?? "").get("q") ?? "" };
   try {
-    const u = new URL(url, location.origin);
-    if (u.origin === location.origin) return { kind: "frame", src: u.pathname + u.search + u.hash, host: person.siteHost, local: true };
+    const u = new URL(/^[/\\]{2}/.test(url) ? "https:" + url : url, location.origin);
     const host = u.hostname.replace(/^www\./, "");
+    if ((u.origin === location.origin || host === person.siteHost) && isAshOS(u)) return { kind: "self" };
+    if (u.origin === location.origin) return { kind: "frame", src: u.pathname + u.search + u.hash, host: person.siteHost, local: true };
     if (NO_FRAME.some((h) => host === h || host.endsWith("." + h))) return { kind: "card", url: u.href, host };
     return { kind: "frame", src: u.href, host, local: false };
   } catch {
@@ -38,6 +47,7 @@ function toPage(url: string): Page {
 function normalise(raw: string): string {
   const v = raw.trim();
   if (!v) return START;
+  if (/^[/\\]{2}/.test(v)) return "https:" + v;
   if (/^(https?:|ashos:)/.test(v) || v.startsWith("/")) return v;
   if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(v)) return "https://" + v;
   return `ashos:search?q=${encodeURIComponent(v)}`;
@@ -46,8 +56,8 @@ function normalise(raw: string): string {
 const displayUrl = (url: string) => {
   if (url === START) return "";
   if (url.startsWith("ashos:")) return url.startsWith("ashos:search") ? new URLSearchParams(url.split("?")[1]).get("q") ?? "" : "";
-  if (url.startsWith("/")) return person.siteHost + (url === "/" ? "" : url);
-  return url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+  if (isLocal(url)) return person.siteHost + (url === "/" ? "" : url);
+  return url.replace(/^(https?:)?[/\\]{2}(www\.)?/, "").replace(/\/$/, "");
 };
 
 export function Safari() {
@@ -62,7 +72,9 @@ export function Safari() {
   const page = useMemo(() => toPage(url), [url]);
 
   const go = (next: string) => {
-    setHist((h) => (h.list[h.i] === next ? h : { list: [...h.list.slice(0, h.i + 1), next], i: h.i + 1 }));
+    // The page already showing: reload it (the frame may have moved on).
+    if (next === url) setReloadKey((k) => k + 1);
+    else setHist((h) => ({ list: [...h.list.slice(0, h.i + 1), next], i: h.i + 1 }));
     setDraft(null);
   };
 
@@ -73,7 +85,7 @@ export function Safari() {
   useEffect(() => setLoading(page.kind === "frame"), [page, reloadKey]);
 
   const pageTitle =
-    page.kind === "start" ? "Start Page" : page.kind === "unlinked" ? page.name : page.kind === "search" ? `“${page.q}”` : page.kind === "frame" && page.local ? person.title : page.host;
+    page.kind === "start" ? "Start Page" : page.kind === "unlinked" ? page.name : page.kind === "self" ? "ashOS" : page.kind === "search" ? `“${page.q}”` : page.kind === "frame" && page.local ? person.title : page.host;
   useEffect(() => os.setTitle(win.id, pageTitle), [os, win.id, pageTitle]);
 
   const external = page.kind === "frame" ? (page.local ? new URL(page.src, location.origin).href : page.src) : page.kind === "card" ? page.url : null;
@@ -140,8 +152,12 @@ export function Safari() {
             spellCheck={false}
             autoComplete="off"
             onFocus={(e) => {
-              setDraft(url.startsWith("ashos:") ? displayUrl(url) : url.startsWith("/") ? location.origin + url : url);
-              requestAnimationFrame(() => e.target.select());
+              const full = url.startsWith("ashos:") ? displayUrl(url) : isLocal(url) ? location.origin + url : url;
+              setDraft(full);
+              // Select it a frame later, unless the visitor has already typed
+              // or pasted: selecting then would let the next key wipe that out.
+              const el = e.target;
+              requestAnimationFrame(() => el.value === full && el.select());
             }}
             onBlur={() => setDraft(null)}
             onChange={(e) => setDraft(e.target.value)}
@@ -170,6 +186,16 @@ export function Safari() {
             </button>
           </div>
         )}
+        {page.kind === "self" && (
+          <div className="ashos-webcard">
+            <Glyph name="desktop" className="ashos-webcard__glyph" />
+            <h2>You&apos;re already in ashOS</h2>
+            <p>Opening ashOS inside its own Safari would only lead to a desktop in a desktop in a desktop. One is plenty.</p>
+            <button type="button" className="ashos-btn" onClick={() => go(START)}>
+              Back to Start Page
+            </button>
+          </div>
+        )}
         {page.kind === "card" && (
           <div className="ashos-webcard">
             <span className="ashos-webcard__mono">{page.host[0]?.toUpperCase()}</span>
@@ -187,7 +213,15 @@ export function Safari() {
             src={page.src}
             title={pageTitle}
             className="ashos-safari__frame"
-            onLoad={() => setLoading(false)}
+            onLoad={(e) => {
+              setLoading(false);
+              // A link inside the site led to ashOS itself: show the card instead.
+              if (!page.local) return;
+              try {
+                const at = e.currentTarget.contentWindow?.location;
+                if (at && isAshOS(new URL(at.href))) go(at.pathname + at.search);
+              } catch {}
+            }}
             sandbox={page.local ? undefined : "allow-scripts allow-same-origin allow-popups allow-forms"}
             referrerPolicy="no-referrer"
           />

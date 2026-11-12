@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { dirname, HOME, type Fs } from "../data/fs";
 import { person } from "../data/portfolio";
-import { useOS, useWindowMenus } from "../state/os";
+import { useKeyLabel, useOS, useWindowMenus } from "../state/os";
 import { TitleBar, useWin } from "../ui/Window";
 import { complete, promptDir, runCommand, type Line, type ShellCtx } from "./shell";
 
@@ -58,6 +58,7 @@ export function Terminal() {
   const title = `${person.login} — -zsh — ${size.cols}×${size.rows}`;
   useEffect(() => os.setTitle(win.id, `Terminal — ${promptDir(cwd)}`), [os, win.id, cwd]);
 
+  const keyLabel = useKeyLabel();
   const ctx = useCallback(
     (): ShellCtx => ({
       fs: os.fs,
@@ -68,8 +69,9 @@ export function Terminal() {
       bootedAt: os.bootedAt,
       history: hist,
       viewport: os.viewport,
+      keyLabel,
     }),
-    [os.fs, cwd, size, os.appearance, os.bootedAt, hist, os.viewport]
+    [os.fs, cwd, size, os.appearance, os.bootedAt, hist, os.viewport, keyLabel]
   );
 
   const submit = useCallback(

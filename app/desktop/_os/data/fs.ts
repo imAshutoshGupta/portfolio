@@ -120,7 +120,11 @@ export function kindLabel(n: FsNode): string {
     case "app":
       return "Application";
     case "image":
-      return n.ext === "mp4" ? "MPEG-4 movie" : n.ext === "webp" ? "WebP image" : "PNG image";
+      return (
+        { mp4: "MPEG-4 movie", webp: "WebP image", png: "PNG image", jpg: "JPEG image", jpeg: "JPEG image", gif: "GIF image", avif: "AVIF image", svg: "SVG image" }[
+          n.ext ?? ""
+        ] ?? "Image"
+      );
     case "link":
       return n.href?.startsWith("mailto:") ? "Email Link" : "Web Location";
     case "document":
@@ -421,10 +425,12 @@ function build(): Fs {
         ],
       },
     ], { project: w.id, modified: w.year });
+    // Named after the real file; placeholder projects (no image yet) get a .png.
+    const shotExt = /\.(\w+)(?:[?#]|$)/.exec(w.screenshotSrc ?? "")?.[1].toLowerCase() ?? "png";
     add(dir, {
-      name: "Screenshot.png",
+      name: `Screenshot.${shotExt}`,
       kind: "image",
-      ext: "png",
+      ext: shotExt,
       info: `${w.name} screenshot.`,
       image: { src: w.screenshotSrc, title: w.name, caption: w.screenshot, seed: Number(w.num), alt: w.alt },
       project: w.id,

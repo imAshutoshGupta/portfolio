@@ -245,14 +245,21 @@ export function MenuBar() {
                 label={m.title}
                 className="ashos-menu--bar"
                 autoFocus={kbd}
-                onClose={() => setOpen(null)}
+                onClose={(how) => {
+                  setOpen(null);
+                  // Backed out with Esc: back to this menu's title, like the menu bar.
+                  if (how === "escape") barRef.current?.querySelectorAll<HTMLButtonElement>(".ashos-menubar__item")[i]?.focus();
+                }}
                 onKeyNav={(d) => {
                   const n = (i + (d === "right" ? 1 : -1) + shown.length) % shown.length;
                   setOpen(n);
                   setKbd(true);
-                  requestAnimationFrame(() =>
-                    barRef.current?.querySelectorAll<HTMLButtonElement>(".ashos-menubar__item")[n]?.focus()
-                  );
+                  // The new menu focuses its first item; with nothing to focus
+                  // there, keep the keys on its title in the bar.
+                  requestAnimationFrame(() => {
+                    if (!document.activeElement?.closest(".ashos-menu"))
+                      barRef.current?.querySelectorAll<HTMLButtonElement>(".ashos-menubar__item")[n]?.focus();
+                  });
                 }}
               />
             )}

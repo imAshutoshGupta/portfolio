@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent as RKeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as RKeyboardEvent } from "react";
 import { docToLines } from "../data/doc";
 import { ancestry, basename, formatSize, kindLabel, searchFs, TRASH, type FsNode } from "../data/fs";
 import { useOS, useWindowMenus, type MenuItem } from "../state/os";
@@ -64,6 +64,9 @@ export function Finder() {
   const bodyRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const typeAhead = useRef({ s: "", t: 0 });
+  // Items aren't focusable themselves; the body points screen readers at the current one.
+  const uid = useId();
+  const itemId = (i: number) => `${uid}-item-${i}`;
   // The last pointerdown's type: Safari's clicks misreport it.
   const pointer = useRef("");
 
@@ -133,6 +136,7 @@ export function Finder() {
 
   const selected = sel.map((p) => os.fs[p]).filter(Boolean);
   const focusNode = selected[selected.length - 1] ?? null;
+  const focusIndex = focusNode ? items.findIndex((n) => n.path === focusNode.path) : -1;
 
   const openNode = (n: FsNode) => {
     if (n.kind === "folder" || n.kind === "volume") go(n.path);
@@ -161,7 +165,7 @@ export function Finder() {
   const onKeyDown = (e: RKeyboardEvent) => {
     if ((e.target as HTMLElement).closest("input")) return;
     const mod = e.metaKey || e.ctrlKey;
-    const idx = focusNode ? items.findIndex((n) => n.path === focusNode.path) : -1;
+    const idx = focusIndex;
     const pick = (i: number) => {
       const n = items[Math.max(0, Math.min(items.length - 1, i))];
       if (n) {
@@ -424,6 +428,7 @@ export function Finder() {
             role={view === "list" || searching ? "grid" : "listbox"}
             aria-label={`${title} contents`}
             aria-multiselectable="true"
+            aria-activedescendant={focusIndex >= 0 ? itemId(focusIndex) : undefined}
             onKeyDown={onKeyDown}
             onPointerDown={(e) => {
               pointer.current = e.pointerType;
@@ -467,9 +472,10 @@ export function Finder() {
                   ))}
                 </div>
                 <div className="ashos-flist__rows">
-                  {items.map((n) => (
+                  {items.map((n, i) => (
                     <div
                       key={n.path}
+                      id={itemId(i)}
                       data-path={n.path}
                       role="row"
                       aria-selected={sel.includes(n.path)}
@@ -498,9 +504,10 @@ export function Finder() {
               </div>
             ) : (
               <div className="ashos-fgrid">
-                {items.map((n) => (
+                {items.map((n, i) => (
                   <div
                     key={n.path}
+                    id={itemId(i)}
                     data-path={n.path}
                     role="option"
                     aria-selected={sel.includes(n.path)}

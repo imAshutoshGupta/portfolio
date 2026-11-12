@@ -3,9 +3,9 @@
 // its side effects.
 
 import { APPS, APP_ORDER, type AppArgs, type AppId } from "../data/apps";
-import { docToLines } from "../data/doc";
+import { docToLines, relabelKeys } from "../data/doc";
 import { basename, formatSize, HOME, kindLabel, resolvePath, type Fs, type FsNode } from "../data/fs";
-import { achievements, approach, contact, experience, localNow, person, toolkitAreas, work, workWithMe, writing } from "../data/portfolio";
+import { achievements, approach, contact, experience, kindWords, localNow, person, toolkitAreas, work, workWithMe, writing } from "../data/portfolio";
 
 type Tone = "accent" | "green" | "blue" | "cyan" | "yellow" | "red" | "magenta" | "muted" | "bold";
 type Seg = { t: string; c?: Tone };
@@ -20,6 +20,8 @@ export type ShellCtx = {
   bootedAt: number;
   history: string[];
   viewport: { w: number; h: number };
+  /** Shortcut labels for this platform (⌘/⌥ or Ctrl/Alt). */
+  keyLabel?: (s: string) => string;
 };
 
 type Effect =
@@ -27,7 +29,7 @@ type Effect =
   | { type: "clear" }
   | { type: "open"; path: string }
   | { type: "launch"; app: AppId; args?: AppArgs }
-  | { type: "appearance"; value: "light" | "dark" }
+  | { type: "appearance"; value: "light" | "dark" | "auto" }
   | { type: "exit" };
 
 export type Result = { lines: Line[]; effects?: Effect[] };
@@ -50,10 +52,11 @@ const COMMANDS: Record<string, string> = {
   skills: "the toolkit",
   approach: "how I work",
   wins: "hackathons and wins",
+  words: "kind words",
   writing: "posts",
   contact: "ways to reach me",
   neofetch: "system info",
-  theme: "switch appearance (light | dark)",
+  theme: "switch appearance (light | dark | auto)",
   date: "print the date",
   echo: "print text",
   history: "previous commands",
@@ -271,20 +274,25 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
       if (n.kind === "link") return { lines: [[s("URL=", "muted"), s(n.href ?? "(not linked yet)", n.href ? "cyan" : "muted")]] };
       if (n.kind === "image") return { lines: [[s(`${n.name}: ${n.image?.src ? kindLabel(n) : n.image?.caption + " (no image yet)"}`, "muted")]] };
       if (!n.doc) return { lines: [[s(`${n.name} is a PDF. Try `, "muted"), s(`open ${n.name}`)]] };
-      return { lines: docToLines(n.doc, Math.min(ctx.cols, 90)).map(plain) };
+      const d = ctx.keyLabel ? relabelKeys(n.doc, ctx.keyLabel) : n.doc;
+      return { lines: docToLines(d, Math.min(ctx.cols, 90)).map(plain) };
     }
 
     case "open": {
       if (!target) return { lines: [[s("usage: open <file | folder | app | url>", "muted")]] };
       const appFlag = args.indexOf("-a");
       const name = (appFlag >= 0 ? args.slice(appFlag + 1) : rest).join(" ").replace(/\.app$/i, "").toLowerCase();
-      if (/^https?:\/\//.test(target) || target.startsWith("/") && !resolve(target)) {
+      // Only real URLs go to Safari; a mistyped path is a missing file.
+      if (/^https?:\/\//i.test(target)) {
         return { lines: [], effects: [{ type: "launch", app: "safari", args: { url: target } }] };
       }
       const app = APP_ORDER.find((id) => APPS[id].name.toLowerCase() === name || id === name);
       if (app && (appFlag >= 0 || !resolve(target))) return { lines: [], effects: [{ type: "launch", app }] };
       const path = resolve(target);
-      if (!path) return { lines: [[s(`The file ${ctx.cwd === "/" ? "" : ctx.cwd}/${target} does not exist.`, "red")]] };
+      if (!path) {
+        const full = target.startsWith("/") ? target : target.startsWith("~/") ? target.slice(1) : `${ctx.cwd === "/" ? "" : ctx.cwd}/${target}`;
+        return { lines: [[s(`The file ${full} does not exist.`, "red")]] };
+      }
       return { lines: [], effects: [{ type: "open", path }] };
     }
 
@@ -330,6 +338,11 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
         ]),
       };
 
+    case "words":
+      return {
+        lines: kindWords.flatMap((q, i): Line[] => [...(i ? [[] as Line] : []), [s(`“${q.quote}”`)], [s("  — " + q.by, "muted")]]),
+      };
+
     case "writing":
     case "posts":
       return { lines: writing.map((p): Line => [s(p.date.padEnd(12), "muted"), s(p.title), s(`  on ${p.where}`, "muted")]) };
@@ -359,7 +372,12 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
 
     case "theme":
     case "appearance": {
-      const v = target === "light" || target === "dark" ? target : ctx.appearance === "dark" ? "light" : "dark";
+      // No argument toggles; anything but light, dark or auto is an error.
+      const want = target?.toLowerCase();
+      if (want && want !== "light" && want !== "dark" && want !== "auto") {
+        return { lines: [[s(`${cmd}: unknown appearance: ${target}`, "red")], [s("usage: theme [light | dark | auto]", "muted")]] };
+      }
+      const v = want === "light" || want === "dark" || want === "auto" ? want : ctx.appearance === "dark" ? "light" : "dark";
       return { lines: [[s(`appearance: ${v}`, "muted")]], effects: [{ type: "appearance", value: v }] };
     }
 

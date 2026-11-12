@@ -6,7 +6,8 @@ import { Glyph } from "./icons";
 
 type Props = {
   items: MenuItem[];
-  onClose: () => void;
+  /** "escape" when the visitor backed out with Esc (nothing was chosen). */
+  onClose: (how?: "escape") => void;
   style?: CSSProperties;
   className?: string;
   /** Focus the first item on mount (keyboard-opened menus). */
@@ -39,23 +40,30 @@ export function MenuList({ items, onClose, style, className, autoFocus, onKeyNav
     } else if (e.key === "Escape") {
       e.preventDefault();
       e.stopPropagation();
-      e.stopPropagation();
-      onClose();
+      onClose("escape");
     } else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
       const idx = Number((document.activeElement as HTMLElement)?.dataset.idx);
       const it = items[idx];
       if (e.key === "ArrowRight" && it && !it.sep && it.submenu) {
         e.preventDefault();
-      e.stopPropagation();
+        e.stopPropagation();
         setSub(idx);
         return;
       }
       if (onKeyNav) {
         e.preventDefault();
-      e.stopPropagation();
+        e.stopPropagation();
         onKeyNav(e.key === "ArrowRight" ? "right" : "left");
       }
     }
+  };
+
+  // In a submenu: ← goes back to its row, → moves on to the next menu-bar
+  // menu (context menus have none, so → stays put).
+  const subNav = (i: number) => (d: "left" | "right") => {
+    if (d === "right") return onKeyNav?.("right");
+    ref.current?.querySelector<HTMLButtonElement>(`:scope > .ashos-menu__row > button[data-idx="${i}"]`)?.focus();
+    setSub(null);
   };
 
   return (
@@ -90,7 +98,7 @@ export function MenuList({ items, onClose, style, className, autoFocus, onKeyNav
                 onClose={onClose}
                 className="ashos-menu--sub"
                 autoFocus
-                onKeyNav={(d) => d === "left" && setSub(null)}
+                onKeyNav={subNav(i)}
               />
             )}
           </div>
@@ -129,7 +137,8 @@ export function ContextMenu() {
       }}
     >
       <div ref={ref} style={{ position: "absolute", left: pos?.x ?? ctx.x, top: pos?.y ?? ctx.y, visibility: pos ? "visible" : "hidden" }}>
-        <MenuList items={ctx.items} onClose={os.closeContextMenu} autoFocus label="Context menu" />
+        {/* Focus waits until it's placed: a hidden menu can't take focus. */}
+        <MenuList items={ctx.items} onClose={os.closeContextMenu} autoFocus={!!pos} label="Context menu" />
       </div>
     </div>
   );
