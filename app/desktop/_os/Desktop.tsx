@@ -116,7 +116,8 @@ function useShortcuts(setSwitcher: (s: { apps: AppId[]; i: number } | null) => v
       }
       if (alt && !mod && code === "KeyM" && win) {
         e.preventDefault();
-        os.minimize(win.id);
+        // Like the button and menu item: full screen windows don't minimise.
+        if (win.mode !== "fullscreen") os.minimize(win.id);
         return;
       }
       if (alt && !mod && code === "KeyH") {

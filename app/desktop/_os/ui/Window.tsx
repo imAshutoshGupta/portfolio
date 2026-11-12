@@ -157,6 +157,13 @@ export function Window({ win, children }: { win: Win; children: ReactNode }) {
     if (!win.minimized && phase === "open") ref.current?.getAnimations().forEach((a) => a.cancel());
   }, [win.minimized, phase]);
 
+  // Keyboard focus follows the active window, unless something inside it
+  // (Terminal's prompt, a field) already took it.
+  useEffect(() => {
+    const el = ref.current;
+    if (active && el && !el.contains(document.activeElement)) el.focus({ preventScroll: true });
+  }, [active]);
+
   /* ---- animate between normal / zoomed / full screen ---- */
   const [morph, setMorph] = useState(false);
   const prevMode = useRef(win.mode);
@@ -175,6 +182,8 @@ export function Window({ win, children }: { win: Win; children: ReactNode }) {
       const el = ref.current;
       if (!el) return;
       e.preventDefault();
+      // preventDefault() also stops the click moving keyboard focus, so move it here.
+      if (!el.contains(document.activeElement)) el.focus({ preventScroll: true });
       os.focus(win.id);
       const root = el.closest(".ashos") as HTMLElement | null;
       let r: Rect = { ...frame };
@@ -284,6 +293,7 @@ export function Window({ win, children }: { win: Win; children: ReactNode }) {
         role="dialog"
         aria-label={win.title}
         aria-hidden={hidden || undefined}
+        tabIndex={-1}
         onPointerDownCapture={() => {
           if (!active) os.focus(win.id);
         }}

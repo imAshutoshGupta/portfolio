@@ -173,8 +173,20 @@ export function MenuBar() {
     const onDown = (e: PointerEvent) => {
       if (!barRef.current?.contains(e.target as Node)) setOpen(null);
     };
+    // A menu opened with the mouse leaves focus on the bar (or nowhere), so
+    // Esc never reaches the menu itself: close it here, ahead of the desktop.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || (e.target as HTMLElement).closest?.(".ashos-menu")) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setOpen(null);
+    };
     addEventListener("pointerdown", onDown, true);
-    return () => removeEventListener("pointerdown", onDown, true);
+    addEventListener("keydown", onKey, true);
+    return () => {
+      removeEventListener("pointerdown", onDown, true);
+      removeEventListener("keydown", onKey, true);
+    };
   }, [open]);
 
   const date = new Intl.DateTimeFormat(undefined, { weekday: "short", day: "numeric", month: "short" }).format(now);

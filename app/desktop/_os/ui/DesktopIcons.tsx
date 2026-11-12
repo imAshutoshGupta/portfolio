@@ -72,8 +72,12 @@ export function DesktopIcons() {
   useEffect(() => {
     if (os.focused) return;
     const onKey = (e: KeyboardEvent) => {
-      // A focused icon button handles its own Enter/Space (click).
-      if ((e.target as HTMLElement).closest("input, textarea, button, [role=menu], [role=dialog]") || !sel.length || renaming) return;
+      // Keys act on the selection, also from a clicked icon (Chrome and Firefox
+      // focus it). Any other button, like an unselected icon reached with Tab,
+      // handles its own Enter/Space (click).
+      const t = e.target as HTMLElement;
+      const own = t.closest("button");
+      if (t.closest("input, textarea, [role=menu], [role=dialog]") || (own && !sel.some((p) => refs.current.get(p) === own)) || !sel.length || renaming) return;
       if (e.key === "Enter" || ((e.metaKey || e.ctrlKey) && e.key === "ArrowDown")) {
         e.preventDefault();
         sel.forEach((p) => os.openPath(p));

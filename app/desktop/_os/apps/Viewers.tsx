@@ -2,7 +2,7 @@
 
 // Résumé, Preview and Photos: the apps that show documents and images.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { basename, kindLabel } from "../data/fs";
 import { contact, person, work } from "../data/portfolio";
 import { WALLPAPERS, type WallpaperId } from "../data/wallpapers";
@@ -152,6 +152,7 @@ export function Photos() {
   const { win } = useWin();
   const [album, setAlbum] = useState<"library" | "projects" | "wallpapers">((win.args.album as "projects") ?? "library");
   const [open, setOpen] = useState<string | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const dark = os.appearance === "dark";
 
   const photos: Photo[] = useMemo(
@@ -188,7 +189,11 @@ export function Photos() {
   useEffect(() => {
     if (!current) return;
     const onKey = (e: KeyboardEvent) => {
-      if (!(document.activeElement as HTMLElement)?.closest(`[data-app="photos"]`) && os.focused?.id !== win.id) return;
+      // Only keys aimed at this window: focus inside it, or on nothing at all
+      // while it's the active one. Spotlight and open menus keep their keys.
+      const a = document.activeElement;
+      const here = a && a !== document.body ? !!rootRef.current?.closest(".ashos-win")?.contains(a) : os.focused?.id === win.id;
+      if (!here || document.querySelector(".ashos-menu")) return;
       if (e.key === "Escape") (e.stopPropagation(), setOpen(null));
       if (e.key === "ArrowRight") setOpen(shown[(idx + 1) % shown.length].id);
       if (e.key === "ArrowLeft") setOpen(shown[(idx - 1 + shown.length) % shown.length].id);
@@ -217,7 +222,7 @@ export function Photos() {
   );
 
   return (
-    <div className={"ashos-split" + (os.mobile ? " is-compact is-stacked" : "")}>
+    <div ref={rootRef} className={"ashos-split" + (os.mobile ? " is-compact is-stacked" : "")}>
       <aside className="ashos-sidebar" aria-label="Albums">
         <DragRegion className="ashos-sidebar__top" />
         <nav className="ashos-sidebar__scroll">

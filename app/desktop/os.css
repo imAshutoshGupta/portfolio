@@ -556,6 +556,10 @@
 .ashos-win.is-active {
   box-shadow: var(--win-shadow);
 }
+/* The window takes focus so keys reach it; its active look is the indicator. */
+.ashos-win:focus {
+  outline: none;
+}
 .ashos-win::after {
   content: "";
   position: absolute;

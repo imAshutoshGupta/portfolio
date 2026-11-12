@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Desktop } from "./Desktop";
 import { AshMark } from "./ui/icons";
 
@@ -9,12 +9,18 @@ import { AshMark } from "./ui/icons";
 function Boot({ ready }: { ready: boolean }) {
   const [gone, setGone] = useState(false);
   const [fading, setFading] = useState(false);
+  const quick = useRef(true);
+
+  // Read the session flag before the desktop mounts: its boot effect sets it
+  // in the same commit that flips `ready`, ahead of the effect below.
+  useEffect(() => {
+    quick.current = matchMedia("(prefers-reduced-motion: reduce)").matches || !!sessionStorage.getItem("ashos:booted");
+  }, []);
 
   useEffect(() => {
     if (!ready) return;
-    const quick = matchMedia("(prefers-reduced-motion: reduce)").matches || !!sessionStorage.getItem("ashos:booted");
-    const t1 = setTimeout(() => setFading(true), quick ? 0 : 650);
-    const t2 = setTimeout(() => setGone(true), quick ? 200 : 1100);
+    const t1 = setTimeout(() => setFading(true), quick.current ? 0 : 650);
+    const t2 = setTimeout(() => setGone(true), quick.current ? 200 : 1100);
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);

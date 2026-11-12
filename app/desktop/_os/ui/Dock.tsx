@@ -12,6 +12,7 @@ export function Dock() {
   const centers = useRef<number[] | null>(null);
   const [revealed, setRevealed] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hovered = useRef(false);
 
   const pos = os.mobile ? "bottom" : os.prefs.dockPosition;
   const vertical = pos !== "bottom";
@@ -47,15 +48,23 @@ export function Dock() {
       el.style.setProperty("--s", String(1 + (max - 1) * k));
     });
   };
+  const hideSoon = () => {
+    if (!autohide) return;
+    hideTimer.current && clearTimeout(hideTimer.current);
+    hideTimer.current = setTimeout(() => setRevealed(false), 450);
+  };
+  const reveal = () => {
+    hideTimer.current && clearTimeout(hideTimer.current);
+    setRevealed(true);
+  };
   const onLeave = () => {
+    hovered.current = false;
     centers.current = null;
     items().forEach((el) => el.style.setProperty("--s", "1"));
-    if (autohide) {
-      hideTimer.current && clearTimeout(hideTimer.current);
-      hideTimer.current = setTimeout(() => setRevealed(false), 450);
-    }
+    hideSoon();
   };
   const onEnter = () => {
+    hovered.current = true;
     hideTimer.current && clearTimeout(hideTimer.current);
     centers.current = null;
   };
@@ -112,7 +121,8 @@ export function Dock() {
 
   return (
     <>
-      {autohide && <div className={`ashos-dock-hot ashos-dock-hot--${pos}`} onPointerEnter={() => setRevealed(true)} aria-hidden="true" />}
+      {/* Leaving the edge without reaching the Dock hides it again. */}
+      {autohide && <div className={`ashos-dock-hot ashos-dock-hot--${pos}`} onPointerEnter={reveal} onPointerLeave={hideSoon} aria-hidden="true" />}
       <div
         ref={ref}
         className={cls}
@@ -123,7 +133,8 @@ export function Dock() {
         onPointerMove={onMove}
         onPointerLeave={onLeave}
         onPointerEnter={onEnter}
-        onFocus={() => autohide && setRevealed(true)}
+        onFocus={() => autohide && reveal()}
+        onBlur={(e) => !hovered.current && !ref.current?.contains(e.relatedTarget as Node) && hideSoon()}
       >
         {DOCK_APPS.map(appItem)}
         {extra.map(appItem)}
