@@ -5,7 +5,7 @@
 
 /** What scroll.ts needs from Lenis (motionEngine.ts passes an adapter). */
 export type LenisLike = {
-  scrollTo: (target: number | HTMLElement) => void;
+  scrollTo: (y: number) => void;
   /** set animated/target scroll to the real scroll position, stop any glide */
   sync: () => void;
 };
@@ -18,7 +18,7 @@ let lenis: LenisLike | null = null;
  * partway, so Lenis finishes the trip once it's ready. Any scroll input from
  * the visitor in the meantime cancels it: they've taken over.
  */
-let pending: { target: number | HTMLElement; until: number } | null = null;
+let pending: { target: () => number; until: number } | null = null;
 const TAKEOVER = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
 const cancelPending = () => {
   pending = null;
@@ -33,7 +33,7 @@ export function setLenis(l: LenisLike | null) {
   requestAnimationFrame(() => {
     if (lenis !== l) return;
     l.sync();
-    l.scrollTo(p.target);
+    l.scrollTo(p.target());
   });
 }
 
@@ -49,21 +49,36 @@ function syncLenis() {
   lenis.sync();
 }
 
+/**
+ * Where a jump to `el` lands (a function, so a late layout shift can't throw
+ * it off). The nav hides on the way down and comes back on the way up
+ * (Nav.tsx): going down, the target lands at the very top as the nav slides
+ * away; going up, it stops its scroll-margin-top (the nav's height, site.css)
+ * short so the nav doesn't cover it. Under reduced motion, or with keyboard
+ * focus in the nav, the nav never hides, so the margin always applies.
+ */
+function landing(el: HTMLElement, reduced: boolean) {
+  const up = el.getBoundingClientRect().top < 0;
+  const navShows = up || reduced || !!document.querySelector(".site-nav :focus-visible");
+  const margin = navShows ? parseFloat(getComputedStyle(el).scrollMarginTop) || 0 : 0;
+  return () => Math.max(0, el.getBoundingClientRect().top + window.scrollY - margin);
+}
+
 /** Scroll to "#top" / "#" (the very top) or the element a hash points at. */
 function scrollToHash(hash: string) {
   const top = hash === "#" || hash === "#top";
   const el = top ? null : document.getElementById(decodeURIComponent(hash.slice(1)));
   if (!top && !el) return false;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const target = top ? () => 0 : landing(el!, reduced);
 
   if (lenis) {
     syncLenis();
-    lenis.scrollTo(top ? 0 : el!);
+    lenis.scrollTo(target());
   } else {
-    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const y = top ? 0 : el!.getBoundingClientRect().top + window.scrollY;
-    window.scrollTo({ top: y, behavior: smooth ? "smooth" : "auto" });
-    if (smooth) {
-      pending = { target: top ? 0 : el!, until: performance.now() + 4000 };
+    window.scrollTo({ top: target(), behavior: reduced ? "auto" : "smooth" });
+    if (!reduced) {
+      pending = { target, until: performance.now() + 4000 };
       // `once` + the same handler means re-adding never stacks listeners
       TAKEOVER.forEach((t) => window.addEventListener(t, cancelPending, { once: true, passive: true }));
     }

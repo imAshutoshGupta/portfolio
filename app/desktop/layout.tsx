@@ -11,6 +11,8 @@ const mono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "700"], variab
 export const metadata: Metadata = {
   title: `ashOS — ${person.name}`,
   description: `${person.name}'s portfolio as an interactive desktop.`,
+  // its own page (and in the sitemap), not a copy of the home page's "/"
+  alternates: { canonical: "/desktop" },
 };
 
 export default function DesktopLayout({ children }: { children: React.ReactNode }) {
