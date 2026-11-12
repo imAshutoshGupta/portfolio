@@ -71,8 +71,18 @@ export function Finder() {
     setRenaming(null);
     setDrawer(false);
   }, []);
-  const back = () => hist.i > 0 && (setHist((h) => ({ ...h, i: h.i - 1 })), setSel([]), setQuery(""));
-  const fwd = () => hist.i < hist.list.length - 1 && (setHist((h) => ({ ...h, i: h.i + 1 })), setSel([]), setQuery(""));
+  // Back / Forward skip folders that have since been renamed or trashed
+  // (and repeats of the current one).
+  const step = (d: 1 | -1) => {
+    let j = hist.i + d;
+    const dead = (l: Loc) => l === loc || (l !== RECENTS && !os.fs[l]);
+    while (hist.list[j] !== undefined && dead(hist.list[j])) j += d;
+    return hist.list[j] === undefined ? -1 : j;
+  };
+  const backTo = step(-1);
+  const fwdTo = step(1);
+  const back = () => backTo >= 0 && (setHist((h) => ({ ...h, i: backTo })), setSel([]), setQuery(""));
+  const fwd = () => fwdTo >= 0 && (setHist((h) => ({ ...h, i: fwdTo })), setSel([]), setQuery(""));
   const up = () => loc !== RECENTS && loc !== "/" && go(os.fs[loc]?.parent ?? "/");
 
   // Re-targeted from outside (e.g. Go menu with an existing window).
@@ -81,10 +91,21 @@ export function Finder() {
     if (nonce) go(win.args.location === "recents" ? RECENTS : win.args.path ?? "/");
   }, [nonce]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // A folder that disappears (renamed / trashed) falls back to its parent.
+  // A folder that disappears (renamed / trashed) falls back to its parent,
+  // in place of the dead history entry rather than as a new one.
   useEffect(() => {
-    if (loc !== RECENTS && !os.fs[loc]) go([...ancestry(loc)].reverse().find((p) => os.fs[p]) ?? "/");
-  }, [loc, os.fs, go]);
+    if (loc === RECENTS || os.fs[loc]) return;
+    const to = [...ancestry(loc)].reverse().find((p) => os.fs[p]) ?? "/";
+    setHist((h) => {
+      // Already one step back? Drop the dead entry instead.
+      if (h.list[h.i - 1] === to) return { list: h.list.filter((_, j) => j !== h.i), i: h.i - 1 };
+      return { list: h.list.map((l, j) => (j === h.i ? to : l)), i: h.i };
+    });
+    setSel([]);
+    setQuery("");
+    setRenaming(null);
+    setDrawer(false);
+  }, [loc, os.fs]);
 
   const searching = query.trim().length > 0;
   const title = searching ? `Searching “${query.trim()}”` : locName(loc);
@@ -257,8 +278,8 @@ export function Finder() {
     {
       title: "Go",
       items: [
-        { label: "Back", shortcut: "⌘[", disabled: hist.i === 0, run: back },
-        { label: "Forward", shortcut: "⌘]", disabled: hist.i >= hist.list.length - 1, run: fwd },
+        { label: "Back", shortcut: "⌘[", disabled: backTo < 0, run: back },
+        { label: "Forward", shortcut: "⌘]", disabled: fwdTo < 0, run: fwd },
         { label: "Enclosing Folder", shortcut: "⌘↑", disabled: loc === "/" || loc === RECENTS, run: up },
         { sep: true },
         ...SIDEBAR.flatMap((s) => s.items).map((it) => ({ label: it.label, checked: loc === it.loc, run: () => go(it.loc) })),
@@ -303,10 +324,10 @@ export function Finder() {
             </button>
           )}
           <div className="ashos-tgroup">
-            <button type="button" className="ashos-tbtn" aria-label="Back" title="Back" disabled={hist.i === 0} onClick={back}>
+            <button type="button" className="ashos-tbtn" aria-label="Back" title="Back" disabled={backTo < 0} onClick={back}>
               <Glyph name="chevronLeft" />
             </button>
-            <button type="button" className="ashos-tbtn" aria-label="Forward" title="Forward" disabled={hist.i >= hist.list.length - 1} onClick={fwd}>
+            <button type="button" className="ashos-tbtn" aria-label="Forward" title="Forward" disabled={fwdTo < 0} onClick={fwd}>
               <Glyph name="chevronRight" />
             </button>
           </div>
