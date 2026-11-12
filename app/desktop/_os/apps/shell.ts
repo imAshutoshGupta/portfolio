@@ -243,8 +243,8 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
     case "ls":
     case "dir": {
       const path = target ? resolve(target) : ctx.cwd;
-      if (!path) return { lines: [[s(`ls: ${target}: No such file or directory`, "red")]] };
-      const n = ctx.fs[path];
+      const n = path ? ctx.fs[path] : undefined;
+      if (!n) return { lines: [[s(`ls: ${target ?? "."}: No such file or directory`, "red")]] };
       const nodes = n.children ? n.children.map((p) => ctx.fs[p]).filter(Boolean) : [n];
       if (!nodes.length) return { lines: [] };
       if (flags.includes("l")) return { lines: [[s(`total ${nodes.length}`, "muted")], ...long(nodes)] };
@@ -253,7 +253,7 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
 
     case "tree": {
       const path = target ? resolve(target) : ctx.cwd;
-      if (!path || !ctx.fs[path].children) return { lines: [[s(`tree: ${target ?? ""}: not a folder`, "red")]] };
+      if (!path || !ctx.fs[path]?.children) return { lines: [[s(`tree: ${target ?? ""}: not a folder`, "red")]] };
       const lines = tree(ctx.fs, path);
       return { lines: [[s(path === HOME ? "." : ctx.fs[path].name, "blue")], ...lines] };
     }
