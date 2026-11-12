@@ -5,6 +5,7 @@ import { kindLabel, type FsNode } from "../data/fs";
 import { KEYS, load, save } from "../state/prefs";
 import { useOS, type MenuItem, type OS } from "../state/os";
 import { NodeIcon } from "./icons";
+import { useLongPress } from "./longPress";
 
 const DESKTOP = "/Desktop";
 type Pos = Record<string, { x: number; y: number }>;
@@ -36,6 +37,8 @@ export function DesktopIcons() {
   const [renaming, setRenaming] = useState<string | null>(null);
   const refs = useRef(new Map<string, HTMLElement>());
   const surface = useRef<HTMLDivElement>(null);
+  // The last pointerdown's type: Safari's clicks misreport it.
+  const pointer = useRef("");
 
   const size = os.mobile ? 52 : os.prefs.desktopIconSize;
   const cellW = Math.max(92, size + 34);
@@ -127,6 +130,7 @@ export function DesktopIcons() {
 
   /* ---- dragging icons ---- */
   const onIconDown = (e: RPointerEvent<HTMLButtonElement>, n: FsNode) => {
+    pointer.current = e.pointerType;
     if (e.button !== 0 || renaming === n.path) return;
     os.focusDesktop();
     os.setOverlay(null);
@@ -207,18 +211,35 @@ export function DesktopIcons() {
     { label: "New Terminal at Folder", run: () => os.launch("terminal", { cwd: DESKTOP }, { newWindow: true }) },
   ];
 
+  const deskMenuAt = (x: number, y: number) => {
+    os.focusDesktop();
+    setSel([]);
+    os.openContextMenu(x, y, desktopMenu());
+  };
+  const iconMenuAt = (x: number, y: number, n: FsNode) => {
+    os.focusDesktop();
+    if (!sel.includes(n.path)) setSel([n.path]);
+    os.openContextMenu(x, y, itemMenu(os, n, { rename: () => setRenaming(n.path) }));
+  };
+
+  // Touch: long-press stands in for right-click.
+  const longPress = useLongPress((x, y, t) => {
+    const icon = t.closest<HTMLElement>(".ashos-dicon")?.dataset.path;
+    if (icon && os.fs[icon]) iconMenuAt(x, y, os.fs[icon]);
+    else if (t === surface.current) deskMenuAt(x, y);
+  });
+
   return (
     <div
       ref={surface}
       className="ashos-desktop"
-      onPointerDown={onSurfaceDown}
+      onPointerDown={(e) => {
+        longPress(e);
+        onSurfaceDown(e);
+      }}
       onContextMenu={(e) => {
         e.preventDefault();
-        if (e.target === e.currentTarget) {
-          os.focusDesktop();
-          setSel([]);
-          os.openContextMenu(e.clientX, e.clientY, desktopMenu());
-        }
+        if (e.target === e.currentTarget) deskMenuAt(e.clientX, e.clientY);
       }}
       aria-label="Desktop"
     >
@@ -235,6 +256,7 @@ export function DesktopIcons() {
                 else refs.current.delete(n.path);
               }}
               className={"ashos-dicon" + (selected ? " is-selected" : "")}
+              data-path={n.path}
               style={{ left: p.x, top: p.y, width: cellW, ["--icon" as string]: `${size}px` }}
               aria-label={`${n.name}, ${kindLabel(n)}`}
               aria-pressed={selected}
@@ -242,15 +264,12 @@ export function DesktopIcons() {
               onDoubleClick={() => renaming !== n.path && os.openPath(n.path)}
               onClick={(e) => {
                 // Touch: a single tap opens. Keyboard: Enter/Space activates.
-                const pe = e.nativeEvent as PointerEvent;
-                if (pe.pointerType === "touch" || e.detail === 0) os.openPath(n.path);
+                if (e.detail === 0 || pointer.current === "touch") os.openPath(n.path);
               }}
               onContextMenu={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                os.focusDesktop();
-                if (!selected) setSel([n.path]);
-                os.openContextMenu(e.clientX, e.clientY, itemMenu(os, n, { rename: () => setRenaming(n.path) }));
+                iconMenuAt(e.clientX, e.clientY, n);
               }}
             >
               <NodeIcon node={n} className="ashos-dicon__img" />

@@ -250,6 +250,8 @@
   position: absolute;
   inset: 0;
   z-index: 1;
+  /* A long-press opens our context menu, not iOS's callout. */
+  -webkit-touch-callout: none;
 }
 .ashos-dicon {
   position: absolute;
@@ -667,6 +669,12 @@
 .ashos-resize {
   position: absolute;
   z-index: 10;
+  touch-action: none;
+}
+/* Touch drags windows too (tablets): stop the browser panning instead,
+   which cancels the gesture a few pixels in. Content still scrolls. */
+.ashos:not([data-mobile]) [data-drag] {
+  touch-action: none;
 }
 .ashos-resize--n,
 .ashos-resize--s {
@@ -1196,6 +1204,7 @@
   overflow: auto;
   outline: none;
   padding: 12px;
+  -webkit-touch-callout: none;
 }
 .ashos-finder__body:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);

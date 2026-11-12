@@ -180,7 +180,8 @@ export function Window({ win, children }: { win: Win; children: ReactNode }) {
   const startGesture = useCallback(
     (e: RPointerEvent, kind: "move" | Dir) => {
       const el = ref.current;
-      if (!el) return;
+      // One finger at a time: a second touch doesn't start a rival gesture.
+      if (!el || !e.isPrimary) return;
       e.preventDefault();
       // preventDefault() also stops the click moving keyboard focus, so move it here.
       if (!el.contains(document.activeElement)) el.focus({ preventScroll: true });
@@ -190,6 +191,7 @@ export function Window({ win, children }: { win: Win; children: ReactNode }) {
       const fromZoom = win.mode === "zoomed";
       const sx = e.clientX;
       const sy = e.clientY;
+      const id = e.pointerId;
       let moved = false;
       let next: Rect = r;
       const min = { w: Math.min(def.min[0], innerWidth), h: Math.min(def.min[1], innerHeight - MENUBAR_H) };
@@ -199,6 +201,7 @@ export function Window({ win, children }: { win: Win; children: ReactNode }) {
       } catch {}
 
       const onMove = (ev: PointerEvent) => {
+        if (ev.pointerId !== id) return;
         const dx = ev.clientX - sx;
         const dy = ev.clientY - sy;
         if (!moved && Math.abs(dx) + Math.abs(dy) < 3) return;
@@ -240,12 +243,22 @@ export function Window({ win, children }: { win: Win; children: ReactNode }) {
         el.style.width = next.w + "px";
         el.style.height = next.h + "px";
       };
-      const onUp = () => {
+      const onUp = (ev: PointerEvent) => {
+        if (ev.pointerId !== id) return;
         target.removeEventListener("pointermove", onMove);
         target.removeEventListener("pointerup", onUp);
         target.removeEventListener("pointercancel", onUp);
         root?.removeAttribute("data-gesture");
-        if (moved) os.setRect(win.id, { x: Math.round(next.x), y: Math.round(next.y), w: Math.round(next.w), h: Math.round(next.h) });
+        if (!moved) return;
+        if (ev.type === "pointercancel") {
+          // The browser or system took the touch over: put the window back.
+          el.style.left = r.x + "px";
+          el.style.top = r.y + "px";
+          el.style.width = r.w + "px";
+          el.style.height = r.h + "px";
+          return;
+        }
+        os.setRect(win.id, { x: Math.round(next.x), y: Math.round(next.y), w: Math.round(next.w), h: Math.round(next.h) });
       };
       target.addEventListener("pointermove", onMove);
       target.addEventListener("pointerup", onUp);

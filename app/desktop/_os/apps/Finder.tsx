@@ -6,6 +6,7 @@ import { ancestry, basename, formatSize, kindLabel, searchFs, TRASH, type FsNode
 import { useOS, useWindowMenus, type MenuItem } from "../state/os";
 import { itemMenu } from "../ui/DesktopIcons";
 import { Cover, Glyph, NodeIcon, type GlyphName } from "../ui/icons";
+import { useLongPress } from "../ui/longPress";
 import { DragRegion, useWin } from "../ui/Window";
 
 const RECENTS = "recents";
@@ -63,6 +64,8 @@ export function Finder() {
   const bodyRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const typeAhead = useRef({ s: "", t: 0 });
+  // The last pointerdown's type: Safari's clicks misreport it.
+  const pointer = useRef("");
 
   const go = useCallback((next: Loc) => {
     setHist((h) => (h.list[h.i] === next ? h : { list: [...h.list.slice(0, h.i + 1), next], i: h.i + 1 }));
@@ -197,15 +200,17 @@ export function Finder() {
       const b = items.findIndex((x) => x.path === n.path);
       setSel(items.slice(Math.min(a, b), Math.max(a, b) + 1).map((x) => x.path));
     } else setSel([n.path]);
-    const pe = e.nativeEvent as PointerEvent;
-    if (pe.pointerType === "touch" && !e.metaKey) openNode(n);
+    if (pointer.current === "touch" && !e.metaKey) openNode(n);
   };
 
+  const itemMenuAt = (x: number, y: number, n: FsNode) => {
+    if (!sel.includes(n.path)) setSel([n.path]);
+    os.openContextMenu(x, y, itemMenu(os, n, { rename: () => setRenaming(n.path), open: () => openNode(n) }));
+  };
   const itemCtx = (e: React.MouseEvent, n: FsNode) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!sel.includes(n.path)) setSel([n.path]);
-    os.openContextMenu(e.clientX, e.clientY, itemMenu(os, n, { rename: () => setRenaming(n.path), open: () => openNode(n) }));
+    itemMenuAt(e.clientX, e.clientY, n);
   };
 
   const sortItems = (k: SortKey): MenuItem => ({
@@ -218,10 +223,9 @@ export function Finder() {
     os.setPref("finderView", v);
   };
 
-  const bgCtx = (e: React.MouseEvent) => {
-    e.preventDefault();
+  const bgMenuAt = (x: number, y: number) => {
     setSel([]);
-    os.openContextMenu(e.clientX, e.clientY, [
+    os.openContextMenu(x, y, [
       { label: "New Folder", disabled: !canCreate, run: newFolder },
       { sep: true },
       { label: "Get Info", disabled: loc === RECENTS, run: () => os.setQuickLook(loc) },
@@ -234,6 +238,14 @@ export function Finder() {
       { label: "New Terminal at Folder", disabled: loc === RECENTS, run: () => os.launch("terminal", { cwd: loc }, { newWindow: true }) },
     ]);
   };
+
+  // Touch: long-press stands in for right-click (Rename has no other route).
+  const longPress = useLongPress((x, y, t) => {
+    if (t.closest("button, input")) return;
+    const p = t.closest<HTMLElement>("[data-path]")?.dataset.path;
+    if (p && os.fs[p]) itemMenuAt(x, y, os.fs[p]);
+    else bgMenuAt(x, y);
+  });
 
   /* ---- menu bar ---- */
   useWindowMenus(win.id, () => [
@@ -414,10 +426,14 @@ export function Finder() {
             aria-multiselectable="true"
             onKeyDown={onKeyDown}
             onPointerDown={(e) => {
+              pointer.current = e.pointerType;
+              longPress(e);
               if (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains("ashos-flist__rows")) setSel([]);
             }}
             onContextMenu={(e) => {
-              if (!(e.target as HTMLElement).closest("[data-path]")) bgCtx(e);
+              if ((e.target as HTMLElement).closest("[data-path]")) return;
+              e.preventDefault();
+              bgMenuAt(e.clientX, e.clientY);
             }}
           >
             {items.length === 0 ? (
