@@ -19,5 +19,5 @@ export async function POST(req: Request) {
     // no body: count one poke
   }
   if (!Number.isFinite(n) || n < 1) n = 1;
-  return counterJson(await addToCounter(KEY, Math.min(n, MAX_PER_REQUEST)));
+  return addToCounter(req, KEY, Math.min(n, MAX_PER_REQUEST));
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { HOME } from "../data/fs";
+import { dirname, HOME, type Fs } from "../data/fs";
 import { useOS, useWindowMenus } from "../state/os";
 import { TitleBar, useWin } from "../ui/Window";
 import { complete, promptDir, runCommand, type Line, type ShellCtx } from "./shell";
@@ -9,6 +9,13 @@ import { complete, promptDir, runCommand, type Line, type ShellCtx } from "./she
 type Entry = { kind: "cmd"; cwd: string; text: string } | { kind: "out"; line: Line };
 
 const CHAR_W = 0.6; // monospace advance, in ems
+
+/** `dir`, or its nearest parent folder that still exists. */
+function liveDir(fs: Fs, dir: string): string {
+  let p = dir;
+  while (p !== HOME && !fs[p]?.children) p = dirname(p);
+  return fs[p]?.children ? p : HOME;
+}
 
 export function Terminal() {
   const os = useOS();
@@ -39,6 +46,13 @@ export function Terminal() {
     ro.observe(el);
     return () => ro.disconnect();
   }, [font]);
+
+  // Finder can rename or trash the folder this Terminal is in; step out to
+  // the nearest folder that still exists rather than sit in a dead path.
+  useEffect(() => {
+    const next = liveDir(os.fs, cwd);
+    if (next !== cwd) setCwd(next);
+  }, [os.fs, cwd]);
 
   const title = `ashutosh — -zsh — ${size.cols}×${size.rows}`;
   useEffect(() => os.setTitle(win.id, `Terminal — ${promptDir(cwd)}`), [os, win.id, cwd]);

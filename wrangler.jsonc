@@ -10,8 +10,19 @@
   },
   // Footer counters (page views, Semi pokes): app/api/_lib/counter.ts
   "kv_namespaces": [{ "binding": "COUNTERS", "id": "adc6d0c1554943d3824766538e38918b" }],
+  // Caps counter writes per IP, per counter: 20 a minute is far above a real
+  // visitor (one view per session, pokes sent in batches) but stops a script
+  // from burning through KV's write limits. namespace_id is any number unique
+  // to this account.
+  "ratelimits": [{ "name": "COUNTER_LIMIT", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } }],
   "observability": {
     "enabled": true
   },
-  "previews": {}
+  // Preview builds (non-main branches) don't inherit bindings from above, so
+  // without these the footer counters hide themselves on every preview. They
+  // share the live counters, so test pokes and views add to the real totals.
+  "previews": {
+    "kv_namespaces": [{ "binding": "COUNTERS", "id": "adc6d0c1554943d3824766538e38918b" }],
+    "ratelimits": [{ "name": "COUNTER_LIMIT", "namespace_id": "1001", "simple": { "limit": 20, "period": 60 } }]
+  }
 }

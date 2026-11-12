@@ -10,6 +10,6 @@ export async function GET() {
   return counterJson(await readCounter(KEY));
 }
 
-export async function POST() {
-  return counterJson(await addToCounter(KEY, 1));
+export async function POST(req: Request) {
+  return addToCounter(req, KEY, 1);
 }
