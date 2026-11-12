@@ -307,7 +307,7 @@ export function Finder() {
   const preview = os.prefs.finderPreview && !os.mobile;
 
   return (
-    <div className={"ashos-split" + (sidebarShown ? "" : " no-sidebar") + (os.mobile ? " is-compact" : "")}>
+    <div className={"ashos-split ashos-finder" + (sidebarShown ? "" : " no-sidebar") + (os.mobile ? " is-compact" : "")}>
       {sidebarShown && (
         <aside className={"ashos-sidebar" + (os.mobile ? " is-drawer" : "")} aria-label="Finder sidebar">
           <DragRegion className="ashos-sidebar__top" />

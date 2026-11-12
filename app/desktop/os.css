@@ -795,6 +795,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Out of sight but still read out (a toolbar too narrow for it). */
+.ashos-toolbar__title.is-hidden {
+  position: absolute;
+  clip-path: inset(50%);
+  pointer-events: none;
+}
 .ashos-toolbar__title small {
   font-size: 11px;
   font-weight: 400;
@@ -1141,6 +1147,39 @@
 .ashos-account small {
   font-size: 11px;
   color: var(--text-2);
+}
+
+/* Narrow windows (Finder, Mail): the sidebar slims down and the toolbar
+   search shrinks, so nothing scrolls sideways at the minimum size. */
+.ashos-finder,
+.ashos-mail {
+  container-type: inline-size;
+}
+@container (max-width: 640px) {
+  .ashos-split:not(.is-compact) > .ashos-sidebar {
+    width: 160px;
+    flex-basis: 160px;
+  }
+  .ashos-finder:not(.is-compact) .ashos-search {
+    flex: 0 1 140px;
+    width: auto;
+    min-width: 84px;
+  }
+  .ashos-mail:not(.is-compact) .ashos-mail__list {
+    width: 44%;
+  }
+  .ashos-mail:not(.is-compact) .ashos-mail__read {
+    padding: 18px 16px;
+  }
+}
+/* Narrower still: Finder's title steps aside for the search (the sidebar and
+   path bar still say where you are); screen readers keep it. */
+@container (max-width: 560px) {
+  .ashos-finder:not(.is-compact) .ashos-toolbar__title {
+    position: absolute;
+    clip-path: inset(50%);
+    pointer-events: none;
+  }
 }
 
 /* Compact (phone) layouts */
@@ -1599,6 +1638,14 @@
 .ashos-about {
   display: flex;
   flex-direction: column;
+}
+.ashos-about__headline {
+  margin: -4px 0 12px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.ashos-about__headline em {
+  color: var(--accent);
 }
 .ashos-about__body {
   flex: 1;

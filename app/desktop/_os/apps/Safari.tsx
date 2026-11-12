@@ -69,7 +69,21 @@ export function Safari() {
   const [reloadKey, setReloadKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const field = useRef<HTMLInputElement>(null);
+  const frame = useRef<HTMLIFrameElement>(null);
   const page = useMemo(() => toPage(url), [url]);
+  // Where a portfolio page has since moved inside the frame (a link, a
+  // #section), as a site path. Null until it leaves the address it opened at.
+  const [moved, setMoved] = useState<string | null>(null);
+
+  /** The frame's current site path, read live when the page is the portfolio's own. */
+  const framePath = (): string | null => {
+    if (page.kind !== "frame" || !page.local) return null;
+    try {
+      const at = frame.current?.contentWindow?.location;
+      if (at && at.origin === location.origin && at.href !== "about:blank") return at.pathname + at.search + at.hash;
+    } catch {}
+    return moved;
+  };
 
   const go = (next: string) => {
     // The page already showing: reload it (the frame may have moved on).
@@ -82,13 +96,35 @@ export function Safari() {
     if (win.args.nonce && win.args.url) go(win.args.url);
   }, [win.args.nonce]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => setLoading(page.kind === "frame"), [page, reloadKey]);
+  useEffect(() => {
+    setLoading(page.kind === "frame");
+    setMoved(null);
+  }, [page, reloadKey]);
 
   const pageTitle =
     page.kind === "start" ? "Start Page" : page.kind === "unlinked" ? page.name : page.kind === "self" ? "ashOS" : page.kind === "search" ? `“${page.q}”` : page.kind === "frame" && page.local ? person.title : page.host;
   useEffect(() => os.setTitle(win.id, pageTitle), [os, win.id, pageTitle]);
 
-  const external = page.kind === "frame" ? (page.local ? new URL(page.src, location.origin).href : page.src) : page.kind === "card" ? page.url : null;
+  // A portfolio page that moved inside the frame is shown, reloaded and opened where it is now.
+  const shownUrl = page.kind === "frame" && page.local && moved && moved !== page.src ? moved : url;
+  const external = page.kind === "frame" ? (page.local ? new URL(shownUrl, location.origin).href : page.src) : page.kind === "card" ? page.url : null;
+  const openExternal = () => {
+    const here = framePath();
+    const href = here ? new URL(here, location.origin).href : external;
+    if (href) window.open(href, "_blank", "noopener");
+  };
+  const reload = () => {
+    // Reload where the portfolio page is now, not where it started.
+    const fw = page.kind === "frame" && page.local ? frame.current?.contentWindow : null;
+    try {
+      if (fw && fw.location.origin === location.origin) {
+        setLoading(true);
+        fw.location.reload();
+        return;
+      }
+    } catch {}
+    setReloadKey((k) => k + 1);
+  };
 
   useWindowMenus(win.id, () => [
     {
@@ -96,7 +132,7 @@ export function Safari() {
       items: [
         { label: "New Window", shortcut: "⌥N", run: () => os.launch("safari", {}, { newWindow: true }) },
         { label: "Open Location…", run: () => field.current?.focus() },
-        { label: "Open Page in New Browser Tab", disabled: !external, run: () => external && window.open(external, "_blank", "noopener") },
+        { label: "Open Page in New Browser Tab", disabled: !external, run: openExternal },
         { sep: true },
         { label: "Close Window", shortcut: "⌥W", run: () => os.close(win.id) },
       ],
@@ -104,7 +140,7 @@ export function Safari() {
     {
       title: "View",
       items: [
-        { label: "Reload Page", disabled: page.kind !== "frame", run: () => setReloadKey((k) => k + 1) },
+        { label: "Reload Page", disabled: page.kind !== "frame", run: reload },
         { label: "Start Page", run: () => go(START) },
       ],
     },
@@ -146,13 +182,14 @@ export function Safari() {
           {secure && page.kind !== "start" && draft === null && <Glyph name="globe" className="ashos-address__lock" />}
           <input
             ref={field}
-            value={draft ?? displayUrl(url)}
+            value={draft ?? displayUrl(shownUrl)}
             placeholder="Search the portfolio or enter website name"
             aria-label="Address"
             spellCheck={false}
             autoComplete="off"
             onFocus={(e) => {
-              const full = url.startsWith("ashos:") ? displayUrl(url) : isLocal(url) ? location.origin + url : url;
+              const now = framePath() ?? shownUrl;
+              const full = now.startsWith("ashos:") ? displayUrl(now) : isLocal(now) ? location.origin + now : now;
               setDraft(full);
               // Select it a frame later, unless the visitor has already typed
               // or pasted: selecting then would let the next key wipe that out.
@@ -165,10 +202,10 @@ export function Safari() {
           />
           {loading && <span className="ashos-address__progress" />}
         </form>
-        <button type="button" className="ashos-tbtn" aria-label="Reload" disabled={page.kind !== "frame"} onClick={() => setReloadKey((k) => k + 1)}>
+        <button type="button" className="ashos-tbtn" aria-label="Reload" disabled={page.kind !== "frame"} onClick={reload}>
           <Glyph name="reload" />
         </button>
-        <button type="button" className="ashos-tbtn" aria-label="Open in a new browser tab" title="Open in New Tab" disabled={!external} onClick={() => external && window.open(external, "_blank", "noopener")}>
+        <button type="button" className="ashos-tbtn" aria-label="Open in a new browser tab" title="Open in New Tab" disabled={!external} onClick={openExternal}>
           <Glyph name="share" />
         </button>
       </DragRegion>
@@ -209,6 +246,7 @@ export function Safari() {
         )}
         {page.kind === "frame" && (
           <iframe
+            ref={frame}
             key={page.src + reloadKey}
             src={page.src}
             title={pageTitle}
@@ -218,8 +256,20 @@ export function Safari() {
               // A link inside the site led to ashOS itself: show the card instead.
               if (!page.local) return;
               try {
-                const at = e.currentTarget.contentWindow?.location;
-                if (at && isAshOS(new URL(at.href))) go(at.pathname + at.search);
+                const w = e.currentTarget.contentWindow;
+                const at = w?.location;
+                if (!w || !at || at.origin !== location.origin) return;
+                if (isAshOS(new URL(at.href))) return go(at.pathname + at.search);
+                // Follow it as it moves: a new page loads here again; #links and
+                // history steps within the page say so with these events.
+                const track = () => {
+                  try {
+                    setMoved(w.location.pathname + w.location.search + w.location.hash);
+                  } catch {}
+                };
+                track();
+                w.addEventListener("hashchange", track);
+                w.addEventListener("popstate", track);
               } catch {}
             }}
             sandbox={page.local ? undefined : "allow-scripts allow-same-origin allow-popups allow-forms"}

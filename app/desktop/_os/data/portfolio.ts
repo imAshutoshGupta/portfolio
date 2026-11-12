@@ -112,6 +112,12 @@ export const contact = {
 
 export const sectionTitles = sections;
 
+/** A section's one-line headline (`line` + `accent`, as the site sets it), or null when it has none. */
+export function headline(section: { line?: string; accent?: string }): string | null {
+  const text = `${section.line ?? ""}${section.accent ?? ""}`.trim();
+  return text || null;
+}
+
 /** The footer's "open to roles / I can help with" block. */
 export const workWithMe = {
   intro: footer.intro,
@@ -171,6 +177,8 @@ export const achievements = wins.map((w, i) => ({
   ...w,
   live: realHref(w.live?.href),
   code: realHref(w.code?.href),
+  /** The win's screenshot, when it has a real one. */
+  imageSrc: w.image && isImageSrc(w.image) ? w.image : null,
 }));
 
 export const writing = posts.map((p, i) => ({ id: `post-${pad(i + 1)}`, num: pad(i + 1), ...p, link: realHref(p.href) }));

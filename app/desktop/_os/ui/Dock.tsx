@@ -13,6 +13,11 @@ export function Dock() {
   const [revealed, setRevealed] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hovered = useRef(false);
+  // The menu the Dock last opened: while it's up, auto-hide leaves the Dock be.
+  const [ownMenu, setOwnMenu] = useState<MenuItem[] | null>(null);
+  const menuUp = !!os.ctx && os.ctx.items === ownMenu;
+  const menuUpRef = useRef(menuUp);
+  menuUpRef.current = menuUp;
 
   const pos = os.mobile ? "bottom" : os.prefs.dockPosition;
   const vertical = pos !== "bottom";
@@ -51,7 +56,7 @@ export function Dock() {
   const hideSoon = () => {
     if (!autohide) return;
     hideTimer.current && clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => setRevealed(false), 450);
+    hideTimer.current = setTimeout(() => !menuUpRef.current && setRevealed(false), 450);
   };
   const reveal = () => {
     hideTimer.current && clearTimeout(hideTimer.current);
@@ -89,8 +94,16 @@ export function Dock() {
 
   const ctx = (e: RMouseEvent, menu: MenuItem[]) => {
     e.preventDefault();
+    setOwnMenu(menu);
     os.openContextMenu(e.clientX, e.clientY, menu);
   };
+
+  // Its menu closed: hide again unless the pointer is back on the Dock.
+  const hadMenu = useRef(false);
+  useEffect(() => {
+    if (hadMenu.current && !menuUp && !hovered.current) hideSoon();
+    hadMenu.current = menuUp;
+  });
 
   const shown = !autohide || revealed;
   const cls =

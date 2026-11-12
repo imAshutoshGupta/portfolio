@@ -277,7 +277,7 @@ export function Settings() {
                 <h1>ashOS</h1>
                 <p>Version 7.0</p>
                 <p className="ashos-sysabout__legal">
-                  Designed and built by {person.name}.
+                  {person.signoff}
                   <br />
                   {copyright}
                 </p>

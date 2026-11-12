@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { basename, kindLabel } from "../data/fs";
-import { contact, person, work } from "../data/portfolio";
+import { achievements, contact, person, work } from "../data/portfolio";
 import { WALLPAPERS, type WallpaperId } from "../data/wallpapers";
 import { useOS, useWindowMenus } from "../state/os";
 import { DemoVideo } from "../ui/Demo";
@@ -170,6 +170,17 @@ export function Photos() {
         project: w.id,
         render: () => <Cover seed={Number(w.num)} title={w.name} caption={w.screenshot} src={w.screenshotSrc} alt={w.alt} />,
       })),
+      // Hackathon builds with a screenshot sit with the projects, as on the site.
+      ...achievements
+        .filter((w) => w.imageSrc)
+        .map((w) => ({
+          id: w.id,
+          album: "projects" as const,
+          title: w.project ?? w.event,
+          caption: `${w.place} · ${w.event}`,
+          project: w.id,
+          render: () => <Cover seed={Number(w.num)} title={w.project ?? w.event} src={w.imageSrc} alt={w.alt} />,
+        })),
       ...WALLPAPERS.flatMap((wp) =>
         (["light", "dark"] as const).map((v) => ({
           id: `${wp.id}-${v}`,

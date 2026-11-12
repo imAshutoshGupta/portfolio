@@ -10,6 +10,7 @@ import {
   contact,
   copyright,
   experience,
+  headline,
   kindWords,
   localTime,
   moreLinks,
@@ -236,8 +237,10 @@ function build(): Fs {
     { t: "h", text: S.approach.title },
     { t: "list", items: approach.map((p) => `${p.title}. ${p.body}`) },
     { t: "h", text: S.writing.title },
+    ...(headline(S.writing) ? ([{ t: "meta", text: headline(S.writing)! }] as Doc) : []),
     { t: "list", items: writing.map((p) => `${p.title} — ${p.date}, on ${p.where}`) },
     { t: "h", text: S.about.title },
+    ...(headline(S.about) ? ([{ t: "meta", text: headline(S.about)! }] as Doc) : []),
     { t: "p", text: person.bio },
     { t: "list", items: person.hobbies },
     { t: "meta", text: person.punctuation },
@@ -254,6 +257,8 @@ function build(): Fs {
         { label: "Website", href: contact.site },
       ],
     },
+    { t: "hr" },
+    { t: "meta", text: person.signoff },
   ];
 
   const welcome: Doc = [
@@ -328,7 +333,7 @@ function build(): Fs {
     });
   }
   doc(aboutDir, "Beyond Work.md", S.about.title + ".", [
-    { t: "title", text: S.about.title },
+    { t: "title", text: S.about.title, sub: headline(S.about) ?? undefined },
     { t: "p", text: person.bio },
     { t: "list", items: person.hobbies },
     { t: "meta", text: person.punctuation },
@@ -368,9 +373,22 @@ function build(): Fs {
       winDoc(w),
       { modified: w.year }
     );
+    // The win's screenshot, like a project's (Finder, Quick Look, Photos).
+    if (w.imageSrc) {
+      const ext = /\.(\w+)(?:[?#]|$)/.exec(w.imageSrc)?.[1].toLowerCase() ?? "png";
+      add(winsDir, {
+        name: `${w.num} ${w.project ?? w.event}.${ext}`,
+        kind: "image",
+        ext,
+        info: `${w.project ?? w.event} screenshot.`,
+        image: { src: w.imageSrc, title: w.project ?? w.event, caption: `${w.place} · ${w.event}`, seed: Number(w.num), alt: w.alt },
+        project: w.id,
+        modified: w.year,
+      });
+    }
   }
 
-  const writingDir = folder(documents, "Writing", "writing", S.writing.title + ".");
+  const writingDir = folder(documents, "Writing", "writing", headline(S.writing) ?? S.writing.title + ".");
   for (const p of writing) {
     link(writingDir, `${p.num} ${p.title}`, p.link, `${p.date} · on ${p.where}`, { modified: p.date });
   }
