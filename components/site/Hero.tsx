@@ -27,11 +27,13 @@ function Name() {
   });
 
   return (
+    // The page's heading is just the name, kept out of the visual row: the row
+    // (letters, Semi, speech) is laid out exactly as it always was, and the h1
+    // never takes display: contents (VoiceOver skips such headings in its
+    // heading list, WebKit bug 261978).
     <>
-      <h1
-        aria-label={hero.name}
-        className="m-[32px_0_0] flex flex-wrap items-end text-[calc(112px*var(--k))] leading-none font-medium tracking-[-0.045em] [--k:1] max-[639px]:[--k:.75] max-[379px]:[--k:.58]"
-      >
+      <h1 className="sr-only">{hero.name}</h1>
+      <div className="m-[32px_0_0] flex flex-wrap items-end text-[calc(112px*var(--k))] leading-none font-medium tracking-[-0.045em] [--k:1] max-[639px]:[--k:.75] max-[379px]:[--k:.58]">
         <span aria-hidden="true" className="overflow-hidden pb-[6px] max-[900px]:contents">
           {words.map((group, gi) => (
             <span key={gi} className="whitespace-nowrap max-[900px]:overflow-hidden max-[900px]:pb-[6px]">
@@ -96,7 +98,7 @@ function Name() {
             </span>
           )}
         </span>
-      </h1>
+      </div>
       {/* one live region that stays mounted: a fresh aria-live element per poke
           is often never announced. The keyed child makes a repeated line count
           as new text. */}

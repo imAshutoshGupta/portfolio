@@ -62,6 +62,11 @@ const jsonLd = {
       name: hero.name,
       url: meta.url,
       jobTitle: meta.jobTitle,
+      homeLocation: {
+        "@type": "Place",
+        name: `${meta.home.locality}, ${meta.home.country}`,
+        address: { "@type": "PostalAddress", addressLocality: meta.home.locality, addressCountry: meta.home.countryCode },
+      },
       description: meta.description,
       email: links.email,
       ...(currentJob && { worksFor: { "@type": "Organization", name: currentJob.org } }),

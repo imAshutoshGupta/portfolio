@@ -58,7 +58,8 @@ export const person = {
   statusLine: `${hero.status} · ${hero.statusDetail}`,
   /** The site's About photo, while that trial is on (features.aboutPhoto). */
   photo: features.aboutPhoto ? about.photo : null,
-  tagline: meta.description,
+  // the hero's line, not meta.description (that one is written for search results)
+  tagline: hero.lead + hero.leadAccent,
   lead: hero.lead + hero.leadAccent,
   role: fact("Role"),
   experience: fact("Experience"),
