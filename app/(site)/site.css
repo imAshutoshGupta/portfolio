@@ -167,6 +167,11 @@
     -webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);
     opacity:0;transition:opacity .35s}
   .site-nav[data-scrolled]::before{opacity:1}
+  /* in-page targets stop the nav's height short (28+40+28 + 1px border; 20+40+20+1
+     under max-sm), so a hash link, the skip link or a jump up (scroll.ts) leaves
+     them just below the nav rather than under it */
+  #main,#main section[id],#contact{scroll-margin-top:97px}
+  @media (width < 40rem){#main,#main section[id],#contact{scroll-margin-top:81px}}
 
   /* 4. thread: glow ring pulses around the leading dot; semicolon lights up at the end */
   .thread-dot::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--accent);

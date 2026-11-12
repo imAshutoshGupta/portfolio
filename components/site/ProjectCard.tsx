@@ -1,4 +1,5 @@
 import type { projects } from "@/content";
+import { external } from "./external";
 import ProjectDemo from "./ProjectDemo";
 
 type Project = (typeof projects)[number];
@@ -42,14 +43,14 @@ export default function ProjectCard({ p, i }: { p: Project; i: number }) {
             ))}
           </div>
           <div className="mt-[18px] flex gap-[18px] text-[14px] font-medium">
-            <a href={p.live.href} className="link text-accent">
+            <a href={p.live.href} {...external(p.live.href)} className="link text-accent">
               {p.live.label}
             </a>
-            <a href={p.code.href} className="link">
+            <a href={p.code.href} {...external(p.code.href)} className="link">
               {p.code.label}
             </a>
             {p.caseStudy && (
-              <a href={p.caseStudy.href} className="link text-muted">
+              <a href={p.caseStudy.href} {...external(p.caseStudy.href)} className="link text-muted">
                 {p.caseStudy.label}
               </a>
             )}

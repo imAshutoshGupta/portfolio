@@ -13,6 +13,10 @@ export function AshOSLink({ className, children }: { className?: string; childre
       className={className}
       onClick={(e) => {
         if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+        // Framed (the site inside ashOS's Safari): a takeover here would be
+        // ashOS inside ashOS. Follow the link instead; Safari sees /desktop
+        // and shows its "already in ashOS" card.
+        if (window.top !== window.self) return;
         e.preventDefault();
         window.dispatchEvent(new Event(OPEN_EVENT));
       }}

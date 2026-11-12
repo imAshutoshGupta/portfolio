@@ -21,6 +21,7 @@ import {
 import { AshOSLink, AshOSTakeover } from "@/components/site/AshOS";
 import BackToTop from "@/components/site/BackToTop";
 import CopyEmail from "@/components/site/CopyEmail";
+import { external } from "@/components/site/external";
 import FooterCta from "@/components/site/FooterCta";
 import FooterStats from "@/components/site/FooterStats";
 import Hero from "@/components/site/Hero";
@@ -42,9 +43,6 @@ const personLd = {
   email: links.email,
   sameAs: [links.linkedin, links.github, links.x],
 };
-
-const external = (href: string) =>
-  /^https?:/.test(href) ? { target: "_blank", rel: "noopener noreferrer" } : {};
 
 /** Section label; slides up from behind its mask as it enters (motionEngine.ts). */
 function Label({ num, title }: { num: string; title: string }) {

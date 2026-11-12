@@ -222,6 +222,14 @@ Decisions made along the way (keep unless the user says otherwise):
 - Scroll-reveal content is hidden before first paint only when motion is
   allowed. If JS never loads, everything still shows.
 - Underlines show on hover only. The nav is sticky.
+- In-page jumps clear the nav: sections (and `#main`, `#contact`) carry
+  `scroll-margin-top` equal to the nav's height (97px, 81px under 640px, in
+  `site.css`; update it if the nav's padding changes). `scroll.ts` applies it
+  only when the nav will be showing (upward jumps, reduced motion, keyboard
+  focus in the nav); downward jumps land at the top as the nav slides away.
+- `/robots.txt` and `/sitemap.xml` are Next metadata routes (`app/robots.ts`,
+  `app/sitemap.ts`) built from `meta.url`. `/desktop` has its own canonical and
+  is in the sitemap.
 - The nav's frosted glass (`.site-nav::before`, 72% bg + 14px blur) only works
   because its fade-in uses `animation-fill-mode: backwards`. A held opacity
   animation (`both`/`forwards`) on the nav makes it a backdrop root and kills
@@ -393,6 +401,9 @@ When real projects land, add them to the README's "Selected work" table too.
 - Footer counters: `/api/views` and `/api/pokes` read the `COUNTERS` KV
   binding (namespace `portfolio-counters`, in `wrangler.jsonc`).
 - Experience rows have no arrow (they aren't links); writing rows do.
+- Preview builds have no Last.fm key, so Now playing shows the idle line
+  there. The user is fine with that (2026-11-12): production has the key.
+  Preview secrets would need `npx wrangler preview base-config secret put`.
 
 ## Testing notes
 

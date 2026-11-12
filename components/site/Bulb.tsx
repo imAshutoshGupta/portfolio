@@ -29,17 +29,30 @@ const NUDGE = 45; // px/s on hover
 
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// A quick second switch (Enter twice) skips the running transition, sometimes
+// before its update has run. So the theme still to apply, the transition that
+// owns the vt-* classes and the light's clip animation are kept here: the
+// second switch flips the right theme, the first can't strip the classes the
+// second needs, and the first's half-run clip doesn't carry over onto the
+// second's views (it targets the same pseudo-elements).
+let queued: { theme: string } | null = null;
+let current: ViewTransition | null = null;
+let light: Animation | null = null;
+
 /** Same theme system as before (data-theme + localStorage). With View
  *  Transitions, the light spreads out of the bulb when it turns on and
  *  draws back into it when it turns off; the bulb itself stays live on top. */
 function switchTheme(x: number, y: number) {
   const root = document.documentElement;
-  const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  const next = (queued?.theme ?? root.getAttribute("data-theme")) === "dark" ? "light" : "dark";
+  const me = { theme: next };
+  queued = me;
   const apply = () => {
     root.setAttribute("data-theme", next);
     try {
       localStorage.setItem("theme", next);
     } catch {}
+    if (queued === me) queued = null;
   };
 
   if (reducedMotion()) return apply();
@@ -53,23 +66,31 @@ function switchTheme(x: number, y: number) {
 
   const on = next === "light";
   root.classList.add("vt-bulb");
-  if (!on) root.classList.add("vt-off");
+  root.classList.toggle("vt-off", !on);
   const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
   const small = `circle(0px at ${x}px ${y}px)`;
   const big = `circle(${radius}px at ${x}px ${y}px)`;
+  light?.cancel();
   const t = document.startViewTransition(apply);
-  t.ready.then(() => {
-    root.animate(
-      { clipPath: on ? [small, big] : [big, small] },
-      {
-        duration: on ? 900 : 700,
-        easing: on ? "cubic-bezier(.25,.75,.3,1)" : "cubic-bezier(.65,0,.35,1)",
-        fill: "forwards",
-        pseudoElement: on ? "::view-transition-new(root)" : "::view-transition-old(root)",
-      },
-    );
+  current = t;
+  t.ready
+    .then(() => {
+      light = root.animate(
+        { clipPath: on ? [small, big] : [big, small] },
+        {
+          duration: on ? 900 : 700,
+          easing: on ? "cubic-bezier(.25,.75,.3,1)" : "cubic-bezier(.65,0,.35,1)",
+          fill: "forwards",
+          pseudoElement: on ? "::view-transition-new(root)" : "::view-transition-old(root)",
+        },
+      );
+    })
+    .catch(() => {}); // skipped by a newer switch, which animates instead
+  t.finished.finally(() => {
+    if (current !== t) return;
+    current = null;
+    root.classList.remove("vt-bulb", "vt-off");
   });
-  t.finished.finally(() => root.classList.remove("vt-bulb", "vt-off"));
 }
 
 function link(a: Pt, b: Pt, rest: number, k: number, pushOnly = false) {
