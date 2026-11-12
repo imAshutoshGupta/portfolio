@@ -578,7 +578,7 @@ function PreviewPane({ node, onOpen }: { node: FsNode | null; onOpen: (n: FsNode
   return (
     <aside className="ashos-fpreview ashos-scroll" aria-label="Preview">
       <div className="ashos-fpreview__art">
-        {node.kind === "image" && node.image ? <Cover seed={node.image.seed} title={node.image.title} src={node.image.src} /> : <NodeIcon node={node} className="ashos-fpreview__icon" />}
+        {node.kind === "image" && node.image ? <Cover seed={node.image.seed} title={node.image.title} src={node.image.src} alt={node.image.alt} /> : <NodeIcon node={node} className="ashos-fpreview__icon" />}
       </div>
       <h3>{node.name}</h3>
       <p className="ashos-fpreview__kind">

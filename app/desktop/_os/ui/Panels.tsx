@@ -5,6 +5,7 @@ import { APPS, type AppId } from "../data/apps";
 import { formatSize, kindLabel } from "../data/fs";
 import { localNow, nowPlaying, person } from "../data/portfolio";
 import { useOS } from "../state/os";
+import { DemoVideo } from "./Demo";
 import { DocView } from "./DocView";
 import { AppIcon, Cover, Glyph, NodeIcon } from "./icons";
 import { useClock } from "./MenuBar";
@@ -306,7 +307,11 @@ export function QuickLook() {
   else if (node.kind === "image" && node.image)
     body = (
       <div className="ashos-ql__image">
-        <Cover seed={node.image.seed} title={node.image.title} caption={node.image.caption} src={node.image.src} />
+        {node.video ? (
+          <DemoVideo key={node.path} name={node.image.title} demo={node.video} alt={node.image.alt ?? node.image.title} />
+        ) : (
+          <Cover seed={node.image.seed} title={node.image.title} caption={node.image.caption} src={node.image.src} alt={node.image.alt} />
+        )}
         {!node.image.src && <p className="ashos-ql__note">{node.image.caption} · no image on the portfolio yet</p>}
       </div>
     );

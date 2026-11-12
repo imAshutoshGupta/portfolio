@@ -44,9 +44,13 @@ const initials = hero.name
 
 const fact = (label: string) => hero.facts.find((f) => f.label === label)?.value ?? "";
 
+const firstName = hero.name.split(/\s+/)[0];
+
 export const person = {
   name: hero.name,
-  firstName: hero.name.split(/\s+/)[0],
+  firstName,
+  /** Terminal login (prompt, whoami, ls -l): the first name, lowercased. */
+  login: firstName.toLowerCase().replace(/[^a-z0-9_-]/g, "") || "user",
   initials,
   status: hero.status,
   /** Where: "Mumbai or Bangalore · remote or relocation". */
@@ -117,6 +121,9 @@ export const workWithMe = {
 
 const isImageSrc = (s: string) => /^(\/|https?:\/\/)/.test(s) && !isPlaceholder(s);
 
+/** A looping demo video and its first frame (the poster). */
+export type Demo = { video: string; poster: string };
+
 export type Work = {
   id: string;
   num: string;
@@ -127,6 +134,8 @@ export type Work = {
   stack: string[];
   screenshot: string;
   screenshotSrc: string | null;
+  /** Looping demo video, when the project has one. */
+  demo: Demo | null;
   /** What the screenshot/demo shows, for screen readers. */
   alt: string;
   live: string | null;
@@ -146,6 +155,7 @@ export const work: Work[] = projects.map((p, i) => ({
   stack: p.stack,
   screenshot: p.screenshot,
   screenshotSrc: isImageSrc(p.screenshot) ? p.screenshot : null,
+  demo: p.demo,
   alt: p.alt,
   live: realHref(p.live.href),
   code: realHref(p.code.href),

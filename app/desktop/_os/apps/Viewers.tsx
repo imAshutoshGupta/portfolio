@@ -7,6 +7,7 @@ import { basename, kindLabel } from "../data/fs";
 import { contact, person, work } from "../data/portfolio";
 import { WALLPAPERS, type WallpaperId } from "../data/wallpapers";
 import { useOS, useWindowMenus } from "../state/os";
+import { DemoVideo } from "../ui/Demo";
 import { DocView } from "../ui/DocView";
 import { Cover, Glyph } from "../ui/icons";
 import { DragRegion, TitleBar, useWin } from "../ui/Window";
@@ -127,7 +128,11 @@ export function Preview() {
           <div className="ashos-empty">“{basename(path)}” couldn&apos;t be opened because it no longer exists.</div>
         ) : node.kind === "image" && node.image ? (
           <figure className="ashos-viewer__image" style={{ width: `${Math.round(zoom * 100)}%` }}>
-            <Cover seed={node.image.seed} title={node.image.title} caption={node.image.caption} src={node.image.src} />
+            {node.video ? (
+              <DemoVideo key={node.path} name={node.image.title} demo={node.video} alt={node.image.alt ?? node.image.title} hidden={win.minimized} />
+            ) : (
+              <Cover seed={node.image.seed} title={node.image.title} caption={node.image.caption} src={node.image.src} alt={node.image.alt} />
+            )}
             <figcaption>{node.image.src ? node.image.title : `${node.image.title} · ${node.image.caption} (no image on the portfolio yet)`}</figcaption>
           </figure>
         ) : node.doc ? (
@@ -163,7 +168,7 @@ export function Photos() {
         title: w.name,
         caption: w.screenshotSrc ? `${w.kind} · ${w.year}` : `${w.screenshot} · placeholder`,
         project: w.id,
-        render: () => <Cover seed={Number(w.num)} title={w.name} caption={w.screenshot} src={w.screenshotSrc} />,
+        render: () => <Cover seed={Number(w.num)} title={w.name} caption={w.screenshot} src={w.screenshotSrc} alt={w.alt} />,
       })),
       ...WALLPAPERS.flatMap((wp) =>
         (["light", "dark"] as const).map((v) => ({

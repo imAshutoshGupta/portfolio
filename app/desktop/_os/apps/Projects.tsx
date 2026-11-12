@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { safeName } from "../data/fs";
 import { achievements, moreLinks, sectionTitles as S, work, type Work } from "../data/portfolio";
 import { useOS, useWindowMenus } from "../state/os";
+import { DemoVideo } from "../ui/Demo";
 import { Cover, Glyph } from "../ui/icons";
 import { DragRegion, useWin } from "../ui/Window";
 
@@ -114,7 +115,7 @@ export function Projects() {
         </DragRegion>
 
         <div className="ashos-proj ashos-scroll">
-          {project && <ProjectDetail w={project} visit={visit} />}
+          {project && <ProjectDetail key={project.id} w={project} visit={visit} hidden={win.minimized} />}
           {hack && <HackDetail w={hack} visit={visit} />}
         </div>
       </div>
@@ -137,11 +138,15 @@ function LinkButton({ label, href, glyph, visit, primary }: { label: string; hre
   );
 }
 
-function ProjectDetail({ w, visit }: { w: Work; visit: (h: string | null) => void }) {
+function ProjectDetail({ w, visit, hidden }: { w: Work; visit: (h: string | null) => void; hidden: boolean }) {
   return (
     <article className="ashos-proj__inner">
       <div className="ashos-proj__shot">
-        <Cover seed={Number(w.num)} title={w.name} caption={w.screenshot} src={w.screenshotSrc} alt={w.alt} />
+        {w.demo ? (
+          <DemoVideo name={w.name} demo={w.demo} alt={w.alt} hidden={hidden} />
+        ) : (
+          <Cover seed={Number(w.num)} title={w.name} caption={w.screenshot} src={w.screenshotSrc} alt={w.alt} />
+        )}
         {!w.screenshotSrc && <span className="ashos-proj__shotnote">{w.screenshot}</span>}
       </div>
       <header className="ashos-proj__head">
