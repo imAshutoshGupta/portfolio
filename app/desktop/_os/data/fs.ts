@@ -474,11 +474,15 @@ export function applyChanges(base: Fs, ch: FsChanges): Fs {
     fs[n.parent].children = fs[n.parent].children!.filter((c) => c !== p);
     delete fs[p];
   }
+  // Created folders are rebuilt with empty children and relinked from their
+  // `parent`, never mutated in place: the nodes in `ch` are saved state, so
+  // pushing into them would double their contents on every rebuild.
   for (const n of ch.created) {
     if (!n.parent || !fs[n.parent]) continue;
     touch(n.parent);
-    fs[n.path] = n;
-    fs[n.parent].children!.push(n.path);
+    fs[n.path] = n.children ? { ...n, children: [] } : n;
+    const siblings = fs[n.parent].children!;
+    if (!siblings.includes(n.path)) siblings.push(n.path);
   }
   return fs;
 }
