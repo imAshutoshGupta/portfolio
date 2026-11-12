@@ -416,6 +416,22 @@ request, tested before/after and against the live site; suites in
   the footer marks a view counted only after the POST succeeds (a KV write
   that fails still answers 200 with the old count and gets marked: known,
   left alone).
+- G (ashOS, 2026-11-13): AltGr only with Ctrl (Firefox on a Mac reports
+  AltGraph for ⌥); focus goes back to the active window when Spotlight, a
+  panel, a menu or Quick Look closes (`returnFocus` in `ui/Window.tsx`);
+  shortcuts follow the keyboard layout (`shortcutCode` in `Desktop.tsx`:
+  e.key letter → `getLayoutMap()` → e.code); drags end cleanly when a window
+  closes mid-drag (listeners on window); the auto-hide Dock stays up under
+  its own menu; Spotlight closes open menus; long-press no longer eats
+  keyboard Enter; Space works on Quick Look's controls. Terminal: on a Mac
+  ⌥W/⌥Q close/quit even though they'd type ∑/œ (all other ⌥ keys type; in
+  `help`). About's toolbar fits by window width (title + tabs → tabs only →
+  dropdown); Finder and Mail fit at their min sizes (container queries);
+  Spotlight hides only /Trash itself and inside it; Safari follows in-frame
+  navigation; Recents drop missing files; `open ../x` errors show the
+  resolved path. Wiring: Writing/Beyond work headlines, `person.signoff`,
+  the RootCause screenshot (Achievements + Photos), tab/label titles from
+  content.
 
 ### Open
 
@@ -424,7 +440,7 @@ new session starts mid-way, check `git branch -a` and `git worktree list`:
 - `fix/site-batch-f` (F1–F8 + new LinkedIn URL commit), `fix/ashos-batch-g`
   (G1–G8), `fix/ashos-batch-g-apps` (G9–G15, to be merged into the G branch),
   `fix/seo-batch-h` (H1–H5). Worktrees under `C:\Users\admin\portfolio-wt\`
-  (f, g, g-apps, h), ports 3101–3104; a baseline build of main runs on 3100.
+  (f, g, g-apps, h), ports 3101–3104 (F merged 2026-11-13; g-apps folded into g); a baseline build of main runs on 3100.
   Uncommitted agent work in those worktrees is local only.
 - New suites in `C:\Users\admin\portfolio-qa`: `batch-f.mjs`,
   `batch-g-ui.mjs`, `batch-g-apps.mjs`, `batch-h.mjs`.
@@ -438,42 +454,6 @@ new session starts mid-way, check `git branch -a` and `git worktree list`:
 
 **Review round 2 backlog (found 2026-11-12, not fixed yet).** Order the user
 chose: F, then G, then H, then I (J dropped). Verify each before fixing.
-
-G — ashOS round 2 (two are regressions from batches 1/A, do those first):
-1. `Desktop.tsx` early `getModifierState("AltGraph")` return probably kills
-   every ⌥ shortcut in Firefox on Mac (it reports AltGraph for Option). Only
-   treat it as AltGr when `ctrlKey` is also set.
-2. Focus falls to <body> when Spotlight or a menu closes without changing the
-   active window (Window.tsx focus effect only runs when `active` changes).
-3. Non-QWERTY (AZERTY): shortcuts match `e.code`, so Alt+A (KeyQ) quits the
-   app. Map by layout (`e.key` when it's a plain letter, else
-   `navigator.keyboard.getLayoutMap()`, else `e.code`).
-4. Closing a window mid-drag leaves `data-gesture` on `.ashos` (listeners were
-   on the removed title bar): iframes stop taking clicks, cursors stuck.
-5. With Dock auto-hide, the Dock slides away under its own context menu.
-6. A mouse-opened menu stays open behind Spotlight; first Esc closes the menu.
-7. `longPress.ts`: after a long-press the window click blocker lives until the
-   next pointerdown, swallowing a keyboard Enter on the menu.
-8. Space on Quick Look's demo play/pause button closes Quick Look
-   (Panels.tsx capture handler exempts only input/textarea).
-9. On a Mac, ⌥W/⌥Q never work in Terminal (⌥ types there by design now);
-   decide a working route (e.g. accept ⌥ shortcuts in Terminal's input when
-   the typed char isn't printable, or document ⌃-based alternatives).
-10. Windows scroll sideways at their minimum width, hiding traffic lights:
-    About (tabs → dropdown only under 900px *screen* width, not window),
-    Finder 520px, Mail 520px (`data/apps.ts` min sizes).
-11. Spotlight hides any path starting with "/Trash" (`Spotlight.tsx` ~92 uses
-    `startsWith(TRASH)`; use `TRASH + "/"` or equality).
-12. Safari ignores in-frame navigation on local pages: address bar, Reload and
-    Open in New Tab keep the original URL (`Safari.tsx` ~91, ~107, ~168, ~216).
-13. Saved Recents pointing at renamed files show as bare disabled paths
-    (`MenuBar.tsx` ~72); drop entries that no longer exist.
-14. `open ../Nope` prints "/Documents/../Nope": normalise `.`/`..` in the
-    missing-path message (`shell.ts` ~293).
-15. Wiring gaps: `sections.writing/about` `line` + `accent` headlines and
-    `person.signoff` never shown in ashOS; the RootCause screenshot has no
-    image node (Finder/Quick Look/Photos); "Wins" tab label (`About.tsx` ~23)
-    and "Beyond work" (`shell.ts` ~230) hardcoded instead of `S.*.title`.
 
 H — SEO code, no wording needed:
 1. JSON-LD as one `@graph`: `WebSite` (name, url), `ProfilePage` (mainEntity →
