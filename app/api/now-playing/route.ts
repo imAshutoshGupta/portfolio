@@ -4,9 +4,14 @@ import { NextResponse } from "next/server";
 // Last.fm (or Spotify) is hit at most about six times a minute per location,
 // however many visitors are polling. Clients poll every 15s (and on tab focus),
 // so a song change shows up within ~25s.
+//
+// Browsers must never cache it: only the copy put in `caches.default` carries
+// max-age. Cloudflare rewrites a cached copy's max-age to the zone's Browser
+// Cache TTL (4h), so a hit that went out as-is froze the widget for hours.
 export const dynamic = "force-dynamic";
 
 const CACHE_SECONDS = 10;
+const BROWSER_CACHE = "no-store";
 
 const TOKEN_URL = "https://accounts.spotify.com/api/token";
 const NOW_PLAYING_URL = "https://api.spotify.com/v1/me/player/currently-playing";
@@ -119,16 +124,20 @@ export async function GET(req: Request) {
 
   if (cache) {
     const hit = await cache.match(key).catch(() => undefined);
-    if (hit) return hit;
+    if (hit) {
+      const res = new Response(hit.body, hit);
+      res.headers.set("Cache-Control", BROWSER_CACHE);
+      return res;
+    }
   }
 
   const track = await loadTrack();
-  const res = NextResponse.json(track, {
-    headers: { "Cache-Control": `public, max-age=${CACHE_SECONDS}` },
-  });
   // Only cache real data, so missing creds or a Spotify hiccup isn't sticky.
   if (cache && track.live) {
-    await cache.put(key, res.clone()).catch(() => {});
+    const copy = NextResponse.json(track, {
+      headers: { "Cache-Control": `public, max-age=${CACHE_SECONDS}` },
+    });
+    await cache.put(key, copy).catch(() => {});
   }
-  return res;
+  return NextResponse.json(track, { headers: { "Cache-Control": BROWSER_CACHE } });
 }

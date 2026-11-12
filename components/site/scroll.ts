@@ -50,6 +50,16 @@ function syncLenis() {
 }
 
 /**
+ * Moves the page by `dy` px at once (Nav.tsx uses it to pull keyboard focus
+ * out from under the nav), then lets Lenis re-read the position so it doesn't
+ * glide back to where it was.
+ */
+export function nudgeScroll(dy: number) {
+  window.scrollBy({ top: dy, behavior: "instant" });
+  syncLenis();
+}
+
+/**
  * Where a jump to `el` lands (a function, so a late layout shift can't throw
  * it off). The nav hides on the way down and comes back on the way up
  * (Nav.tsx): going down, the target lands at the very top as the nav slides

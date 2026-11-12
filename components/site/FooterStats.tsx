@@ -7,18 +7,41 @@ import { poke, usePokes } from "./pokes";
 const VIEWED_KEY = "views:counted";
 const fmt = new Intl.NumberFormat("en-US");
 
+type ViewsAnswer = { count: number | null };
+
+// One request per page load, shared, so a remounted footer (or React's dev
+// double effect) can't count the visit twice.
+let viewsRequest: Promise<ViewsAnswer> | null = null;
+
+function loadViews(): Promise<ViewsAnswer> {
+  if (viewsRequest) return viewsRequest;
+  let counted = false;
+  try {
+    counted = sessionStorage.getItem(VIEWED_KEY) === "1";
+  } catch {}
+  viewsRequest = fetch("/api/views", { method: counted ? "GET" : "POST", cache: "no-store" }).then(async (r) => {
+    const answer = (await r.json()) as ViewsAnswer;
+    // Mark the session only once the view has really been counted: a refused
+    // (403/429) or failed POST leaves it unmarked, so the next page load tries again.
+    if (!counted && r.ok && answer.count !== null) {
+      try {
+        sessionStorage.setItem(VIEWED_KEY, "1");
+      } catch {}
+    }
+    return answer;
+  });
+  viewsRequest.catch(() => {
+    viewsRequest = null; // a network error may be retried by a later mount
+  });
+  return viewsRequest;
+}
+
 /** Page views: counted once per browser session (POST), read otherwise. */
 function useViews() {
   const [count, setCount] = useState<number | null>(null);
   useEffect(() => {
-    let counted = false;
-    try {
-      counted = sessionStorage.getItem(VIEWED_KEY) === "1";
-      sessionStorage.setItem(VIEWED_KEY, "1");
-    } catch {}
     let alive = true;
-    fetch("/api/views", { method: counted ? "GET" : "POST", cache: "no-store" })
-      .then((r) => r.json() as Promise<{ count: number | null }>)
+    loadViews()
       .then(({ count }) => alive && setCount(count))
       .catch(() => {});
     return () => {
