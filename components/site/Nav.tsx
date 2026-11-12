@@ -4,7 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { nav, resumeLink } from "@/content";
 import { AshOSLink } from "./AshOS";
 import Bulb from "./Bulb";
-import { onHashClick } from "./scroll";
+import { nudgeScroll, onHashClick } from "./scroll";
+
+/** Space kept between the nav and a focused element it would otherwise cover. */
+const FOCUS_GAP = 8;
 
 const iconBtn =
   "flex h-10 w-10 cursor-pointer items-center justify-center rounded-[8px] border border-line bg-transparent text-fg";
@@ -39,13 +42,44 @@ function useAutoHide(ref: React.RefObject<HTMLElement | null>, pinned: boolean) 
       if (!frame) frame = requestAnimationFrame(update);
     };
     const onFocus = () => nav.querySelector(":focus-visible") && nav.removeAttribute("data-hidden");
+
+    // Keyboard focus never ends up under the shown nav (WCAG 2.4.11). The
+    // browser scrolls a focused element just into view, which on the way up
+    // (Shift+Tab) is right under the nav as it slides back in. Two frames
+    // later the scroll and the nav's show/hide have settled; if the nav
+    // covers the element, the page scrolls back just enough to clear it.
+    // (Not scroll-padding-top on <html>: Lenis subtracts it from every jump.)
+    let focusFrame = 0;
+    const onPageFocus = (e: FocusEvent) => {
+      const el = e.target;
+      if (!(el instanceof HTMLElement) || nav.contains(el) || el.closest('[role="dialog"]')) return;
+      // only what comes after the nav (the skip link sits on top of it)
+      if (!(nav.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)) return;
+      cancelAnimationFrame(focusFrame);
+      focusFrame = requestAnimationFrame(() => {
+        focusFrame = requestAnimationFrame(() => {
+          focusFrame = 0;
+          if (document.activeElement !== el || !el.matches(":focus-visible") || nav.hasAttribute("data-hidden")) return;
+          // where the nav's bottom edge ends up, even mid-slide
+          const t = getComputedStyle(nav).transform;
+          const slide = t && t !== "none" ? new DOMMatrixReadOnly(t).m42 : 0;
+          const navBottom = nav.getBoundingClientRect().bottom - slide;
+          const r = el.getBoundingClientRect();
+          if (r.top < navBottom && r.bottom > 0) nudgeScroll(r.top - navBottom - FOCUS_GAP);
+        });
+      });
+    };
+
     update();
     window.addEventListener("scroll", onScroll, { passive: true });
     nav.addEventListener("focusin", onFocus);
+    document.addEventListener("focusin", onPageFocus);
     return () => {
       cancelAnimationFrame(frame);
+      cancelAnimationFrame(focusFrame);
       window.removeEventListener("scroll", onScroll);
       nav.removeEventListener("focusin", onFocus);
+      document.removeEventListener("focusin", onPageFocus);
     };
   }, [ref]);
 }
@@ -135,6 +169,23 @@ export default function Nav() {
           </ul>
         </div>
       )}
+
+      {/* Without JS the menu button can't open, so phones get the links as a
+          plain row instead (site.css hides the dead button). With JS this
+          renders nothing. */}
+      <noscript className="hidden basis-full max-[860px]:block">
+        <span className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[15px] text-muted">
+          {nav.items.map((l) => (
+            <a key={l.href} href={l.href} className="link no-underline">
+              {l.label}
+            </a>
+          ))}
+          <AshOSLink className="link font-mono text-[13px] no-underline">{nav.ashos}</AshOSLink>
+          <a {...resumeLink} className="link text-fg no-underline">
+            {nav.resume}
+          </a>
+        </span>
+      </noscript>
     </nav>
   );
 }

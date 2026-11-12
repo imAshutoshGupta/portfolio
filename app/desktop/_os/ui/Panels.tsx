@@ -27,7 +27,7 @@ function useNowPlaying() {
       if (document.hidden) return;
       const id = ++latest;
       const apply = (d: Track) => alive && id === latest && setT(d);
-      fetch("/api/now-playing")
+      fetch("/api/now-playing", { cache: "no-store" })
         .then((r) => (r.ok ? r.json() : { live: false }))
         .then(apply)
         .catch(() => apply({ live: false }));

@@ -27,73 +27,83 @@ function Name() {
   });
 
   return (
-    <h1
-      aria-label={hero.name}
-      className="m-[32px_0_0] flex flex-wrap items-end text-[calc(112px*var(--k))] leading-none font-medium tracking-[-0.045em] [--k:1] max-[639px]:[--k:.75] max-[379px]:[--k:.58]"
-    >
-      <span aria-hidden="true" className="overflow-hidden pb-[6px] max-[900px]:contents">
-        {words.map((group, gi) => (
-          <span key={gi} className="whitespace-nowrap max-[900px]:overflow-hidden max-[900px]:pb-[6px]">
-            {group.map(({ ch, i }) => (
-              <span key={i} className="ltr" style={{ animationDelay: (0.2 + i * 0.045).toFixed(3) + "s", width: "auto" }}>
-                {ch}
-              </span>
-            ))}
-          </span>
-        ))}
-      </span>
-      <button
-        onClick={() => {
-          setPokes((p) => p + 1);
-          poke(); // adds to the global count shown in the footer
-        }}
-        aria-label={hero.pokeLabel}
-        className="relative ml-[calc(8px*var(--k))] h-[calc(112px*var(--k))] w-[calc(48px*var(--k))] cursor-pointer border-0 bg-transparent p-0"
+    <>
+      <h1
+        aria-label={hero.name}
+        className="m-[32px_0_0] flex flex-wrap items-end text-[calc(112px*var(--k))] leading-none font-medium tracking-[-0.045em] [--k:1] max-[639px]:[--k:.75] max-[379px]:[--k:.58]"
       >
-        {/* scales Semi with the name on small screens; identity at desktop size */}
-        <span className="absolute bottom-0 left-0 block h-[112px] w-[48px] origin-bottom-left [scale:var(--k)]">
-          <span className="drop absolute bottom-[10px] left-[6px] block h-[86px] w-[34px]">
-            <span key={"h" + pokes} className={"block " + (pokes ? "hop" : "")}>
-              <span className="sway block">
-                <span aria-hidden="true" className="relative block h-[34px] w-[34px] rounded-[99px] bg-accent">
-                  <span className="eye absolute top-[11px] left-[8px] w-[6px] rounded-[99px] bg-bg" style={{ height: done ? "3px" : "9px" }} />
-                  <span className="eye absolute top-[11px] right-[8px] w-[6px] rounded-[99px] bg-bg" style={{ height: done ? "3px" : "9px" }} />
+        <span aria-hidden="true" className="overflow-hidden pb-[6px] max-[900px]:contents">
+          {words.map((group, gi) => (
+            <span key={gi} className="whitespace-nowrap max-[900px]:overflow-hidden max-[900px]:pb-[6px]">
+              {group.map(({ ch, i }) => (
+                <span key={i} className="ltr" style={{ animationDelay: (0.2 + i * 0.045).toFixed(3) + "s", width: "auto" }}>
+                  {ch}
                 </span>
-                <span aria-hidden="true" className={"m-[7px_0_0_3px] block h-[43px] w-[29px] rounded-[99px_99px_99px_9px] bg-accent " + CLIP} />
+              ))}
+            </span>
+          ))}
+        </span>
+        <button
+          onClick={() => {
+            setPokes((p) => p + 1);
+            poke(); // adds to the global count shown in the footer
+          }}
+          aria-label={hero.pokeLabel}
+          className="relative ml-[calc(8px*var(--k))] h-[calc(112px*var(--k))] w-[calc(48px*var(--k))] cursor-pointer border-0 bg-transparent p-0"
+        >
+          {/* scales Semi with the name on small screens; identity at desktop size */}
+          <span className="absolute bottom-0 left-0 block h-[112px] w-[48px] origin-bottom-left [scale:var(--k)]">
+            <span className="drop absolute bottom-[10px] left-[6px] block h-[86px] w-[34px]">
+              <span key={"h" + pokes} className={"block " + (pokes ? "hop" : "")}>
+                <span className="sway block">
+                  <span aria-hidden="true" className="relative block h-[34px] w-[34px] rounded-[99px] bg-accent">
+                    <span className="eye absolute top-[11px] left-[8px] w-[6px] rounded-[99px] bg-bg" style={{ height: done ? "3px" : "9px" }} />
+                    <span className="eye absolute top-[11px] right-[8px] w-[6px] rounded-[99px] bg-bg" style={{ height: done ? "3px" : "9px" }} />
+                  </span>
+                  <span aria-hidden="true" className={"m-[7px_0_0_3px] block h-[43px] w-[29px] rounded-[99px_99px_99px_9px] bg-accent " + CLIP} />
+                </span>
               </span>
             </span>
           </span>
+        </button>
+        {/* the visible bubble re-mounts per poke (so it re-animates); screen
+            readers hear the line from the persistent live region below */}
+        <span
+          key={"s" + pokes}
+          aria-hidden="true"
+          className="say m-[0_0_20px_16px] font-script text-[30px] font-normal tracking-[0] text-muted max-sm:m-[6px_0_0] max-sm:min-h-[30px] max-sm:basis-full"
+          // the hint waits for Semi to land (drop starts 1.1s, lasts 0.9s)
+          style={pokes ? undefined : { animationDelay: "2s" }}
+        >
+          {said || (
+            <span className="relative">
+              {/* hand-drawn arrow curling back up to Semi, sitting in the gap so it takes no space;
+                  on mobile Semi is above-right, so it moves to the end and flips */}
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 28 20"
+                className="absolute right-full bottom-[8px] mr-[1px] h-[16px] w-[22px] max-sm:right-auto max-sm:left-full max-sm:ml-[4px] max-sm:-scale-x-100"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M26 17C18 18 8 14 5 5" />
+                <path d="M3.6 9.8 5 5 9 8" />
+              </svg>
+              {hero.semiHint}
+            </span>
+          )}
         </span>
-      </button>
-      <span
-        key={"s" + pokes}
-        aria-live="polite"
-        className="say m-[0_0_20px_16px] font-script text-[30px] font-normal tracking-[0] text-muted max-sm:m-[6px_0_0] max-sm:min-h-[30px] max-sm:basis-full"
-        // the hint waits for Semi to land (drop starts 1.1s, lasts 0.9s)
-        style={pokes ? undefined : { animationDelay: "2s" }}
-      >
-        {said || (
-          <span className="relative">
-            {/* hand-drawn arrow curling back up to Semi, sitting in the gap so it takes no space;
-                on mobile Semi is above-right, so it moves to the end and flips */}
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 28 20"
-              className="absolute right-full bottom-[8px] mr-[1px] h-[16px] w-[22px] max-sm:right-auto max-sm:left-full max-sm:ml-[4px] max-sm:-scale-x-100"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M26 17C18 18 8 14 5 5" />
-              <path d="M3.6 9.8 5 5 9 8" />
-            </svg>
-            {hero.semiHint}
-          </span>
-        )}
+      </h1>
+      {/* one live region that stays mounted: a fresh aria-live element per poke
+          is often never announced. The keyed child makes a repeated line count
+          as new text. */}
+      <span role="status" aria-live="polite" className="sr-only">
+        {pokes > 0 && <span key={pokes}>{said}</span>}
       </span>
-    </h1>
+    </>
   );
 }
 
@@ -136,7 +146,8 @@ function NowPlaying() {
       // Background tabs skip polls (browsers throttle their timers anyway)...
       if (document.hidden) return;
       const id = ++latest;
-      fetch("/api/now-playing")
+      // no-store: a cached answer would freeze the widget (route.ts explains)
+      fetch("/api/now-playing", { cache: "no-store" })
         .then((r) => r.json() as Promise<Track>)
         .then((t) => alive && id === latest && setTrack(t))
         .catch(() => {});

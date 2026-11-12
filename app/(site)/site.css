@@ -251,10 +251,28 @@
 .theme-fade,.theme-fade *{transition:background-color .45s,color .45s,border-color .45s,fill .45s,stroke .45s !important}
 
 @media (max-width: 1100px){.thread{display:none}}
+/* no JS: the nav's <noscript> link row only has element children when
+   scripting is off; then the menu button (which needs JS) steps aside */
+.site-nav:has(noscript > *) [aria-controls="mobile-menu"]{display:none}
 @media (hover: none){.row:hover > *{transform:none}}
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation:none !important;transition:none !important}
   .site-nav[data-hidden]{transform:none}
   /* hover moves too: no image zoom, no row shift (tilt/magnet never load) */
   .card:hover .shot,.row:hover > *,.win-shot:hover img,.win-shot:focus-visible img{transform:none}
+}
+
+/* Print / Save as PDF: everything at rest and visible. Scroll reveals never
+   ran for what wasn't scrolled to (GSAP may have left inline opacity 0, hence
+   !important), the nav prints once at the top, the thread stays on screen,
+   and dark mode prints with the light palette (browsers drop backgrounds). */
+@media print{
+  *,*::before,*::after{animation:none !important;transition:none !important}
+  [data-reveal],[data-words] .w{opacity:1 !important;transform:none !important}
+  [data-label]{transform:none !important}
+  .site-nav{position:static;transform:none}
+  .site-nav::before,.thread{display:none}
+  [data-theme="dark"]{--bg:#ffffff;--fg:#120f1f;--muted:#5b5770;--accent:#5b3fd6;--accent-soft:#a78bfa;
+    --line:#e7e4ef;--soft:#f3f1f8;--card:#ffffff;--glow:rgba(91,63,214,.14);
+    --tint-1:#efecfa;--tint-2:#e8f3f0;--tint-3:#f2ecf7;--tint-4:#e9eef8;color-scheme:light}
 }

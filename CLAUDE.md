@@ -359,7 +359,7 @@ after a second look at manishluci.com's footer):
 - Two columns. Left: the CTA headline (64px, Semi inline after the last word
   at every size), intro, then the email (28px, ↗ right after it) + Copy; the
   user asked for the email on the left to fill that side. Right: "I can help
-  with" list, then social rows "LinkedIn · ashutoshgupta08 ↗"
+  with" list, then social rows "LinkedIn · imashutoshgupta ↗"
   (`footer.socials`). One column under 768px.
 - Bottom bar behind a full-width line: wordmark "Ashutosh Gupta" in Newsreader
   italic with a violet semicolon (`footer.wordmark`; the user asked for the
@@ -399,6 +399,23 @@ request, tested before/after and against the live site; suites in
   switch, project links in new tabs (`components/site/external.ts`),
   robots.txt + sitemap.xml, /desktop canonical, site's ashOS link inside
   ashOS's Safari.
+- F (site, 2026-11-13): Now playing never browser-cached (`no-store` to
+  browsers; only the `caches.default` copy has max-age=10, since Cloudflare
+  rewrote a cached max-age to the zone's 4h Browser Cache TTL) + `cache:
+  "no-store"` fetches (Hero, ashOS Panels); `public/_headers` gives
+  `/_next/static/*` a year, immutable; `@media print` in site.css (reveals
+  visible, nav static, thread hidden, dark prints light); keyboard focus is
+  nudged out from under the shown nav (`Nav.tsx` focusin + `nudgeScroll` in
+  `scroll.ts`, no scroll-padding); Semi's speech goes to one persistent
+  sr-only `role="status"` region (the bubble is aria-hidden); security
+  headers from `next.config.mjs` `headers()` on everything but `*.pdf`
+  (nosniff, Referrer-Policy, CSP `frame-ancestors 'self'; object-src 'none';
+  base-uri 'self'`, HSTS 1 year without includeSubDomains/preload, since
+  http:// already 301s), `poweredByHeader: false`; a `<noscript>` link row in
+  the nav for phones without JS (CSS hides the dead menu button only then);
+  the footer marks a view counted only after the POST succeeds (a KV write
+  that fails still answers 200 with the old count and gets marked: known,
+  left alone).
 
 ### Open
 
@@ -421,34 +438,6 @@ new session starts mid-way, check `git branch -a` and `git worktree list`:
 
 **Review round 2 backlog (found 2026-11-12, not fixed yet).** Order the user
 chose: F, then G, then H, then I (J dropped). Verify each before fixing.
-
-F — live site:
-1. Now playing can freeze up to 4h: on an edge-cache hit Cloudflare rewrites
-   `/api/now-playing`'s `max-age=10` to `max-age=14400` (zone Browser Cache
-   TTL), so browsers answer every poll from cache. Fix: return `no-store` to
-   browsers (keep max-age=10 only on the copy put in `caches.default`), and
-   `cache: "no-store"` on the fetches in `components/site/Hero.tsx` and
-   `app/desktop/_os/ui/Panels.tsx`. Likely the real cause of the "lag" noted
-   under Shipped. Verify live with `curl -sD- …/api/now-playing` twice.
-2. `/_next/static/*` is served `max-age=0, must-revalidate`; add
-   `public/_headers` with `/_next/static/*` → `public, max-age=31536000,
-   immutable` (OpenNext's documented way; files are content-hashed, so
-   updates still show at once). Nothing else gets long caching.
-3. Print / Save as PDF drops every scroll-reveal block (`.motion
-   [data-reveal]{opacity:0}` in site.css, no print rule). Add `@media print`.
-4. At 390px, Shift+Tab upward lands focus under the shown sticky nav (WCAG
-   2.4.11). Don't use `scroll-padding-top` on html (Lenis subtracts it and
-   breaks batch E's landing logic).
-5. Semi's speech (`Hero.tsx` ~68) is a keyed `aria-live` span inside the h1, so
-   each poke inserts a new live region and screen readers likely say nothing.
-6. No security headers on HTML: add HSTS (after Always Use HTTPS is on),
-   `X-Content-Type-Options`, `Referrer-Policy`, CSP `frame-ancestors 'self'`
-   (ashOS frames the site), `object-src 'none'`, `base-uri 'self'`; set
-   `poweredByHeader: false`. A strict script CSP isn't practical here.
-7. No JS on phones: the nav has no links (desktop links hidden <860px, menu
-   button needs JS). Give it a no-JS route (e.g. `<details>` or links to #ids).
-8. `FooterStats.tsx` marks the session's view as counted before the POST
-   succeeds.
 
 G — ashOS round 2 (two are regressions from batches 1/A, do those first):
 1. `Desktop.tsx` early `getModifierState("AltGraph")` return probably kills
@@ -533,7 +522,7 @@ J; also dropped.)
   `www` DNS record proxied and the www→apex redirect rule matching any scheme
   (`http://www` returns 522/523); Security → Bots → Block AI bots = allow, AI
   Crawl Control: allow search/answer bots, managed robots.txt off; Crawler
-  Hints on; HSTS later; optional Web Analytics.
+  Hints on; HSTS is sent by the app since batch F (no need in Cloudflare); optional Web Analytics.
 - Google Search Console (domain property, submit sitemap, request indexing),
   Bing Webmaster Tools (import from GSC), LinkedIn (website + Featured +
   headline, Post Inspector), GitHub (profile website/location/README, pins,
@@ -587,7 +576,7 @@ When real projects land, add them to the README's "Selected work" table too.
 - `public/Ashutosh_Gupta_Resume.pdf` is the user's final résumé. Replace it only
   with a file they send; never edit or regenerate it. Its personal Gmail and
   phone number are there on purpose (see Contact email).
-- LinkedIn is `linkedin.com/in/ashutoshgupta08` (matches the résumé). Toolkit
+- LinkedIn is `linkedin.com/in/imashutoshgupta` (changed 2026-11-12 at the user's request; the user also pushed an updated résumé PDF that day). Toolkit
   and Experience match the résumé too. X is `x.com/im_AshutoshG` (`links.x`).
 - Footer counters: `/api/views` and `/api/pokes` read the `COUNTERS` KV
   binding (namespace `portfolio-counters`, in `wrangler.jsonc`).
