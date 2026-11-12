@@ -32,16 +32,50 @@ import Motion from "@/components/site/Motion";
 
 const SECTION = "pb-[120px] max-sm:pb-[88px]";
 
-// Structured data for search engines: who this page is about.
-const personLd = {
+// Structured data for search engines: the site, this page, and who it's about,
+// linked by @id. Placeholders ("[…]" text, "#" links) never go in.
+const real = (s: string | null | undefined): s is string => !!s && s !== "#" && !s.includes("[");
+const PERSON_ID = `${meta.url}/#person`;
+const WEBSITE_ID = `${meta.url}/#website`;
+const currentJob = jobs.find((j) => /now/i.test(j.when) && real(j.org));
+const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "Person",
-  name: hero.name,
-  url: meta.url,
-  jobTitle: hero.facts.find((f) => f.label === "Role")?.value,
-  description: meta.description,
-  email: links.email,
-  sameAs: [links.linkedin, links.github, links.x],
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": WEBSITE_ID,
+      name: hero.name,
+      url: meta.url,
+      publisher: { "@id": PERSON_ID },
+    },
+    {
+      "@type": "ProfilePage",
+      "@id": `${meta.url}/#profile`,
+      url: meta.url,
+      name: meta.title,
+      isPartOf: { "@id": WEBSITE_ID },
+      mainEntity: { "@id": PERSON_ID },
+    },
+    {
+      "@type": "Person",
+      "@id": PERSON_ID,
+      name: hero.name,
+      url: meta.url,
+      jobTitle: meta.jobTitle,
+      description: meta.description,
+      email: links.email,
+      ...(currentJob && { worksFor: { "@type": "Organization", name: currentJob.org } }),
+      knowsAbout: [...new Set(tools.flatMap((t) => t.items))].filter(real),
+      // "Winner, Paytm Build for India AI Hackathon (2026)"
+      award: wins
+        .filter((w) => real(w.place) && real(w.event))
+        .map((w) => {
+          const year = w.year.match(/\d{4}/)?.[0];
+          return `${w.place}, ${w.event}${year ? ` (${year})` : ""}`;
+        }),
+      sameAs: [links.linkedin, links.github, links.x].filter(real),
+    },
+  ],
 };
 
 /** Section label; slides up from behind its mask as it enters (motionEngine.ts). */
@@ -444,7 +478,7 @@ export default function Home() {
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(personLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       <AshOSTakeover />
       <Motion />

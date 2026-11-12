@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { meta } from "@/content";
+import { sharedOpenGraph, sharedTwitter } from "./shared-metadata";
 
 export const metadata: Metadata = {
   metadataBase: new URL(meta.url),
@@ -17,18 +18,15 @@ export const metadata: Metadata = {
   },
   manifest: "/site.webmanifest",
   openGraph: {
+    ...sharedOpenGraph,
     title: meta.title,
     description: meta.description,
     url: meta.url,
-    siteName: "Ashutosh Gupta",
-    type: "website",
-    images: [{ url: "/og.png", width: 1200, height: 630, alt: meta.title }],
   },
   twitter: {
-    card: "summary_large_image",
+    ...sharedTwitter,
     title: meta.title,
     description: meta.description,
-    images: ["/og.png"],
   },
 };
 

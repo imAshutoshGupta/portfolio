@@ -257,7 +257,8 @@ Decisions made along the way (keep unless the user says otherwise):
   focus in the nav); downward jumps land at the top as the nav slides away.
 - `/robots.txt` and `/sitemap.xml` are Next metadata routes (`app/robots.ts`,
   `app/sitemap.ts`) built from `meta.url`. `/desktop` has its own canonical and
-  is in the sitemap.
+  is in the sitemap. Every sitemap `<lastmod>` is `meta.updated` in
+  `content.ts`: bump it by hand (YYYY-MM-DD) whenever the content changes.
 - The nav's frosted glass (`.site-nav::before`, 72% bg + 14px blur) only works
   because its fade-in uses `animation-fill-mode: backwards`. A held opacity
   animation (`both`/`forwards`) on the nav makes it a backdrop root and kills
@@ -432,6 +433,15 @@ request, tested before/after and against the live site; suites in
   resolved path. Wiring: Writing/Beyond work headlines, `person.signoff`,
   the RootCause screenshot (Achievements + Photos), tab/label titles from
   content.
+- H (SEO, 2026-11-13): JSON-LD is one `@graph` in `app/(site)/page.tsx`
+  (WebSite, ProfilePage, Person with `@id`, `meta.jobTitle`, worksFor from
+  the current job, knowsAbout from the toolkit, award from wins; nothing
+  with "[" or "#" goes in); /desktop has its own share preview, with the
+  shared openGraph/twitter base in `app/shared-metadata.ts` (a child
+  openGraph replaces the parent's whole object); twitter:creator from
+  `links.x`, og:locale en_IN; sitemap lastmod = `meta.updated`; /desktop's
+  server HTML has a visually hidden h1 + sentence + link to / for crawlers
+  (ashOS strings `ashos.pageTitle` / `pageDescription` in content.ts).
 
 ### Open
 
@@ -454,19 +464,6 @@ new session starts mid-way, check `git branch -a` and `git worktree list`:
 
 **Review round 2 backlog (found 2026-11-12, not fixed yet).** Order the user
 chose: F, then G, then H, then I (J dropped). Verify each before fixing.
-
-H — SEO code, no wording needed:
-1. JSON-LD as one `@graph`: `WebSite` (name, url), `ProfilePage` (mainEntity →
-   Person), `Person` with `@id`, a clean `jobTitle` (new `meta.jobTitle`),
-   `worksFor` (jobs[0].org), `knowsAbout` (from `tools`), `award` (from `wins`),
-   sameAs as now. homeLocation/alumniOf/image wait for the user (see I).
-2. /desktop share preview: its own `openGraph`/`twitter` (url `/desktop`,
-   ashOS title/description). A child `openGraph` replaces the parent's whole
-   object, so export a shared base from `app/layout.tsx`.
-3. `twitter.creator: "@im_AshutoshG"`, `openGraph.locale: "en_IN"`.
-4. Sitemap `lastModified` from a hand-bumped `meta.updated` date in content.ts.
-5. /desktop is an empty boot screen to crawlers (client-only): server-render
-   a short visually-hidden heading + sentence (from content.ts) + link to `/`.
 
 I — SEO, decided by the user on 2026-11-12/13 (do these after H is merged):
 1. Meta title + description, written by Claude, approved 2026-11-13:
