@@ -11,11 +11,16 @@ export const features = {
 };
 
 export const meta = {
-  title: "Ashutosh Gupta — Full-stack · AI engineer",
-  description: "I build products end to end, and the AI inside them.",
+  title: "Ashutosh Gupta — Full-stack & AI Engineer",
+  // Search/share description. Kept timeless: no job hunt (the hero badge has
+  // that) and no wins, so it needn't change when the user's situation does.
+  description: "Ashutosh Gupta, full-stack & AI engineer. I build products end to end, and the AI inside them.",
   url: "https://iamashutosh.com",
-  // Job title for search engines (JSON-LD Person), as on the résumé: jobs[0].role.
-  jobTitle: "Software Developer",
+  // Job title for search engines (JSON-LD Person).
+  jobTitle: "Full-stack & AI Engineer",
+  // Home town for search engines (JSON-LD Person homeLocation). Not shown on
+  // the site: the hero badge already says where the user would work.
+  home: { locality: "Mumbai", country: "India", countryCode: "IN" },
   // Sitemap <lastmod> for every page (app/sitemap.ts). Bump it by hand when
   // the content changes (YYYY-MM-DD).
   updated: "2026-11-12",
