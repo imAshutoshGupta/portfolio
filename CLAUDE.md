@@ -420,7 +420,7 @@ new session starts mid-way, check `git branch -a` and `git worktree list`:
   fresh session can resume from GitHub.
 
 **Review round 2 backlog (found 2026-11-12, not fixed yet).** Order the user
-chose: F, then G, then H, then I, then J. Verify each before fixing.
+chose: F, then G, then H, then I (J dropped). Verify each before fixing.
 
 F — live site:
 1. Now playing can freeze up to 4h: on an edge-cache hit Cloudflare rewrites
@@ -499,34 +499,34 @@ H — SEO code, no wording needed:
 5. /desktop is an empty boot screen to crawlers (client-only): server-render
    a short visually-hidden heading + sentence (from content.ts) + link to `/`.
 
-I — SEO, decided by the user on 2026-11-12 (do these after H is merged):
-1. Meta title + description: the user said "figure it out yourself" and will
-   ask for edits. Planned: title "Ashutosh Gupta — Full-stack & AI Engineer",
-   description "Ashutosh Gupta, full-stack & AI engineer: 2 years shipping
-   fintech apps, winner of Paytm's Build for India AI Hackathon. Open to roles
-   in Mumbai or Bangalore." (`meta` in content.ts; tell the user what went in.)
+I — SEO, decided by the user on 2026-11-12/13 (do these after H is merged):
+1. Meta title + description, written by Claude, approved 2026-11-13:
+   title "Ashutosh Gupta — Full-stack & AI Engineer", description "Ashutosh
+   Gupta, full-stack & AI engineer. I build products end to end, and the AI
+   inside them." Keep it minimal and timeless: NO job-hunt line ("open to
+   roles…", the hero badge has that) and NO hackathon win, so it needn't
+   change when the user gets a job. JSON-LD `meta.jobTitle` = "Full-stack &
+   AI Engineer" (batch H put "Software Developer"; switch it here).
 2. NO visible "based in Mumbai" (declined: the hero badge already says
    Mumbai or Bangalore). Closed.
 3. Approved: move Semi's button and speech out of the `<h1>` with absolutely
    NO visual change: desktop, iPad, Safari, Chrome, phone. Check 1440, ~820
    (iPad) and 390 in Chromium and WebKit, before/after screenshots diffed;
-   interactions 1–2 must behave the same.
+   interactions 1–2 must behave the same. If it can't be done with zero
+   visual change, drop it.
 4. Placeholders: leave them as they are (the user will fill them with new
    projects soon). No hiding, no data-nosnippet. Closed.
 5. Approved: refresh og.png from a screenshot of the site (not the photo),
    under a new file name (previews cache by URL).
-6. JSON-LD: the user said "make the changes if you want". Add homeLocation
-   Mumbai and alumniOf Lokmanya Tilak College of Engineering (both from the
-   résumé). Leave the About photo out of `image` (the photo stays where it
-   is, see Closed).
+6. JSON-LD: add homeLocation Mumbai ONLY. No college (alumniOf declined),
+   no photo as `image`.
 7. Axiomic IS the missing "[Project one]", but don't add anything about it
    until the user finishes it and says what to do.
+Merging I to main: ask the user unless they've said yes in this session.
 
-J — content (the biggest ranking lever; needs the user's writing):
-case-study pages `/work/glyphx`, `/work/smudge`, `/work/rootcause-ai`
-(per-page metadata, JSON-LD, sitemap, ashOS Projects, README table);
-optionally canonical copies of the best LinkedIn posts at `/writing/[slug]`;
-`/llms.txt` last and optional (Google says it doesn't use it).
+J — DROPPED by the user on 2026-11-13: no case-study pages, no
+`/writing/[slug]` copies. Don't propose them again. (`/llms.txt` was part of
+J; also dropped.)
 
 **Owner to-do outside the code** (Claude can't log in to these; give steps):
 - Cloudflare: Always Use HTTPS on (plain http:// serves a 200 duplicate);
