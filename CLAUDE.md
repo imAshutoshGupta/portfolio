@@ -445,22 +445,14 @@ request, tested before/after and against the live site; suites in
 
 ### Open
 
-**In progress (session of 2026-11-12, user near their usage limit).** If a
-new session starts mid-way, check `git branch -a` and `git worktree list`:
-- `fix/site-batch-f` (F1–F8 + new LinkedIn URL commit), `fix/ashos-batch-g`
-  (G1–G8), `fix/ashos-batch-g-apps` (G9–G15, to be merged into the G branch),
-  `fix/seo-batch-h` (H1–H5). Worktrees under `C:\Users\admin\portfolio-wt\`
-  (f, g, g-apps, h), ports 3101–3104 (F merged 2026-11-13; g-apps folded into g); a baseline build of main runs on 3100.
-  Uncommitted agent work in those worktrees is local only.
-- New suites in `C:\Users\admin\portfolio-qa`: `batch-f.mjs`,
-  `batch-g-ui.mjs`, `batch-g-apps.mjs`, `batch-h.mjs`.
-- The user gave permission (this session) to merge F, G, H one at a time
-  (--no-ff), push, delete the branch, wait for deploy and rerun the batch
-  suite + smoke.mjs live. A new session needs that permission again.
-- LinkedIn changed to `linkedin.com/in/imashutoshgupta` (on the F branch;
-  live once F is merged).
-- The user asked for this file to be updated and pushed after each step so a
-  fresh session can resume from GitHub.
+**In progress (2026-11-13).** F, G and H are merged and live (each suite +
+smoke passed against https://iamashutosh.com). Batch I is being built on
+`fix/seo-batch-i` (worktree `C:/Users/admin/portfolio-wt/i`, port 3105,
+before-reference = H's build on 3104 from `portfolio-wt/h`). The user
+approved merging I to main in this session only after a proper review
+(Claude's own diff read + an independent Opus reviewer + the pixel-diff
+check for Semi). Suites: `batch-i.mjs`, `batch-i-visual.mjs`. When I is
+live, remove the h/i worktrees and this note.
 
 **Review round 2 backlog (found 2026-11-12, not fixed yet).** Order the user
 chose: F, then G, then H, then I (J dropped). Verify each before fixing.
