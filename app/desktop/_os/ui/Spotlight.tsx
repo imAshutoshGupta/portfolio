@@ -89,7 +89,7 @@ function buildIndex(os: OS): Result[] {
   pane("About ashOS", "Version and keyboard shortcuts", "about", "version shortcuts keyboard help");
 
   for (const n of walk(os.fs)) {
-    if (n.kind === "app" || n.path.startsWith(TRASH)) continue;
+    if (n.kind === "app" || n.path === TRASH || n.path.startsWith(TRASH + "/")) continue;
     const group = n.kind === "folder" ? "Folders" : n.kind === "link" ? "Links" : "Documents";
     out.push({
       id: "fs:" + n.path,

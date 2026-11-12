@@ -4,8 +4,22 @@
 
 import { APPS, APP_ORDER, type AppArgs, type AppId } from "../data/apps";
 import { docToLines, relabelKeys } from "../data/doc";
-import { basename, formatSize, HOME, kindLabel, resolvePath, type Fs, type FsNode } from "../data/fs";
-import { achievements, approach, contact, experience, kindWords, localNow, person, toolkitAreas, work, workWithMe, writing } from "../data/portfolio";
+import { basename, dirname, formatSize, HOME, join, kindLabel, resolvePath, type Fs, type FsNode } from "../data/fs";
+import {
+  achievements,
+  approach,
+  contact,
+  experience,
+  headline,
+  kindWords,
+  localNow,
+  person,
+  sectionTitles as S,
+  toolkitAreas,
+  work,
+  workWithMe,
+  writing,
+} from "../data/portfolio";
 
 type Tone = "accent" | "green" | "blue" | "cyan" | "yellow" | "red" | "magenta" | "muted" | "bold";
 type Seg = { t: string; c?: Tone };
@@ -96,6 +110,19 @@ const tone = (n: FsNode): Tone | undefined =>
 const display = (n: FsNode) => (n.children ? n.name + "/" : n.name);
 
 export const promptDir = (cwd: string) => (cwd === HOME ? "~" : basename(cwd));
+
+/** The absolute path `input` names from `cwd`, with `.` and `..` worked out, whether or not it exists. */
+export function absPath(cwd: string, input: string): string {
+  let raw = input.trim();
+  if (!raw || raw === "~") return HOME;
+  if (raw.startsWith("~/")) raw = raw.slice(1);
+  let cur = raw.startsWith("/") ? HOME : cwd;
+  for (const seg of raw.split("/").filter(Boolean)) {
+    if (seg === ".") continue;
+    cur = seg === ".." ? dirname(cur) : join(cur, seg);
+  }
+  return cur;
+}
 
 function columns(nodes: FsNode[], width: number): Line[] {
   if (!nodes.length) return [];
@@ -205,18 +232,22 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
     case "?":
     case "man": {
       const w = Math.max(...Object.keys(COMMANDS).map((k) => k.length)) + 3;
+      const key = ctx.keyLabel ?? ((k: string) => k);
       return {
         lines: [
           [s("ashOS shell. ", "bold"), s("Commands:", "muted")],
           ...Object.entries(COMMANDS).map(([k, v]): Line => [s("  " + k.padEnd(w), "accent"), s(v, "muted")]),
           [],
           [s("Tab completes commands and paths. ↑/↓ walk your history.", "muted")],
+          [s(`${key("⌥W")} closes this window, ${key("⌥Q")} quits Terminal.`, "muted")],
           [s("Try: ", "muted"), s("cd Projects"), s(" · ", "muted"), s("ls -l"), s(" · ", "muted"), s("open README.md")],
         ],
       };
     }
 
-    case "about":
+    case "about": {
+      const pad = Math.max(12, ...person.facts.map((f) => f.label.length + 2), S.about.title.length + 2);
+      const beyond = headline(S.about);
       return {
         lines: [
           [s(person.name, "bold"), s(" — " + person.role, "muted")],
@@ -224,12 +255,14 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
           [],
           plain(person.lead),
           [],
+          ...(beyond ? [[s(beyond, "bold")] as Line] : []),
           ...docToLines([{ t: "p", text: person.bio }], Math.min(ctx.cols, 90)).map(plain),
           [],
-          ...person.facts.map((f): Line => [s(f.label.padEnd(12), "accent"), s(f.value)]),
-          [s("Beyond work".padEnd(12), "accent"), s(person.hobbies.join(" · "))],
+          ...person.facts.map((f): Line => [s(f.label.padEnd(pad), "accent"), s(f.value)]),
+          [s(S.about.title.padEnd(pad), "accent"), s(person.hobbies.join(" · "))],
         ],
       };
+    }
 
     case "whoami":
       return { lines: [[s(person.login, "bold"), s(`  (${person.name} · ${person.role})`, "muted")]] };
@@ -289,10 +322,7 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
       const app = APP_ORDER.find((id) => APPS[id].name.toLowerCase() === name || id === name);
       if (app && (appFlag >= 0 || !resolve(target))) return { lines: [], effects: [{ type: "launch", app }] };
       const path = resolve(target);
-      if (!path) {
-        const full = target.startsWith("/") ? target : target.startsWith("~/") ? target.slice(1) : `${ctx.cwd === "/" ? "" : ctx.cwd}/${target}`;
-        return { lines: [[s(`The file ${full} does not exist.`, "red")]] };
-      }
+      if (!path) return { lines: [[s(`The file ${absPath(ctx.cwd, target)} does not exist.`, "red")]] };
       return { lines: [], effects: [{ type: "open", path }] };
     }
 
@@ -344,8 +374,15 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
       };
 
     case "writing":
-    case "posts":
-      return { lines: writing.map((p): Line => [s(p.date.padEnd(12), "muted"), s(p.title), s(`  on ${p.where}`, "muted")]) };
+    case "posts": {
+      const head = headline(S.writing);
+      return {
+        lines: [
+          ...(head ? ([[s(head, "bold")], []] as Line[]) : []),
+          ...writing.map((p): Line => [s(p.date.padEnd(12), "muted"), s(p.title), s(`  on ${p.where}`, "muted")]),
+        ],
+      };
+    }
 
     case "approach":
       return { lines: approach.flatMap((p): Line[] => [[s(p.title, "bold")], [s("  " + p.body, "muted")]]) };

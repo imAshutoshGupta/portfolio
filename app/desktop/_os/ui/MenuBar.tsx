@@ -63,14 +63,16 @@ function buildMenus(os: OS): { appName: string; sections: MenuSection[]; system:
     { label: "Projects", run: () => os.launch("finder", { path: "/Projects" }, { newWindow: true }) },
   ];
 
+  const recentItems = os.recents.filter((p) => os.fs[p]);
   const system: MenuItem[] = [
     { label: "About ashOS", run: () => os.openSettings("about") },
     { sep: true },
     { label: "System Settings…", run: () => os.openSettings() },
     {
       label: "Recent Items",
-      submenu: os.recents.length
-        ? os.recents.slice(0, 8).map((p) => ({ label: os.fs[p]?.name ?? p, run: () => os.openPath(p), disabled: !os.fs[p] }))
+      // Only items that still exist: a renamed or deleted file drops out.
+      submenu: recentItems.length
+        ? recentItems.slice(0, 8).map((p) => ({ label: os.fs[p].name, run: () => os.openPath(p) }))
         : [{ label: "No recent items", disabled: true }],
     },
     { sep: true },

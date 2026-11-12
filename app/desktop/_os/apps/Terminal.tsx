@@ -11,6 +11,30 @@ type Entry = { kind: "cmd"; cwd: string; text: string } | { kind: "out"; line: L
 
 const CHAR_W = 0.6; // monospace advance, in ems
 
+// What each physical key types on this keyboard layout, where the browser can
+// say (Chromium). Lets ⌥W/⌥Q follow the keys' labels on AZERTY and the like.
+let layoutMap: { get(code: string): string | undefined } | null = null;
+function loadLayoutMap() {
+  const kb = (navigator as Navigator & { keyboard?: { getLayoutMap?: () => Promise<typeof layoutMap> } }).keyboard;
+  kb?.getLayoutMap?.().then((m) => (layoutMap = m), () => {});
+}
+
+/**
+ * ⌥W / ⌥Q pressed where ⌥ turned the key into a symbol (a Mac: ∑, œ). The
+ * desktop leaves ⌥ typing alone in text fields, but nobody types those into a
+ * shell, so here they close the window and quit, as the menus say. Accents
+ * (dead keys such as ⌥E) and plain letters (⌥ on Windows/Linux, which the
+ * desktop already handles) are left alone.
+ */
+function altShortcut(e: React.KeyboardEvent): "w" | "q" | null {
+  if (!e.altKey || e.ctrlKey || e.metaKey || e.key === "Dead" || e.key.length !== 1 || /^[a-z]$/i.test(e.key)) return null;
+  const code = e.nativeEvent.code;
+  if (!/^Key[A-Z]$/.test(code)) return null;
+  const mapped = layoutMap?.get(code);
+  const letter = (mapped && /^[a-z]$/i.test(mapped) ? mapped : code.slice(3)).toLowerCase();
+  return letter === "w" || letter === "q" ? letter : null;
+}
+
 /** `dir`, or its nearest parent folder that still exists. */
 function liveDir(fs: Fs, dir: string): string {
   let p = dir;
@@ -113,6 +137,8 @@ export function Terminal() {
     if (active && !os.mobile) field.current?.focus({ preventScroll: true });
   }, [active, os.mobile]);
 
+  useEffect(loadLayoutMap, []);
+
   useWindowMenus(win.id, () => [
     {
       title: "File",
@@ -187,7 +213,13 @@ export function Terminal() {
             autoCorrect="off"
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              const alt = altShortcut(e);
+              if (alt) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (alt === "w") os.close(win.id);
+                else os.quit("terminal");
+              } else if (e.key === "Enter") {
                 e.preventDefault();
                 submit(input);
               } else if (e.key === "Tab") {

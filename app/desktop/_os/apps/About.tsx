@@ -1,11 +1,12 @@
 "use client";
 
 import HobbyIcon from "@/components/HobbyIcon";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   achievements,
   approach,
   experience,
+  headline,
   kindWords,
   localNow,
   person,
@@ -20,17 +21,52 @@ import { DragRegion, useWin } from "../ui/Window";
 const TABS = [
   { id: "overview", label: "Overview" },
   { id: "experience", label: S.experience.title },
-  { id: "wins", label: "Wins" },
+  { id: "wins", label: S.wins.title },
   { id: "toolkit", label: S.toolkit.title },
   { id: "approach", label: S.approach.title },
   { id: "words", label: S.words.title },
 ] as const;
 type Tab = (typeof TABS)[number]["id"];
 
+/**
+ * How the section switcher fits the window's toolbar, by the window's own width
+ * (not the screen's): the title and tabs ("full"), the tabs alone with the
+ * title kept for screen readers ("tabs"), or a menu when even that won't fit.
+ */
+function useToolbarFit(root: React.RefObject<HTMLDivElement | null>) {
+  const [fit, setFit] = useState<"full" | "tabs" | "menu">("full");
+  const tabsW = useRef(0);
+  useLayoutEffect(() => {
+    const bar = root.current?.firstElementChild as HTMLElement | null;
+    if (!bar) return;
+    const measure = () => {
+      const tabs = bar.querySelector<HTMLElement>('[role="tablist"]');
+      if (tabs) tabsW.current = tabs.offsetWidth;
+      if (!tabsW.current) return;
+      const cs = getComputedStyle(bar);
+      const gap = parseFloat(cs.columnGap) || 0;
+      const pads = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+      const title = bar.querySelector<HTMLElement>(".ashos-toolbar__title")?.scrollWidth ?? 0;
+      // Title, spacer, tabs, spacer: three gaps. Without the title, two.
+      const full = pads + title + tabsW.current + gap * 3;
+      const bare = pads + tabsW.current + gap * 2;
+      const room = bar.clientWidth;
+      setFit(room >= full ? "full" : room >= bare ? "tabs" : "menu");
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(bar);
+    return () => ro.disconnect();
+  }, [root]);
+  return fit;
+}
+
 export function About() {
   const os = useOS();
   const { win } = useWin();
   const [tab, setTab] = useState<Tab>((TABS.find((t) => t.id === win.args.tab)?.id ?? "overview") as Tab);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const fit = useToolbarFit(rootRef);
   useClock(30_000);
   const t = localNow();
 
@@ -44,11 +80,11 @@ export function About() {
   ]);
 
   return (
-    <div className="ashos-about">
+    <div ref={rootRef} className="ashos-about">
       <DragRegion className="ashos-toolbar ashos-toolbar--inset ashos-toolbar--center">
-        <h2 className="ashos-toolbar__title">About Me</h2>
+        <h2 className={"ashos-toolbar__title" + (fit === "tabs" && !os.mobile ? " is-hidden" : "")}>About Me</h2>
         <div className="ashos-toolbar__spacer" />
-        {os.viewport.w < 900 || os.mobile ? (
+        {fit === "menu" || os.mobile ? (
           <select className="ashos-select" value={tab} aria-label="Section" onChange={(e) => setTab(e.target.value as Tab)}>
             {TABS.map((x) => (
               <option key={x.id} value={x.id}>
@@ -124,6 +160,12 @@ export function About() {
                 </div>
               </div>
               <h3 className="ashos-h3">{S.about.title}</h3>
+              {headline(S.about) && (
+                <p className="ashos-about__headline">
+                  {S.about.line}
+                  <em>{S.about.accent}</em>
+                </p>
+              )}
               <div className="ashos-chips">
                 {person.hobbyChips.map((h) => (
                   <span key={h.label} className="ashos-chip ashos-chip--icon">
