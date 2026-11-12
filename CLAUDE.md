@@ -70,6 +70,10 @@ Workers (OpenNext, `wrangler.jsonc`).
 `portfolio-counters`, in `wrangler.jsonc`). Without it the counters hide
 themselves; `next dev` counts in memory. To move namespaces:
 `npx wrangler kv namespace create COUNTERS` and swap the id in `wrangler.jsonc`.
+Writes (POST) only count from same-origin browser requests, and a Workers
+rate limiter bound as `COUNTER_LIMIT` (20 writes a minute per IP, per counter)
+keeps scripts from burning KV's write limits. Refused or failed writes answer
+the current count instead of an error, so the pill never breaks.
 
 **Behaviour notes:**
 - Theme: `data-theme` on `<html>`; first visit follows the OS, the bulb saves
