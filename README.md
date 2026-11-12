@@ -12,7 +12,7 @@ I build products end to end, *and the AI inside them.*
 [![Visit the site](https://img.shields.io/badge/iamashutosh.com-5B3FD6?style=for-the-badge&logo=googlechrome&logoColor=white)](https://iamashutosh.com)
 [![Try ashOS](https://img.shields.io/badge/Try_ashOS-5B3FD6?style=for-the-badge&logo=macos&logoColor=white)](https://iamashutosh.com/desktop)
 [![Résumé](https://img.shields.io/badge/R%C3%A9sum%C3%A9-5B3FD6?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIuMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTIgM3YxMk03IDEwbDUgNSA1LTVNNSAyMGgxNCIvPjwvc3ZnPg%3D%3D)](https://iamashutosh.com/Ashutosh_Gupta_Resume.pdf)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-5B3FD6?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTQuOTggMy41YTIuNSAyLjUgMCAxIDEgMCA1IDIuNSAyLjUgMCAwIDEgMC01ek0zIDloNHYxMkgzek05IDloMy44djEuN2guMDVjLjUzLTEgMS44My0yLjA1IDMuNzctMi4wNUMyMC42IDguNjUgMjEgMTEuMiAyMSAxNC41VjIxaC00di01LjhjMC0xLjQgMC0zLjItMS45NS0zLjJTMTIuOCAxMy41IDEyLjggMTUuMVYyMUg5eiIvPjwvc3ZnPg%3D%3D)](https://www.linkedin.com/in/ashutoshgupta08)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-5B3FD6?style=for-the-badge&logo=data:image/svg%2Bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTQuOTggMy41YTIuNSAyLjUgMCAxIDEgMCA1IDIuNSAyLjUgMCAwIDEgMC01ek0zIDloNHYxMkgzek05IDloMy44djEuN2guMDVjLjUzLTEgMS44My0yLjA1IDMuNzctMi4wNUMyMC42IDguNjUgMjEgMTEuMiAyMSAxNC41VjIxaC00di01LjhjMC0xLjQgMC0zLjItMS45NS0zLjJTMTIuOCAxMy41IDEyLjggMTUuMVYyMUg5eiIvPjwvc3ZnPg%3D%3D)](https://www.linkedin.com/in/imashutoshgupta)
 [![X](https://img.shields.io/badge/@im__AshutoshG-5B3FD6?style=for-the-badge&logo=x&logoColor=white)](https://x.com/im_AshutoshG)
 [![Email](https://img.shields.io/badge/hello@iamashutosh.com-5B3FD6?style=for-the-badge&logo=gmail&logoColor=white)](mailto:hello@iamashutosh.com)
 
@@ -106,7 +106,7 @@ engineering. A rough idea, a half-built prototype or a product that needs AI
 done properly are all good places to start.
 
 **[hello@iamashutosh.com](mailto:hello@iamashutosh.com)** ·
-[LinkedIn](https://www.linkedin.com/in/ashutoshgupta08) ·
+[LinkedIn](https://www.linkedin.com/in/imashutoshgupta) ·
 [X](https://x.com/im_AshutoshG) ·
 [GitHub](https://github.com/imAshutoshGupta)
 

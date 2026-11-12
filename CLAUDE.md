@@ -359,7 +359,7 @@ after a second look at manishluci.com's footer):
 - Two columns. Left: the CTA headline (64px, Semi inline after the last word
   at every size), intro, then the email (28px, ↗ right after it) + Copy; the
   user asked for the email on the left to fill that side. Right: "I can help
-  with" list, then social rows "LinkedIn · ashutoshgupta08 ↗"
+  with" list, then social rows "LinkedIn · imashutoshgupta ↗"
   (`footer.socials`). One column under 768px.
 - Bottom bar behind a full-width line: wordmark "Ashutosh Gupta" in Newsreader
   italic with a violet semicolon (`footer.wordmark`; the user asked for the
@@ -561,7 +561,7 @@ When real projects land, add them to the README's "Selected work" table too.
 - `public/Ashutosh_Gupta_Resume.pdf` is the user's final résumé. Replace it only
   with a file they send; never edit or regenerate it. Its personal Gmail and
   phone number are there on purpose (see Contact email).
-- LinkedIn is `linkedin.com/in/ashutoshgupta08` (matches the résumé). Toolkit
+- LinkedIn is `linkedin.com/in/imashutoshgupta` (changed 2026-11-12 at the user's request; the résumé PDF still has the old `ashutoshgupta08` URL, replace only with a file they send). Toolkit
   and Experience match the résumé too. X is `x.com/im_AshutoshG` (`links.x`).
 - Footer counters: `/api/views` and `/api/pokes` read the `COUNTERS` KV
   binding (namespace `portfolio-counters`, in `wrangler.jsonc`).

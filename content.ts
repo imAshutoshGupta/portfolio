@@ -21,14 +21,14 @@ export const links = {
   // Cloudflare Email Routing forwards hello@ to the personal inbox.
   email: "mailto:hello@iamashutosh.com",
   emailLabel: "hello@iamashutosh.com",
-  linkedin: "https://www.linkedin.com/in/ashutoshgupta08",
+  linkedin: "https://www.linkedin.com/in/imashutoshgupta",
   github: "https://github.com/imAshutoshGupta",
   x: "https://x.com/im_AshutoshG",
   // Personal Spotify profile (open.spotify.com/user/…). The now-playing widget
   // always links here, whatever track it shows.
   spotify: "https://open.spotify.com/user/luzxyw9wz3d2felvulp35eqqo",
   allProjects: "#",
-  allPosts: "https://www.linkedin.com/in/ashutoshgupta08/recent-activity/all/",
+  allPosts: "https://www.linkedin.com/in/imashutoshgupta/recent-activity/all/",
   ashos: "/desktop",
 };
 
@@ -332,9 +332,9 @@ export const footer = {
   },
   views: { one: "view", many: "views" },
   backToTop: "Back to top",
-  // Contact rows under the email: "LinkedIn · ashutoshgupta08 ↗".
+  // Contact rows under the email: "LinkedIn · imashutoshgupta ↗".
   socials: [
-    { label: "LinkedIn", handle: "ashutoshgupta08", href: links.linkedin },
+    { label: "LinkedIn", handle: "imashutoshgupta", href: links.linkedin },
     { label: "GitHub", handle: "imAshutoshGupta", href: links.github },
     { label: "X", handle: "@im_AshutoshG", href: links.x },
   ],
