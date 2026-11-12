@@ -442,54 +442,34 @@ request, tested before/after and against the live site; suites in
   `links.x`, og:locale en_IN; sitemap lastmod = `meta.updated`; /desktop's
   server HTML has a visually hidden h1 + sentence + link to / for crawlers
   (ashOS strings `ashos.pageTitle` / `pageDescription` in content.ts).
+- I (SEO, the user's decisions, 2026-11-13): title "Ashutosh Gupta —
+  Full-stack & AI Engineer", description "Ashutosh Gupta, full-stack & AI
+  engineer. I build products end to end, and the AI inside them." (the user
+  wants it timeless: no job-hunt line, no wins); `meta.jobTitle` the same
+  role; web manifest name follows. The hero `<h1>` is a visually hidden
+  heading with just the name, before the name row (now a `div` with the
+  exact old classes): pixel-identical in Chromium + WebKit at 320–1600px,
+  light/dark, pokes, intro frames, fallback fonts, focus, print. Don't put
+  `display: contents` on the heading (VoiceOver drops such headings from its
+  heading list, WebKit bug 261978). Share image `public/og-2026-11.png`
+  (regenerate with `portfolio-qa/og-shot-i.mjs`; new look = new file name;
+  the old `og.png` stays). JSON-LD `homeLocation` Mumbai (`meta.home`);
+  the user declined college/alumniOf and the photo as `image`, and declined
+  a visible "based in Mumbai". Placeholders stay as they are (user's call).
+  Axiomic is the missing "[Project one]": add nothing until the user says.
 
 ### Open
 
-**In progress (2026-11-13).** F, G and H are merged and live (each suite +
-smoke passed against https://iamashutosh.com). Batch I is being built on
-`fix/seo-batch-i` (worktree `C:/Users/admin/portfolio-wt/i`, port 3105,
-before-reference = H's build on 3104 from `portfolio-wt/h`). The user
-approved merging I to main in this session only after a proper review
-(Claude's own diff read + an independent Opus reviewer + the pixel-diff
-check for Semi). Suites: `batch-i.mjs`, `batch-i-visual.mjs`. When I is
-live, remove the h/i worktrees and this note.
-
-**Review round 2 backlog (found 2026-11-12, not fixed yet).** Order the user
-chose: F, then G, then H, then I (J dropped). Verify each before fixing.
-
-I — SEO, decided by the user on 2026-11-12/13 (do these after H is merged):
-1. Meta title + description, written by Claude, approved 2026-11-13:
-   title "Ashutosh Gupta — Full-stack & AI Engineer", description "Ashutosh
-   Gupta, full-stack & AI engineer. I build products end to end, and the AI
-   inside them." Keep it minimal and timeless: NO job-hunt line ("open to
-   roles…", the hero badge has that) and NO hackathon win, so it needn't
-   change when the user gets a job. JSON-LD `meta.jobTitle` = "Full-stack &
-   AI Engineer" (batch H put "Software Developer"; switch it here).
-2. NO visible "based in Mumbai" (declined: the hero badge already says
-   Mumbai or Bangalore). Closed.
-3. Approved: move Semi's button and speech out of the `<h1>` with absolutely
-   NO visual change: desktop, iPad, Safari, Chrome, phone. Check 1440, ~820
-   (iPad) and 390 in Chromium and WebKit, before/after screenshots diffed;
-   interactions 1–2 must behave the same. If it can't be done with zero
-   visual change, drop it.
-4. Placeholders: leave them as they are (the user will fill them with new
-   projects soon). No hiding, no data-nosnippet. Closed.
-5. Approved: refresh og.png from a screenshot of the site (not the photo),
-   under a new file name (previews cache by URL).
-6. JSON-LD: add homeLocation Mumbai ONLY. No college (alumniOf declined),
-   no photo as `image`.
-7. Axiomic IS the missing "[Project one]", but don't add anything about it
-   until the user finishes it and says what to do.
-Merging I to main: ask the user unless they've said yes in this session.
+**Review round 2 backlog:** F, G, H and I are done and live (2026-11-13, see
+the review-fixes history); J was dropped.
 
 J — DROPPED by the user on 2026-11-13: no case-study pages, no
 `/writing/[slug]` copies. Don't propose them again. (`/llms.txt` was part of
 J; also dropped.)
 
 **Owner to-do outside the code** (Claude can't log in to these; give steps):
-- Cloudflare: Always Use HTTPS on (plain http:// serves a 200 duplicate);
-  `www` DNS record proxied and the www→apex redirect rule matching any scheme
-  (`http://www` returns 522/523); Security → Bots → Block AI bots = allow, AI
+- Cloudflare: DONE and checked with curl 2026-11-13: http:// → https 301,
+  http://www → https://www 301 → apex 301. Still to do: Security → Bots → Block AI bots = allow, AI
   Crawl Control: allow search/answer bots, managed robots.txt off; Crawler
   Hints on; HSTS is sent by the app since batch F (no need in Cloudflare); optional Web Analytics.
 - Google Search Console (domain property, submit sitemap, request indexing),
@@ -498,6 +478,12 @@ J; also dropped.)
   repo website fields), GlyphX `package.json` homepage/author.url, X bio,
   Naukri/Wellfound/Peerlist, Reddit only via genuine participation (r/webdev
   Showoff Saturday).
+
+Small follow-ups to offer the user (not decided):
+- The share image shows the hero badge ("Open to … roles"); it goes stale
+  when the job hunt ends. A badge-free render is one command.
+- Since batch G, ashOS's About toolbar shows the full "Hackathons & wins"
+  tab label, so at the default window size it hides the "About Me" title.
 
 Waiting on the user's content (don't invent it; the user is keeping these open):
 - **Projects one and four** are placeholders (`[Project one]`, `[Project four]`),
