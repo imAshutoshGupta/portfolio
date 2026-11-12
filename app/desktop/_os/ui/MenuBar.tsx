@@ -162,6 +162,9 @@ export function MenuBar() {
   const [open, setOpen] = useState<number | null>(null);
   const [kbd, setKbd] = useState(false);
   const barRef = useRef<HTMLDivElement>(null);
+  // Safari's clicks misreport pointerType (none before 18.2, "mouse" for taps
+  // on iOS 18.2+), so the click asks the pointerdown before it.
+  const pointer = useRef("");
   const now = useClock(5000);
   const battery = useBattery();
   const { sections, system } = buildMenus(os);
@@ -211,6 +214,7 @@ export function MenuBar() {
               aria-label={i === 0 ? "ashOS menu" : undefined}
               className={"ashos-menubar__item" + (i === 0 ? " is-logo" : "") + (i === 1 ? " is-app" : "") + (open === i ? " is-open" : "")}
               onPointerDown={(e) => {
+                pointer.current = e.pointerType;
                 if (e.pointerType === "mouse" && e.button === 0) {
                   setKbd(false);
                   setOpen(open === i ? null : i);
@@ -219,12 +223,12 @@ export function MenuBar() {
               }}
               onClick={(e) => {
                 // Keyboard and touch activation (mouse uses pointerdown, like a real menu bar).
-                if ((e.nativeEvent as PointerEvent).pointerType === "mouse") return;
+                if (e.detail !== 0 && pointer.current === "mouse") return;
                 setKbd(e.detail === 0);
                 setOpen(open === i ? null : i);
                 os.setOverlay(null);
               }}
-              onPointerEnter={() => open !== null && open !== i && setOpen(i)}
+              onPointerEnter={(e) => e.pointerType === "mouse" && open !== null && open !== i && setOpen(i)}
               onKeyDown={(e) => {
                 if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
