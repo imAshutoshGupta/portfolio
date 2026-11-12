@@ -40,6 +40,22 @@ function AppView({ win }: { win: Win }) {
   return <View />;
 }
 
+/** Is the key press going into something that takes text? */
+function isTyping(t: EventTarget | null): boolean {
+  if (!(t instanceof HTMLElement)) return false;
+  if (t.isContentEditable || t instanceof HTMLTextAreaElement) return true;
+  return t instanceof HTMLInputElement && !["checkbox", "radio", "range", "button", "submit", "reset", "color", "file"].includes(t.type);
+}
+
+/** Did ⌥ turn this key into a different character (or a dead key)? */
+function typesWithAlt(e: KeyboardEvent): boolean {
+  if (e.key === "Dead") return true;
+  if (e.key.length !== 1) return false;
+  if (/^Key[A-Z]$/.test(e.code)) return e.key.toLowerCase() !== e.code.slice(3).toLowerCase();
+  if (e.code === "Comma") return e.key !== ",";
+  return false;
+}
+
 /** Global shortcuts. Browser-reserved ⌘ combos also work with ⌥. */
 function useShortcuts(setSwitcher: (s: { apps: AppId[]; i: number } | null) => void, switcher: { apps: AppId[]; i: number } | null) {
   const os = useOS();
@@ -57,8 +73,15 @@ function useShortcuts(setSwitcher: (s: { apps: AppId[]; i: number } | null) => v
 
     const onKey = (e: KeyboardEvent) => {
       const { os, switcher } = ref.current;
+      // AltGr (Windows/Linux layouts) reports Ctrl+Alt but types a character,
+      // e.g. AltGr+Q is "@" on a German keyboard: that's typing, not ⌥Q.
+      if (e.getModifierState?.("AltGraph")) return;
       const mod = e.metaKey || e.ctrlKey;
       const alt = e.altKey;
+      // On a Mac ⌥ types characters (⌥Q = œ, ⌥N starts ñ). In a text field,
+      // let that typing through; where ⌥ just gives the plain letter (Windows,
+      // Linux) the shortcut still works, so ⌥W/⌥Q keep working in Terminal.
+      if (alt && !mod && isTyping(e.target) && typesWithAlt(e)) return;
       const code = e.code;
       const win = os.focused;
 
