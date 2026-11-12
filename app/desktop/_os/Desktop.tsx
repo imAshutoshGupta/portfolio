@@ -20,7 +20,7 @@ import { ContextMenu } from "./ui/Menu";
 import { MenuBar } from "./ui/MenuBar";
 import { AppSwitcher, ControlCentre, NotificationCentre, QuickLook, Toasts } from "./ui/Panels";
 import { Spotlight } from "./ui/Spotlight";
-import { Window } from "./ui/Window";
+import { returnFocus, useWindowFocusMemory, Window } from "./ui/Window";
 
 const VIEWS: Record<AppId, () => ReactNode> = {
   finder: Finder,
@@ -50,10 +50,31 @@ function isTyping(t: EventTarget | null): boolean {
 /** Did ⌥ turn this key into a different character (or a dead key)? */
 function typesWithAlt(e: KeyboardEvent): boolean {
   if (e.key === "Dead") return true;
-  if (e.key.length !== 1) return false;
-  if (/^Key[A-Z]$/.test(e.code)) return e.key.toLowerCase() !== e.code.slice(3).toLowerCase();
-  if (e.code === "Comma") return e.key !== ",";
-  return false;
+  if (e.key.length !== 1 || /^[a-z,]$/i.test(e.key)) return false;
+  return /^Key[A-Z]$/.test(e.code) || e.code === "Comma";
+}
+
+// What each physical key types on the visitor's layout, where the browser
+// says (Chromium). Read once and again when the window regains focus.
+type LayoutMap = { get: (code: string) => string | undefined };
+let layout: LayoutMap | null = null;
+function readLayout() {
+  const kb = (navigator as Navigator & { keyboard?: { getLayoutMap?: () => Promise<LayoutMap> } }).keyboard;
+  kb?.getLayoutMap?.().then(
+    (m) => void (layout = m),
+    () => {}
+  );
+}
+
+/**
+ * The shortcut key as the visitor's layout labels it, in e.code form
+ * ("KeyQ", "Comma"), so ⌥A on AZERTY (the physical Q key) isn't ⌥Q. A plain
+ * letter in e.key is the answer; on a Mac ⌥ turns e.key into "œ" and the
+ * like, so then ask the layout map, and failing that the physical key.
+ */
+function shortcutCode(e: KeyboardEvent): string {
+  const named = (k: string | undefined) => (k && /^[a-z]$/i.test(k) ? "Key" + k.toUpperCase() : k === "," ? "Comma" : null);
+  return named(e.key) ?? named(layout?.get(e.code)) ?? e.code;
 }
 
 /** Global shortcuts. Browser-reserved ⌘ combos also work with ⌥. */
@@ -73,16 +94,17 @@ function useShortcuts(setSwitcher: (s: { apps: AppId[]; i: number } | null) => v
 
     const onKey = (e: KeyboardEvent) => {
       const { os, switcher } = ref.current;
-      // AltGr (Windows/Linux layouts) reports Ctrl+Alt but types a character,
-      // e.g. AltGr+Q is "@" on a German keyboard: that's typing, not ⌥Q.
-      if (e.getModifierState?.("AltGraph")) return;
+      // AltGr (Windows layouts) reports Ctrl+Alt but types a character, e.g.
+      // AltGr+Q is "@" on a German keyboard: that's typing, not ⌥Q. Firefox
+      // on a Mac reports AltGraph for plain ⌥ too, without Ctrl: not AltGr.
+      if (e.ctrlKey && e.getModifierState?.("AltGraph")) return;
       const mod = e.metaKey || e.ctrlKey;
       const alt = e.altKey;
       // On a Mac ⌥ types characters (⌥Q = œ, ⌥N starts ñ). In a text field,
       // let that typing through; where ⌥ just gives the plain letter (Windows,
       // Linux) the shortcut still works, so ⌥W/⌥Q keep working in Terminal.
       if (alt && !mod && isTyping(e.target) && typesWithAlt(e)) return;
-      const code = e.code;
+      const code = shortcutCode(e);
       const win = os.focused;
 
       if ((mod && code === "Space") || (mod && !alt && e.key.toLowerCase() === "k")) {
@@ -156,13 +178,16 @@ function useShortcuts(setSwitcher: (s: { apps: AppId[]; i: number } | null) => v
     };
     const onBlur = () => ref.current.switcher && setSwitcher(null);
 
+    readLayout();
     addEventListener("keydown", onKey);
     addEventListener("keyup", onUp);
     addEventListener("blur", onBlur);
+    addEventListener("focus", readLayout);
     return () => {
       removeEventListener("keydown", onKey);
       removeEventListener("keyup", onUp);
       removeEventListener("blur", onBlur);
+      removeEventListener("focus", readLayout);
     };
   }, [setSwitcher]);
 }
@@ -172,6 +197,16 @@ function Shell() {
   const key = useKeyLabel();
   const [switcher, setSwitcher] = useState<{ apps: AppId[]; i: number } | null>(null);
   useShortcuts(setSwitcher, switcher);
+
+  // Closing Spotlight, a panel, a context menu or Quick Look without picking
+  // anything hands focus back to the active window.
+  useWindowFocusMemory();
+  const layers = useRef({ overlay: os.overlay, ctx: os.ctx, quickLook: os.quickLook });
+  useEffect(() => {
+    const was = layers.current;
+    layers.current = { overlay: os.overlay, ctx: os.ctx, quickLook: os.quickLook };
+    if ((was.overlay && was.overlay !== os.overlay) || (was.ctx && was.ctx !== os.ctx) || (was.quickLook && was.quickLook !== os.quickLook)) returnFocus();
+  }, [os.overlay, os.ctx, os.quickLook]);
 
   // Boot: a couple of windows and, once per session, a hint.
   const booted = useRef(false);

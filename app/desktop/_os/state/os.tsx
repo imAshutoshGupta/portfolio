@@ -423,8 +423,13 @@ export function OSProvider({ children, resume = null }: { children: ReactNode; r
   const menusFor = useCallback((id: string | null) => (id ? menuRegistry.current.get(id)?.() ?? [] : []), []);
 
   /* ---------- shell UI ---------- */
-  const [overlay, setOverlay] = useState<Overlay>(null);
+  const [overlay, setOverlayState] = useState<Overlay>(null);
   const [ctx, setCtx] = useState<CtxMenu | null>(null);
+  // Spotlight or a panel opening closes a context menu (like the menu bar's).
+  const setOverlay = useCallback((o: Overlay) => {
+    if (o) setCtx(null);
+    setOverlayState(o);
+  }, []);
   const openContextMenu = useCallback((x: number, y: number, items: MenuItem[]) => setCtx({ x, y, items }), []);
   const closeContextMenu = useCallback(() => setCtx(null), []);
   const [quickLook, setQuickLook] = useState<string | null>(null);

@@ -9,8 +9,10 @@ const SLOP = 8;
  * Touch long-press for context menus: iOS Safari never fires contextmenu.
  * Returns a pointerdown handler. After a still ~500ms hold it calls
  * onPress(x, y, target), then swallows the click (and any late contextmenu)
- * the lift sends, until the next press. Where the browser does fire its own
- * contextmenu first (Android), that one wins and the timer stops.
+ * the lift sends: the one tap click, or whatever comes within a moment of the
+ * lift. Keyboard clicks (Enter on the menu) always go through. Where the
+ * browser does fire its own contextmenu first (Android), that one wins and
+ * the timer stops.
  */
 export function useLongPress(onPress: (x: number, y: number, target: HTMLElement) => void) {
   const press = useRef(onPress);
@@ -33,16 +35,25 @@ export function useLongPress(onPress: (x: number, y: number, target: HTMLElement
     const move = (ev: PointerEvent) => {
       if (!held && ev.pointerId === id && Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) > SLOP) stop();
     };
+    let after: ReturnType<typeof setTimeout> | undefined;
     const lift = (ev: PointerEvent) => {
-      if (!held && ev.pointerId === id) stop();
+      if (ev.pointerId !== id) return;
+      if (!held) return stop();
+      // The lift's click (if the browser sends one) comes right after it.
+      clearTimeout(after);
+      after = setTimeout(stop, 400);
     };
     const block = (ev: Event) => {
       if (!held) return void (ev.type === "contextmenu" && stop());
+      // detail 0: a click from the keyboard, not the finger. Let it through.
+      if (ev.type === "click" && (ev as MouseEvent).detail === 0) return;
       ev.preventDefault();
       ev.stopPropagation();
+      if (ev.type === "click") stop();
     };
     const stop = () => {
       clearTimeout(timer);
+      clearTimeout(after);
       removeEventListener("pointermove", move, true);
       removeEventListener("pointerup", lift, true);
       removeEventListener("pointercancel", lift, true);

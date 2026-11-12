@@ -23,6 +23,41 @@ const INTERACTIVE = "button, input, textarea, select, a, [role=button], [data-no
 const DIRS = ["n", "s", "e", "w", "ne", "nw", "se", "sw"] as const;
 type Dir = (typeof DIRS)[number];
 
+/* ---- keyboard focus when a menu or overlay closes ---- */
+
+// Where focus last was inside a window (a field, a list, the window itself).
+let lastInWindow: HTMLElement | null = null;
+
+/** Remember where focus is inside windows (mount once, in the shell). */
+export function useWindowFocusMemory() {
+  useEffect(() => {
+    const on = (e: FocusEvent) => {
+      const t = e.target;
+      if (t instanceof HTMLElement && t.closest(".ashos-win")) lastInWindow = t;
+    };
+    document.addEventListener("focusin", on);
+    return () => document.removeEventListener("focusin", on);
+  }, []);
+}
+
+/**
+ * A menu, Spotlight or another overlay just closed. If focus went down with
+ * it (to <body>), hand it back to the active window, to where it was in
+ * there if that's still around. A no-op when something else took focus.
+ */
+export function returnFocus() {
+  requestAnimationFrame(() => {
+    const a = document.activeElement;
+    if (a && a !== document.body && a.isConnected) return;
+    const w = document.querySelector<HTMLElement>(".ashos-win.is-active");
+    if (!w) return;
+    const prev = lastInWindow;
+    // On touch screens, don't bring the on-screen keyboard back up.
+    const field = prev?.matches("input, textarea, [contenteditable]") && matchMedia("(hover: none)").matches;
+    (prev && prev.isConnected && w.contains(prev) && !field ? prev : w).focus({ preventScroll: true });
+  });
+}
+
 /** A title bar / toolbar region that drags the window. */
 export function DragRegion({ className, children, label }: { className: string; children?: ReactNode; label?: string }) {
   return (
@@ -177,11 +212,20 @@ export function Window({ win, children }: { win: Win; children: ReactNode }) {
   }, [win.mode, reduced]);
 
   /* ---- drag & resize (direct DOM updates, committed on release) ---- */
+  // Ends a running drag early: the window closed, minimised or unmounted
+  // under it (⌥W mid-drag), so its release would never arrive.
+  const endGesture = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    if (phase === "closing" || win.minimized) endGesture.current?.();
+  }, [phase, win.minimized]);
+  useEffect(() => () => endGesture.current?.(), []);
+
   const startGesture = useCallback(
     (e: RPointerEvent, kind: "move" | Dir) => {
       const el = ref.current;
       // One finger at a time: a second touch doesn't start a rival gesture.
       if (!el || !e.isPrimary) return;
+      endGesture.current?.();
       e.preventDefault();
       // preventDefault() also stops the click moving keyboard focus, so move it here.
       if (!el.contains(document.activeElement)) el.focus({ preventScroll: true });
@@ -243,12 +287,22 @@ export function Window({ win, children }: { win: Win; children: ReactNode }) {
         el.style.width = next.w + "px";
         el.style.height = next.h + "px";
       };
+      // On the window object, not the title bar: they still arrive if the
+      // title bar goes away mid-drag.
+      const stop = () => {
+        removeEventListener("pointermove", onMove);
+        removeEventListener("pointerup", onUp);
+        removeEventListener("pointercancel", onUp);
+        root?.removeAttribute("data-gesture");
+        endGesture.current = null;
+      };
+      endGesture.current = () => {
+        stop();
+        if (moved && el.isConnected) os.setRect(win.id, { x: Math.round(next.x), y: Math.round(next.y), w: Math.round(next.w), h: Math.round(next.h) });
+      };
       const onUp = (ev: PointerEvent) => {
         if (ev.pointerId !== id) return;
-        target.removeEventListener("pointermove", onMove);
-        target.removeEventListener("pointerup", onUp);
-        target.removeEventListener("pointercancel", onUp);
-        root?.removeAttribute("data-gesture");
+        stop();
         if (!moved) return;
         if (ev.type === "pointercancel") {
           // The browser or system took the touch over: put the window back.
@@ -260,9 +314,9 @@ export function Window({ win, children }: { win: Win; children: ReactNode }) {
         }
         os.setRect(win.id, { x: Math.round(next.x), y: Math.round(next.y), w: Math.round(next.w), h: Math.round(next.h) });
       };
-      target.addEventListener("pointermove", onMove);
-      target.addEventListener("pointerup", onUp);
-      target.addEventListener("pointercancel", onUp);
+      addEventListener("pointermove", onMove);
+      addEventListener("pointerup", onUp);
+      addEventListener("pointercancel", onUp);
     },
     [os, win, frame, def]
   );

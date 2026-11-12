@@ -292,8 +292,13 @@ export function QuickLook() {
   const node = path ? os.fs[path] : null;
   useEffect(() => {
     if (!path) return;
+    // Space closes Quick Look, as in Finder, except where it means something
+    // else: typing, or a control in Quick Look itself (the demo's play button).
+    const ownSpace = (t: HTMLElement) =>
+      !!t.closest?.("input,textarea,[contenteditable]") ||
+      !!t.closest?.(".ashos-ql")?.contains(t.closest("button,a[href],select,video,audio,summary,[role=button],[tabindex]:not([tabindex='-1'])"));
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" || (e.key === " " && !(e.target as HTMLElement).closest("input,textarea"))) {
+      if (e.key === "Escape" || (e.key === " " && !ownSpace(e.target as HTMLElement))) {
         e.preventDefault();
         e.stopPropagation();
         os.setQuickLook(null);

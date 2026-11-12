@@ -6,6 +6,7 @@ import { contact } from "../data/portfolio";
 import { useOS, type MenuItem, type MenuSection, type OS } from "../state/os";
 import { AshMark, Glyph } from "./icons";
 import { MenuList } from "./Menu";
+import { returnFocus } from "./Window";
 
 /* ---------- live status ---------- */
 
@@ -190,6 +191,20 @@ export function MenuBar() {
       removeEventListener("pointerdown", onDown, true);
       removeEventListener("keydown", onKey, true);
     };
+  }, [open]);
+
+  // Spotlight or a panel opening (⌘K, Ctrl+Space) closes an open menu, so
+  // the first Esc goes to Spotlight rather than a menu left behind it.
+  useEffect(() => {
+    if (os.overlay) setOpen(null);
+  }, [os.overlay]);
+
+  // A menu that closes without moving focus anywhere (an item that changes
+  // nothing, Esc after a mouse open) gives it back to the active window.
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (wasOpen.current && open === null) returnFocus();
+    wasOpen.current = open !== null;
   }, [open]);
 
   const date = new Intl.DateTimeFormat(undefined, { weekday: "short", day: "numeric", month: "short" }).format(now);
