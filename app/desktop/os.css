@@ -1847,6 +1847,55 @@
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
+
+/* Project demo video (ui/Demo.tsx): Projects, Preview, Quick Look */
+.ashos-demo {
+  position: relative;
+}
+.ashos-demo video {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+.ashos-demo__btn {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.45);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  opacity: 0.8;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+.ashos-demo:hover .ashos-demo__btn,
+.ashos-demo__btn:focus-visible {
+  opacity: 1;
+}
+.ashos-demo__btn:hover {
+  background: rgba(0, 0, 0, 0.6);
+}
+.ashos-demo__btn svg {
+  width: 11px;
+  height: 11px;
+  fill: currentColor;
+}
+.ashos-viewer__image .ashos-demo,
+.ashos-ql__image .ashos-demo {
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+}
 .ashos-proj__head {
   display: flex;
   align-items: center;

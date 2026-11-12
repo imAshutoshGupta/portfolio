@@ -4,7 +4,7 @@
 
 import { APPS, APP_ORDER, type AppArgs, type AppId } from "../data/apps";
 import { docToLines } from "../data/doc";
-import { basename, formatSize, HOME, resolvePath, type Fs, type FsNode } from "../data/fs";
+import { basename, formatSize, HOME, kindLabel, resolvePath, type Fs, type FsNode } from "../data/fs";
 import { achievements, approach, contact, experience, localNow, person, toolkitAreas, work, workWithMe, writing } from "../data/portfolio";
 
 type Tone = "accent" | "green" | "blue" | "cyan" | "yellow" | "red" | "magenta" | "muted" | "bold";
@@ -48,6 +48,7 @@ const COMMANDS: Record<string, string> = {
   projects: "selected work",
   experience: "roles and companies",
   skills: "the toolkit",
+  approach: "how I work",
   wins: "hackathons and wins",
   writing: "posts",
   contact: "ways to reach me",
@@ -115,7 +116,7 @@ function columns(nodes: FsNode[], width: number): Line[] {
 function long(nodes: FsNode[]): Line[] {
   return nodes.map((n) => [
     s((n.children ? "drwxr-xr-x" : n.kind === "app" ? "drwxr-xr-x" : "-rw-r--r--") + "  ", "muted"),
-    s("ashutosh  staff  ", "muted"),
+    s(`${person.login}  staff  `, "muted"),
     s((n.children ? "--" : formatSize(n.size)).padStart(9) + "  "),
     s((n.modified ?? "").padEnd(14) + "  ", "muted"),
     s(display(n), tone(n)),
@@ -168,8 +169,8 @@ function neofetch(ctx: ShellCtx): Line[] {
     ["Local time", `${localNow().time} ${localNow().zone}`],
   ];
   const head: Line[] = [
-    [s("ashutosh", "accent"), s("@"), s("ashOS", "accent")],
-    [s("-".repeat(14), "muted")],
+    [s(person.login, "accent"), s("@"), s("ashOS", "accent")],
+    [s("-".repeat(person.login.length + 6), "muted")],
     ...rows.map(([k, v]): Line => [s(k + ": ", "accent"), s(v)]),
     [],
     [
@@ -228,7 +229,7 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
       };
 
     case "whoami":
-      return { lines: [[s("ashutosh", "bold"), s(`  (${person.name} · ${person.role})`, "muted")]] };
+      return { lines: [[s(person.login, "bold"), s(`  (${person.name} · ${person.role})`, "muted")]] };
 
     case "pwd":
       return { lines: [plain(ctx.cwd)] };
@@ -268,7 +269,7 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
       if (n.children) return { lines: [[s(`cat: ${target}: Is a directory`, "red")]] };
       if (n.kind === "app") return { lines: [[s(`cat: ${n.name}: is an application. Try `, "muted"), s(`open ${n.name.replace(/ /g, "\\ ")}`)]] };
       if (n.kind === "link") return { lines: [[s("URL=", "muted"), s(n.href ?? "(not linked yet)", n.href ? "cyan" : "muted")]] };
-      if (n.kind === "image") return { lines: [[s(`${n.name}: ${n.image?.src ? "PNG image" : n.image?.caption + " (no image yet)"}`, "muted")]] };
+      if (n.kind === "image") return { lines: [[s(`${n.name}: ${n.image?.src ? kindLabel(n) : n.image?.caption + " (no image yet)"}`, "muted")]] };
       if (!n.doc) return { lines: [[s(`${n.name} is a PDF. Try `, "muted"), s(`open ${n.name}`)]] };
       return { lines: docToLines(n.doc, Math.min(ctx.cols, 90)).map(plain) };
     }
@@ -385,7 +386,7 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
           lines: [[s("✓ ", "green"), s("permission granted. ", "muted"), s(contact.emailLabel, "bold")]],
           effects: [{ type: "launch", app: "mail", args: { compose: true } }],
         };
-      return { lines: [[s("ashutosh is not in the sudoers file. Try ", "muted"), s("sudo hire-me")]] };
+      return { lines: [[s(`${person.login} is not in the sudoers file. Try `, "muted"), s("sudo hire-me")]] };
 
     case "rm":
     case "mv":

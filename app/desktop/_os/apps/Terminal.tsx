@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { dirname, HOME, type Fs } from "../data/fs";
+import { person } from "../data/portfolio";
 import { useOS, useWindowMenus } from "../state/os";
 import { TitleBar, useWin } from "../ui/Window";
 import { complete, promptDir, runCommand, type Line, type ShellCtx } from "./shell";
@@ -54,7 +55,7 @@ export function Terminal() {
     if (next !== cwd) setCwd(next);
   }, [os.fs, cwd]);
 
-  const title = `ashutosh — -zsh — ${size.cols}×${size.rows}`;
+  const title = `${person.login} — -zsh — ${size.cols}×${size.rows}`;
   useEffect(() => os.setTitle(win.id, `Terminal — ${promptDir(cwd)}`), [os, win.id, cwd]);
 
   const ctx = useCallback(
@@ -139,7 +140,7 @@ export function Terminal() {
 
   const prompt = (dir: string) => (
     <>
-      <span className="t-user">ashutosh@ashOS</span> <span className="t-dir">{promptDir(dir)}</span> <span className="t-sym">%</span>{" "}
+      <span className="t-user">{person.login}@ashOS</span> <span className="t-dir">{promptDir(dir)}</span> <span className="t-sym">%</span>{" "}
     </>
   );
 

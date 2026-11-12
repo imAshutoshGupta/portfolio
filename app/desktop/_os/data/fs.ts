@@ -20,6 +20,7 @@ import {
   work,
   workWithMe,
   writing,
+  type Demo,
 } from "./portfolio";
 
 type NodeKind = "volume" | "folder" | "app" | "document" | "image" | "link";
@@ -52,7 +53,10 @@ export type FsNode = {
   doc?: Doc;
   ext?: string;
   href?: string | null;
-  image?: { src: string | null; title: string; caption?: string; seed: number };
+  /** `alt` is the content's own description of the picture, for screen readers. */
+  image?: { src: string | null; title: string; caption?: string; seed: number; alt?: string };
+  /** A movie (image node): plays in Preview and Quick Look, `image` is its poster. */
+  video?: Demo;
   /** Opens this project in the Projects app (Spotlight). */
   project?: string;
   modified?: string;
@@ -116,7 +120,7 @@ export function kindLabel(n: FsNode): string {
     case "app":
       return "Application";
     case "image":
-      return n.ext === "webp" ? "WebP image" : "PNG image";
+      return n.ext === "mp4" ? "MPEG-4 movie" : n.ext === "webp" ? "WebP image" : "PNG image";
     case "link":
       return n.href?.startsWith("mailto:") ? "Email Link" : "Web Location";
     case "document":
@@ -208,11 +212,12 @@ function build(): Fs {
   }
 
   /* Shared documents */
+  // The site's sections in the site's order. The bio sits under Beyond work,
+  // where the site shows it.
   const overview: Doc = [
     { t: "title", text: person.name, sub: person.title },
     { t: "meta", text: person.statusLine },
     { t: "p", text: person.lead },
-    { t: "p", text: person.bio },
     { t: "kv", rows: person.facts.map((f) => [f.label, f.value]) },
     { t: "h", text: S.work.title },
     { t: "list", items: work.map((w) => `${w.name} — ${w.kind}, ${w.year}. ${w.blurb}`) },
@@ -220,12 +225,18 @@ function build(): Fs {
     { t: "list", items: experience.map((j) => `${j.when}: ${j.role}, ${j.org}. ${j.points.join(" ")}`) },
     { t: "h", text: S.wins.title },
     { t: "list", items: achievements.map((w) => `${w.place} at ${w.event} (${w.year}). ${w.project ? `${w.project}: ` : ""}${w.what}`) },
+    { t: "h", text: S.words.title },
+    ...kindWords.map((q): Doc[number] => ({ t: "quote", text: q.quote, by: q.by })),
     { t: "h", text: S.toolkit.title },
     { t: "kv", rows: toolkit.map((g) => [g.title, g.items.join(" · ")]) },
     { t: "h", text: S.approach.title },
     { t: "list", items: approach.map((p) => `${p.title}. ${p.body}`) },
     { t: "h", text: S.writing.title },
     { t: "list", items: writing.map((p) => `${p.title} — ${p.date}, on ${p.where}`) },
+    { t: "h", text: S.about.title },
+    { t: "p", text: person.bio },
+    { t: "list", items: person.hobbies },
+    { t: "meta", text: person.punctuation },
     { t: "h", text: "Contact" },
     { t: "p", text: workWithMe.intro },
     { t: "list", items: workWithMe.items },
@@ -309,7 +320,7 @@ function build(): Fs {
       kind: "image",
       ext: "webp",
       info: person.photo.caption,
-      image: { src: person.photo.src, title: person.name, caption: person.photo.caption, seed: 1 },
+      image: { src: person.photo.src, title: person.name, caption: person.photo.caption, seed: 1, alt: person.photo.alt },
     });
   }
   doc(aboutDir, "Beyond Work.md", S.about.title + ".", [
@@ -415,9 +426,20 @@ function build(): Fs {
       kind: "image",
       ext: "png",
       info: `${w.name} screenshot.`,
-      image: { src: w.screenshotSrc, title: w.name, caption: w.screenshot, seed: Number(w.num) },
+      image: { src: w.screenshotSrc, title: w.name, caption: w.screenshot, seed: Number(w.num), alt: w.alt },
       project: w.id,
     });
+    if (w.demo) {
+      add(dir, {
+        name: "Demo.mp4",
+        kind: "image",
+        ext: "mp4",
+        info: `${w.name} demo.`,
+        image: { src: w.demo.poster, title: w.name, caption: w.screenshot, seed: Number(w.num), alt: w.alt },
+        video: w.demo,
+        project: w.id,
+      });
+    }
     link(dir, "Live Demo", w.live, "Live demo.");
     link(dir, "Source Code", w.code, "Source code.");
     if (w.hasCaseStudy) link(dir, "Case Study", w.caseStudy, "Case study.");
