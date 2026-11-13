@@ -35,6 +35,13 @@ export function DesktopIcons() {
   const [sel, setSel] = useState<string[]>([]);
   const [band, setBand] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
+  // The name field, and which path it's renaming: cleared as soon as the
+  // rename ends, so a late blur (the field leaving the page) can't commit again.
+  const field = useRef<HTMLInputElement>(null);
+  const editing = useRef<string | null>(null);
+  editing.current = renaming;
+  // After Enter / Esc, keyboard focus goes back to the icon (the field is gone).
+  const refocus = useRef<string | null>(null);
   const refs = useRef(new Map<string, HTMLElement>());
   const surface = useRef<HTMLDivElement>(null);
   // The last pointerdown's type: Safari's clicks misreport it.
@@ -95,13 +102,40 @@ export function DesktopIcons() {
     return () => removeEventListener("keydown", onKey);
   }, [os, sel, renaming]);
 
+  /* ---- renaming ---- */
+  /** Ends a rename: save (Enter, blur, a click elsewhere) or cancel (Esc). */
+  function endRename(commit: boolean, opts: { focus?: boolean } = {}) {
+    const path = editing.current;
+    if (!path) return;
+    editing.current = null;
+    const value = field.current?.value;
+    let now = path;
+    if (commit && value !== undefined) {
+      const next = os.rename(path, value);
+      if (next) {
+        now = next;
+        setSel((s) => (s.includes(path) ? s.map((p) => (p === path ? next : p)) : s));
+        // Keep the icon where it was.
+        setPos((old) => (old[path] ? { ...old, [next]: old[path] } : old));
+      }
+    }
+    if (opts.focus) refocus.current = now;
+    setRenaming(null);
+  }
+  useEffect(() => {
+    if (renaming || !refocus.current) return;
+    refs.current.get(refocus.current)?.focus({ preventScroll: true });
+    refocus.current = null;
+  }, [renaming, os.fs]);
+
   /* ---- rubber-band selection on the empty desktop ---- */
   const onSurfaceDown = (e: RPointerEvent<HTMLDivElement>) => {
     if (e.target !== e.currentTarget || e.button !== 0) return;
     os.focusDesktop();
     os.setOverlay(null);
     setSel([]);
-    setRenaming(null);
+    // Clicking away from the name field keeps what was typed, like the Finder.
+    endRename(true);
     const sx = e.clientX;
     const sy = e.clientY;
     const el = e.currentTarget;
@@ -247,21 +281,62 @@ export function DesktopIcons() {
         items.map((n, i) => {
           const p = where(n, i);
           const selected = sel.includes(n.path);
+          const ref = (el: HTMLElement | null) => {
+            if (el) refs.current.set(n.path, el);
+            else refs.current.delete(n.path);
+          };
+          const style = { left: p.x, top: p.y, width: cellW, ["--icon" as string]: `${size}px` };
+          const className = "ashos-dicon" + (selected ? " is-selected" : "");
+          // While renaming, the icon is a plain box: a field inside a <button>
+          // would have Space press the button instead of typing a space.
+          if (renaming === n.path)
+            return (
+              <div
+                key={n.path}
+                ref={ref}
+                className={className}
+                data-path={n.path}
+                style={style}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <NodeIcon node={n} className="ashos-dicon__img" />
+                <input
+                  ref={field}
+                  className="ashos-rename"
+                  defaultValue={n.name}
+                  autoFocus
+                  aria-label="New name"
+                  onFocus={(e) => e.currentTarget.select()}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      endRename(true, { focus: true });
+                    } else if (e.key === "Escape") {
+                      e.preventDefault();
+                      endRename(false, { focus: true });
+                    }
+                  }}
+                  onBlur={() => endRename(true)}
+                />
+              </div>
+            );
           return (
             <button
               key={n.path}
               type="button"
-              ref={(el) => {
-                if (el) refs.current.set(n.path, el);
-                else refs.current.delete(n.path);
-              }}
-              className={"ashos-dicon" + (selected ? " is-selected" : "")}
+              ref={ref}
+              className={className}
               data-path={n.path}
-              style={{ left: p.x, top: p.y, width: cellW, ["--icon" as string]: `${size}px` }}
+              style={style}
               aria-label={`${n.name}, ${kindLabel(n)}`}
               aria-pressed={selected}
               onPointerDown={(e) => onIconDown(e, n)}
-              onDoubleClick={() => renaming !== n.path && os.openPath(n.path)}
+              onDoubleClick={() => os.openPath(n.path)}
               onClick={(e) => {
                 // Touch: a single tap opens. Keyboard: Enter/Space activates.
                 if (e.detail === 0 || pointer.current === "touch") os.openPath(n.path);
@@ -273,34 +348,7 @@ export function DesktopIcons() {
               }}
             >
               <NodeIcon node={n} className="ashos-dicon__img" />
-              {renaming === n.path ? (
-                <input
-                  className="ashos-rename"
-                  defaultValue={n.name}
-                  autoFocus
-                  aria-label="New name"
-                  onFocus={(e) => e.currentTarget.select()}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => {
-                    e.stopPropagation();
-                    if (e.key === "Enter") {
-                      const next = os.rename(n.path, e.currentTarget.value);
-                      if (next) {
-                        setSel([next]);
-                        // Keep the icon where it was.
-                        setPos((old) => (old[n.path] ? { ...old, [next]: old[n.path] } : old));
-                      }
-                      setRenaming(null);
-                    } else if (e.key === "Escape") setRenaming(null);
-                  }}
-                  onBlur={(e) => {
-                    os.rename(n.path, e.currentTarget.value);
-                    setRenaming(null);
-                  }}
-                />
-              ) : (
-                <span className="ashos-dicon__label">{n.name}</span>
-              )}
+              <span className="ashos-dicon__label">{n.name}</span>
             </button>
           );
         })}
