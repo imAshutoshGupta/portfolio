@@ -491,6 +491,17 @@ request, tested before/after and against the live site; suites in
   boot-splash timing check is load-sensitive and flakes on any build when
   the machine is busy.
 
+- L (ashOS UI, review round 3, 2026-11-13): desktop rename renders the icon
+  as a div with the field while renaming (Space types, a click on the
+  desktop saves, the position carries over, focus returns to the icon);
+  Dock tiles shrink to fit the screen. `Dock.tsx` copies the Dock box model
+  from `os.css` (DOCK_PAD/GAP/SEP): keep them in step. The side Dock stays
+  clear of the menu bar, and magnification is scaled to fit. On phones the
+  green light is disabled and the menu bar never auto-hides. Long-press on
+  Dock items opens their menus. The menubar role is on the titles only
+  (roving tabindex, Left/Right/Home/End). The focus ring is the opaque
+  accent; orange, yellow, green and graphite still fall short in light
+  mode (part of the accent-colour decision). Suite `batch-l.mjs`.
 ### Open
 
 **Review round 3 backlog** (found 2026-11-13 by five read-only Opus reviewers
@@ -498,12 +509,13 @@ against a `main` build on :3100; every item reproduced, repro scripts are the
 `review3-*.mjs` files in `portfolio-qa`, run as `node --no-warnings <script>
 http://localhost:3100`; FAIL = bug present). Severity: H/M/L.
 
-Progress: M is merged and live (see history). K, L and N are fixed and
-reviewed (independent reviews of K and L: ship), but not merged yet. Their
-work sits in the worktrees `C:/Users/admin/portfolio-wt/<k|l|n>`, and in
-GitHub snapshots `wip/k`, `wip/l` and `wip/n`. Suites: `portfolio-qa/batch-k.mjs`,
-`batch-l.mjs`, `batch-n.mjs` (+ `batch-n-route.mjs <repo dir>`). Order: L,
-then K, then N, each rebased on `main` and retested first. N: check after
+Progress: M and L are merged and live (see history). K and N are fixed and
+reviewed (independent review of K: ship), but not merged yet. Their work
+sits in the worktrees `C:/Users/admin/portfolio-wt/<k|n>`, and in GitHub
+snapshots `wip/k` and `wip/n`. Suites: `portfolio-qa/batch-k.mjs`,
+`batch-n.mjs` (+ `batch-n-route.mjs <repo dir>`). Order: K, then N, each
+rebased on `main` and retested first. (A separate session works on a
+batch P in `portfolio-wt/p-*`, ports 3110 and up: leave those alone.) N: check after
 its deploy that `/` shows `x-nextjs-cache: HIT` and the mp4 Range request
 gives 206. Baseline (old-code) build for fail-before proofs: the
 `portfolio-wt/baseline` worktree (`npx next start -p 3100`).
@@ -532,26 +544,6 @@ K — site (`components/site/*`, `site.css`, `app/layout.tsx`), branch `fix/site
   Repro `review3-a11y-site.mjs`.
 - K7 L. One hero poke is announced twice (Semi's line + the off-screen
   footer pill's "N pokes"). `FooterStats.tsx:106`. Repro `review3-a11y-site.mjs`.
-
-L — ashOS UI (`_os/ui/*`, `os.css`), branch `fix/ashos-batch-l`:
-- L1 M. Renaming a desktop icon: Space presses the icon button (opens the
-  folder, name ends at "my"); clicking the empty desktop discards the typed
-  name; blur-commit doesn't carry the icon position. `DesktopIcons.tsx:251,
-  267, 278, 104, 290, 296`. Repro `review3-ashos-rename.mjs`.
-- L2 M. The Dock runs off screen with several minimised windows (iPad mini
-  6 minimised: -86→854; 1366×768 Dock left: -32→800; Finder/Trash
-  unreachable). `os.css` `.ashos-dock` (~2944). Fix: shrink to fit.
-  Repro `review3-ashos-dock.mjs`.
-- L3 L–M. On phones the green light still enters full screen: menu bar hides
-  (no hover on touch), 28px gap, Minimise disabled. `Window.tsx:107`,
-  `MenuBar.tsx:214`. Repro `review3-ashos-phonefs.mjs`.
-- L4 L. iPad: long-press on Dock items opens no menu (batch B covered icons
-  and Finder only). `Dock.tsx:126, 164, 179`. Repro `review3-ashos-docktouch.mjs`.
-- L5 L–M. Menu bar ARIA malformed (menubar children are nav/generic/status
-  buttons; role on `<header>`), Left/Right do nothing on titles.
-  `MenuBar.tsx:222-223, 249`. Repro `review3-a11y-ashos.mjs`.
-- L6 M. Focus ring 2.1–2.2:1 on window surfaces (accent at 55%).
-  `os.css:152-154`. Fix: opaque accent. Repro `review3-a11y-ashos.mjs`.
 
 N — server, caching, SEO (`app/api/*`, `open-next.config.ts`, `wrangler.jsonc`,
 `content.ts`), branch `fix/server-batch-n`:
