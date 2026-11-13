@@ -507,6 +507,40 @@ export type FsChanges = {
 
 export const NO_CHANGES: FsChanges = { created: [], removed: [] };
 
+/**
+ * Saved changes as read back from storage, which may be anything (an old
+ * format, a hand edit): keep only well-formed folders the visitor made and
+ * emptied base items, so a bad value can't break the desktop.
+ */
+export function cleanChanges(v: unknown): FsChanges {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return NO_CHANGES;
+  const { created, removed } = v as { created?: unknown; removed?: unknown };
+  // Only Empty Trash removes base items, so only paths inside the Trash count.
+  const gone = Array.isArray(removed) ? [...new Set(removed.filter((p): p is string => typeof p === "string" && p.startsWith(TRASH + "/") && !!BASE_FS[p]))] : [];
+  const seen = new Set<string>();
+  const made: FsNode[] = [];
+  for (const x of Array.isArray(created) ? created : []) {
+    if (!x || typeof x !== "object") continue;
+    const { path, name, parent, info, created: at } = x as Partial<Record<keyof FsNode, unknown>>;
+    if (typeof path !== "string" || typeof name !== "string" || typeof parent !== "string") continue;
+    if (!path.startsWith("/") || path === HOME || !name || parent !== dirname(path) || name !== basename(path)) continue;
+    if (seen.has(path) || (BASE_FS[path] && !gone.includes(path))) continue;
+    seen.add(path);
+    made.push({
+      path,
+      name,
+      kind: "folder",
+      parent,
+      children: [],
+      glyph: "generic",
+      info: typeof info === "string" ? info : "A folder you made.",
+      user: true,
+      ...(typeof at === "number" && Number.isFinite(at) ? { created: at } : {}),
+    });
+  }
+  return made.length || gone.length ? { created: made, removed: gone } : NO_CHANGES;
+}
+
 export function applyChanges(base: Fs, ch: FsChanges): Fs {
   if (!ch.created.length && !ch.removed.length) return base;
   const fs: Fs = { ...base };
@@ -515,7 +549,8 @@ export function applyChanges(base: Fs, ch: FsChanges): Fs {
   };
   for (const p of ch.removed) {
     const n = fs[p];
-    if (!n?.parent) continue;
+    // Its folder may already be gone (removed earlier in the list).
+    if (!n?.parent || !fs[n.parent]) continue;
     touch(n.parent);
     fs[n.parent].children = fs[n.parent].children!.filter((c) => c !== p);
     delete fs[p];
@@ -524,7 +559,8 @@ export function applyChanges(base: Fs, ch: FsChanges): Fs {
   // `parent`, never mutated in place: the nodes in `ch` are saved state, so
   // pushing into them would double their contents on every rebuild.
   for (const n of ch.created) {
-    if (!n.parent || !fs[n.parent]) continue;
+    // Only into folders: a document or a missing path can't hold one.
+    if (!n.parent || !fs[n.parent]?.children) continue;
     touch(n.parent);
     fs[n.path] = n.children ? { ...n, children: [] } : n;
     const siblings = fs[n.parent].children!;

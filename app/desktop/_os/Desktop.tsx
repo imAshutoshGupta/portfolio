@@ -12,7 +12,7 @@ import { Settings } from "./apps/Settings";
 import { Terminal } from "./apps/Terminal";
 import { Photos, Preview, Resume } from "./apps/Viewers";
 import { OSProvider, useKeyLabel, useOS } from "./state/os";
-import { ACCENTS, KEYS } from "./state/prefs";
+import { ACCENTS, KEYS, sessionGet, sessionSet } from "./state/prefs";
 import type { Win } from "./state/wm";
 import { DesktopIcons } from "./ui/DesktopIcons";
 import { Dock } from "./ui/Dock";
@@ -213,8 +213,8 @@ function Shell() {
   useEffect(() => {
     if (booted.current) return;
     booted.current = true;
-    const first = !sessionStorage.getItem(KEYS.booted);
-    sessionStorage.setItem(KEYS.booted, "1");
+    const first = !sessionGet(KEYS.booted);
+    sessionSet(KEYS.booted, "1");
     const a = os.area;
     if (os.mobile) {
       os.launch("about");

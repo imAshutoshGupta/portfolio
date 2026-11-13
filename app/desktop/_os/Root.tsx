@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Desktop } from "./Desktop";
+import { KEYS, sessionGet } from "./state/prefs";
 import { AshMark } from "./ui/icons";
 
 // The server renders only the boot screen; the desktop mounts on the client,
@@ -14,7 +15,7 @@ function Boot({ ready }: { ready: boolean }) {
   // Read the session flag before the desktop mounts: its boot effect sets it
   // in the same commit that flips `ready`, ahead of the effect below.
   useEffect(() => {
-    quick.current = matchMedia("(prefers-reduced-motion: reduce)").matches || !!sessionStorage.getItem("ashos:booted");
+    quick.current = matchMedia("(prefers-reduced-motion: reduce)").matches || !!sessionGet(KEYS.booted);
   }, []);
 
   useEffect(() => {

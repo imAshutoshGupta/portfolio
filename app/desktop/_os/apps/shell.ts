@@ -239,6 +239,7 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
           ...Object.entries(COMMANDS).map(([k, v]): Line => [s("  " + k.padEnd(w), "accent"), s(v, "muted")]),
           [],
           [s("Tab completes commands and paths. ↑/↓ walk your history.", "muted")],
+          [s(leaveHint(key("⇧Tab")), "muted")],
           [s(`${key("⌥W")} closes this window, ${key("⌥Q")} quits Terminal.`, "muted")],
           [s("Try: ", "muted"), s("cd Projects"), s(" · ", "muted"), s("ls -l"), s(" · ", "muted"), s("open README.md")],
         ],
@@ -453,6 +454,9 @@ export function runCommand(input: string, ctx: ShellCtx): Result {
       return { lines: [[s(`zsh: command not found: ${cmd}`, "red")], [s("Type ", "muted"), s("help", "accent"), s(" for a list.", "muted")]] };
   }
 }
+
+/** How keyboard focus leaves the prompt (`help`, and the input's description). */
+export const leaveHint = (shiftTab: string) => `${shiftTab}, or Tab on an empty line, moves focus out of Terminal.`;
 
 /** Tab completion for commands (first word) and paths (everything else). */
 export function complete(line: string, ctx: ShellCtx): { line: string; options?: string[] } {

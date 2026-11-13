@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { dirname, HOME, type Fs } from "../data/fs";
 import { person } from "../data/portfolio";
 import { useKeyLabel, useOS, useWindowMenus } from "../state/os";
 import { TitleBar, useWin } from "../ui/Window";
-import { complete, promptDir, runCommand, type Line, type ShellCtx } from "./shell";
+import { complete, leaveHint, promptDir, runCommand, type Line, type ShellCtx } from "./shell";
 
 type Entry = { kind: "cmd"; cwd: string; text: string } | { kind: "out"; line: Line };
 
@@ -83,6 +83,10 @@ export function Terminal() {
   useEffect(() => os.setTitle(win.id, `Terminal — ${promptDir(cwd)}`), [os, win.id, cwd]);
 
   const keyLabel = useKeyLabel();
+  // Read out with the input: how to complete, and how to leave (spelled out,
+  // not ⇧, so every screen reader says it).
+  const hintId = useId();
+  const keyHint = `Tab completes commands and paths. ${leaveHint("Shift+Tab")}`;
   const ctx = useCallback(
     (): ShellCtx => ({
       fs: os.fs,
@@ -185,28 +189,37 @@ export function Terminal() {
       >
         <div className="t-muted">Last login: {login} on ttys000</div>
         <div className="t-muted">Welcome to ashOS. Type &apos;help&apos; to look around.</div>
-        {log.map((e, i) =>
-          e.kind === "cmd" ? (
-            <div key={i} className="ashos-term__line">
-              {prompt(e.cwd)}
-              {e.text}
-            </div>
-          ) : (
-            <div key={i} className="ashos-term__line">
-              {e.line.length ? e.line.map((seg, j) => (
-                <span key={j} className={seg.c ? "t-" + seg.c : undefined}>
-                  {seg.t}
-                </span>
-              )) : " "}
-            </div>
-          )
-        )}
+        {/* A log region (polite): screen readers read each new line as it
+            lands. The banner above stays out of it, and clearing removes
+            lines, which a log doesn't announce. */}
+        <div role="log" aria-label="Terminal output">
+          {log.map((e, i) =>
+            e.kind === "cmd" ? (
+              <div key={i} className="ashos-term__line">
+                {prompt(e.cwd)}
+                {e.text}
+              </div>
+            ) : (
+              <div key={i} className="ashos-term__line">
+                {e.line.length ? e.line.map((seg, j) => (
+                  <span key={j} className={seg.c ? "t-" + seg.c : undefined}>
+                    {seg.t}
+                  </span>
+                )) : " "}
+              </div>
+            )
+          )}
+        </div>
+        <span id={hintId} hidden>
+          {keyHint}
+        </span>
         <label className="ashos-term__input">
           <span className="ashos-term__prompt">{prompt(cwd)}</span>
           <input
             ref={field}
             value={input}
             aria-label="Terminal input. Type help for commands."
+            aria-describedby={hintId}
             spellCheck={false}
             autoComplete="off"
             autoCapitalize="off"
@@ -222,7 +235,10 @@ export function Terminal() {
               } else if (e.key === "Enter") {
                 e.preventDefault();
                 submit(input);
-              } else if (e.key === "Tab") {
+              } else if (e.key === "Tab" && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey && input.trim()) {
+                // Only a plain Tab with something typed completes. ⇧Tab, and
+                // Tab on an empty line, move focus on as usual (no keyboard
+                // trap); ⌥Tab / ⌘Tab belong to the app switcher.
                 e.preventDefault();
                 const r = complete(input, ctx());
                 if (r.options) setLog((l) => [...l, { kind: "cmd", cwd, text: input }, { kind: "out", line: [{ t: r.options!.join("    "), c: "muted" }] }]);
