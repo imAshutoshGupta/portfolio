@@ -486,6 +486,21 @@ against a `main` build on :3100; every item reproduced, repro scripts are the
 `review3-*.mjs` files in `portfolio-qa`, run as `node --no-warnings <script>
 http://localhost:3100`; FAIL = bug present). Severity: H/M/L.
 
+Progress (paused 2026-11-13 at the user's request): K, L, M, N are fixed but
+not committed. The work sits in the worktrees `C:/Users/admin/portfolio-wt/<k|l|m|n>`
+and is snapshotted on GitHub as `wip/k` … `wip/n`. Suites:
+`portfolio-qa/batch-k.mjs`, `batch-l.mjs`, `batch-m.mjs`, `batch-n.mjs` (+
+`batch-n-route.mjs <repo dir>`); each fails on main and passes on its branch,
+per the agents. Still to do before merging:
+- L and K: an independent visual review (it was stopped midway; rerun it).
+- M: my rerun of all suites. 11 of 14 suites had passed when it stopped.
+- N: verified on a local worker preview (31/31, smoke OK). The new worker
+  entry point (`worker/index.ts`, wrangler `main`) needs a Cloudflare preview
+  build checked with curl before merging. After the deploy, check `/` shows
+  `x-nextjs-cache: HIT`.
+- Baseline main build for fail-before proofs: the `portfolio-wt/baseline`
+  worktree (`npx next start -p 3100`).
+
 K — site (`components/site/*`, `site.css`, `app/layout.tsx`), branch `fix/site-batch-k`:
 - K1 M. The ashOS takeover doesn't make the page behind it inert: Shift+Tab
   from "Exit to site" lands on footer links under the dialog and scrolls the
