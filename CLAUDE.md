@@ -481,6 +481,106 @@ request, tested before/after and against the live site; suites in
 
 ### Open
 
+**Review round 3 backlog** (found 2026-11-13 by five read-only Opus reviewers
+against a `main` build on :3100; every item reproduced, repro scripts are the
+`review3-*.mjs` files in `portfolio-qa`, run as `node --no-warnings <script>
+http://localhost:3100`; FAIL = bug present). Severity: H/M/L.
+
+K — site (`components/site/*`, `site.css`, `app/layout.tsx`), branch `fix/site-batch-k`:
+- K1 M. The ashOS takeover doesn't make the page behind it inert: Shift+Tab
+  from "Exit to site" lands on footer links under the dialog and scrolls the
+  hidden page to the footer; screen readers can browse it. `AshOS.tsx:57-77`
+  (only `aria-modal`). Fix: `inert` on the page container (and the thread)
+  while open. Repro `review3-site-takeover.mjs`, `review3-a11y-takeover.mjs`.
+- K2 M. Mobile menu can't be scrolled on landscape phones: nav + menu is
+  472–488px in a 320–342px viewport, sticky at top 0, so Contact / ashOS /
+  Résumé are unreachable. `Nav.tsx` `#mobile-menu`. Fix: max-height
+  `calc(100dvh - nav)`, `overflow-y: auto`, `overscroll-behavior: contain`,
+  `data-lenis-prevent`. Repro `review3-site-menu.mjs`.
+- K3 L. Esc in the mobile menu with focus on a link drops focus to `<body>`.
+  `Nav.tsx:97`. Fix: focus the menu button. Repro `review3-site-menu.mjs`.
+- K4 L. `theme-color` follows the OS, not the bulb (white browser bar over the
+  dark page). `app/layout.tsx` `viewport.themeColor`. Fix: one meta updated by
+  `THEME_SCRIPT` and `Bulb.tsx` `apply()`. Repro `review3-site-bulb.mjs`.
+- K5 L. Deep links at phone width (`/#experience` etc.) hide the nav on the
+  browser's hash scroll but keep the 81px scroll-margin, so a slice of the
+  previous section shows. `Nav.tsx` `useAutoHide`. Repro `review3-site-deeplink.mjs`.
+- K6 L. Semi vanishes in forced-colours mode (spans drawn with background).
+  `Hero.tsx:51-73`. Fix: `@media (forced-colors: active)` → `CanvasText`.
+  Repro `review3-a11y-site.mjs`.
+- K7 L. One hero poke is announced twice (Semi's line + the off-screen
+  footer pill's "N pokes"). `FooterStats.tsx:106`. Repro `review3-a11y-site.mjs`.
+
+L — ashOS UI (`_os/ui/*`, `os.css`), branch `fix/ashos-batch-l`:
+- L1 M. Renaming a desktop icon: Space presses the icon button (opens the
+  folder, name ends at "my"); clicking the empty desktop discards the typed
+  name; blur-commit doesn't carry the icon position. `DesktopIcons.tsx:251,
+  267, 278, 104, 290, 296`. Repro `review3-ashos-rename.mjs`.
+- L2 M. The Dock runs off screen with several minimised windows (iPad mini
+  6 minimised: -86→854; 1366×768 Dock left: -32→800; Finder/Trash
+  unreachable). `os.css` `.ashos-dock` (~2944). Fix: shrink to fit.
+  Repro `review3-ashos-dock.mjs`.
+- L3 L–M. On phones the green light still enters full screen: menu bar hides
+  (no hover on touch), 28px gap, Minimise disabled. `Window.tsx:107`,
+  `MenuBar.tsx:214`. Repro `review3-ashos-phonefs.mjs`.
+- L4 L. iPad: long-press on Dock items opens no menu (batch B covered icons
+  and Finder only). `Dock.tsx:126, 164, 179`. Repro `review3-ashos-docktouch.mjs`.
+- L5 L–M. Menu bar ARIA malformed (menubar children are nav/generic/status
+  buttons; role on `<header>`), Left/Right do nothing on titles.
+  `MenuBar.tsx:222-223, 249`. Repro `review3-a11y-ashos.mjs`.
+- L6 M. Focus ring 2.1–2.2:1 on window surfaces (accent at 55%).
+  `os.css:152-154`. Fix: opaque accent. Repro `review3-a11y-ashos.mjs`.
+
+M — ashOS state + Terminal (`Desktop.tsx`, `Root.tsx`, `state/*`, `data/fs.ts`,
+`apps/Terminal.tsx`), branch `fix/ashos-batch-m`:
+- M1 H. ashOS crashes ("This page couldn't load") when site data is blocked:
+  `sessionStorage` read without try/catch (`Desktop.tsx:216-217`,
+  `Root.tsx:17`); also a wrong-shaped `ashos:fs` / `ashos:recents` crashes it
+  for good (`prefs.ts:76` `load()` doesn't check shape; `fs.ts:511`,
+  `os.tsx:199`). Prefs aren't validated either. Repro
+  `review3-ashos-blocked.mjs`, `review3-ashos-storage.mjs`,
+  `review3-code-sessionstorage.mjs`.
+- M2 M. Terminal swallows Tab and Shift+Tab (keyboard trap, worst inside the
+  site takeover); ⌥Tab also runs completion. `Terminal.tsx:225`. Repro
+  `review3-a11y-ashos.mjs`, `review3-ashos-term.mjs`.
+- M3 M. Terminal output isn't announced (no live region). `Terminal.tsx:178-205`.
+  Fix: `role="log"` on the output lines. Repro `review3-a11y-ashos.mjs`.
+
+N — server, caching, SEO (`app/api/*`, `open-next.config.ts`, `wrangler.jsonc`,
+`content.ts`), branch `fix/server-batch-n`:
+- N1 H. Live demo videos ignore Range requests: `Range: bytes=0-1` →
+  200 full file, no `Accept-Ranges` (Workers static assets). iOS Safari needs
+  206 to play `<video>`. Local `next start` is fine (206). Fix: worker in
+  front of `/projects/*.mp4` answering 206 (`assets.run_worker_first`).
+  Repro `sh review3-perf-range.sh https://iamashutosh.com`.
+- N2 L–M. Every page request re-renders on the worker (`x-nextjs-cache: MISS`,
+  ~45ms extra): `open-next.config.ts` uses the "dummy" incremental cache.
+  Fix: `staticAssetsIncrementalCache` + `enableCacheInterception`.
+  Repro `curl -sD - -o /dev/null https://iamashutosh.com/`, `review3-perf-ttfb.sh`.
+- N3 L. `/api/now-playing` upstream fetches have no timeout (a stalled
+  Last.fm hangs every poll). `route.ts:44, 73, 95, 103`. Fix:
+  `AbortSignal.timeout(4000)`; also return `live:false` if a track has no
+  name. Repro `review3-code-np-timeout.mjs`.
+- N4 L. `meta.updated` not bumped after batch I (sitemap lastmod 2026-11-12).
+  `content.ts:26`.
+
+Waiting on the user's decision (asked 2026-11-13; batch O once answered):
+- Thread crosses the hero text at 1101–~1344px (`site.css` hide breakpoint
+  1100 is the spec's; `review3-site-thread-overlap.mjs`). Recommended: hide
+  below ~1345px.
+- ashOS `--text-3` informational text 2.1–2.5:1 (`os.css:17, 59, 2487`).
+  Recommended: those uses → `--text-2`.
+- White on accent fills 1.6–4.0:1 (`.ashos-btn--primary`, menu highlight,
+  selected labels). Recommended: darker per-accent fill in `ACCENTS`.
+- White desktop icon labels on the light wallpaper 1.5–1.9:1 (`os.css:275`).
+  Recommended: stronger halo.
+- Traffic lights 20px apart, menu rows 22px (WCAG 2.5.8). Recommended: 24px.
+- 10 idle animations loop forever (WCAG 2.2.2; reduced motion stops them).
+- New-tab links don't say so to screen readers (wording).
+- The 404 page is Next's unstyled default with two `<title>`s and the home
+  canonical (`app/not-found.tsx` missing; wording + look).
+- N1: does a demo actually play on the user's iPhone today?
+
 **Review round 2 backlog:** F, G, H and I are done and live (2026-11-13, see
 the review-fixes history); J was dropped.
 
