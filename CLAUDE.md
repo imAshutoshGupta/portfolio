@@ -515,41 +515,39 @@ request, tested before/after and against the live site; suites in
   wheel/touch/key/pointer input. Semi and the logo mark use
   CanvasText/Canvas in forced colours (`.semi`, `.logo-mark`). The footer
   pill announces its count only after a footer poke. Suite `batch-k.mjs`.
+- N (server, review round 3, 2026-11-13): Workers static assets ignore
+  Range (a full 200), and iOS Safari won't play a `<video>` without 206. So
+  `/projects/*.mp4` go to the worker first (wrangler
+  `assets.run_worker_first`). The worker's entry point is now
+  `worker/index.ts` (wrangler `main`), which wraps the generated
+  `.open-next/worker.js`. `worker/ranges.ts` answers single ranges with
+  206 or 416, and asset 304s and missing files behave as before. OpenNext
+  requires `html_handling`/`not_found_handling: "none"` with
+  run_worker_first. Pages come from the static-assets incremental cache
+  (`open-next.config.ts`; live shows `x-nextjs-cache: HIT`); the
+  deploy fills it, and if it's empty pages render on demand as before.
+  Cache interception stays off so page headers don't change.
+  `/api/now-playing` upstream fetches time out after 4s, and a track with
+  no name counts as nothing playing. `meta.updated` 2026-11-13. Suites
+  `batch-n.mjs` (GET/HEAD only, safe on live; under `next start` a few
+  range checks fail, since next start isn't what production runs) and
+  `batch-n-route.mjs <repo dir>` (the real route against stalling stubs).
 ### Open
 
-**Review round 3 backlog** (found 2026-11-13 by five read-only Opus reviewers
-against a `main` build on :3100; every item reproduced, repro scripts are the
-`review3-*.mjs` files in `portfolio-qa`, run as `node --no-warnings <script>
-http://localhost:3100`; FAIL = bug present). Severity: H/M/L.
+**Review round 3:** K, L, M and N are done and live (2026-11-13, see the
+review-fixes history). The `review3-*.mjs` scripts in `portfolio-qa` are the
+reviewers' repros (FAIL = bug present on the build they target). A
+separate session works on a batch P in `portfolio-wt/p-*`, ports 3110 and up.
+Leave those alone.
 
-Progress: M, L and K are merged and live (see history). N is fixed, not
-merged yet: worktree `C:/Users/admin/portfolio-wt/n`, GitHub snapshot `wip/n`,
-suites `portfolio-qa/batch-n.mjs` (+ `batch-n-route.mjs <repo dir>`). Rebase it
-on `main` and retest before merging. After its deploy, check that `/` shows
-`x-nextjs-cache: HIT` and that an mp4 Range request gets 206. (A separate
-session works on a batch P in `portfolio-wt/p-*`, ports 3110 and up: leave
-those alone.) Baseline (old-code) build for fail-before proofs: the
-`portfolio-wt/baseline` worktree (`npx next start -p 3100`).
+Noticed during round 3 (for the user, outside the code):
+- GitHub shows the "Workers Builds: portfolio-terminal" check as *failure*
+  on every `main` commit since batch I, but deploys work (each batch was
+  live within ~80s). Worth a look in the Cloudflare dashboard's build log.
+- A Vercel project is still connected to the repo and builds previews of
+  every branch.
 
-N — server, caching, SEO (`app/api/*`, `open-next.config.ts`, `wrangler.jsonc`,
-`content.ts`), branch `fix/server-batch-n`:
-- N1 H. Live demo videos ignore Range requests: `Range: bytes=0-1` →
-  200 full file, no `Accept-Ranges` (Workers static assets). iOS Safari needs
-  206 to play `<video>`. Local `next start` is fine (206). Fix: worker in
-  front of `/projects/*.mp4` answering 206 (`assets.run_worker_first`).
-  Repro `sh review3-perf-range.sh https://iamashutosh.com`.
-- N2 L–M. Every page request re-renders on the worker (`x-nextjs-cache: MISS`,
-  ~45ms extra): `open-next.config.ts` uses the "dummy" incremental cache.
-  Fix: `staticAssetsIncrementalCache` + `enableCacheInterception`.
-  Repro `curl -sD - -o /dev/null https://iamashutosh.com/`, `review3-perf-ttfb.sh`.
-- N3 L. `/api/now-playing` upstream fetches have no timeout (a stalled
-  Last.fm hangs every poll). `route.ts:44, 73, 95, 103`. Fix:
-  `AbortSignal.timeout(4000)`; also return `live:false` if a track has no
-  name. Repro `review3-code-np-timeout.mjs`.
-- N4 L. `meta.updated` not bumped after batch I (sitemap lastmod 2026-11-12).
-  `content.ts:26`.
-
-Waiting on the user's decision (asked 2026-11-13; batch O once answered):
+Waiting on the user's decision for round 3 (asked 2026-11-13; batch O once answered):
 - Thread crosses the hero text at 1101–~1344px (`site.css` hide breakpoint
   1100 is the spec's; `review3-site-thread-overlap.mjs`). Recommended: hide
   below ~1345px.
@@ -560,11 +558,15 @@ Waiting on the user's decision (asked 2026-11-13; batch O once answered):
 - White desktop icon labels on the light wallpaper 1.5–1.9:1 (`os.css:275`).
   Recommended: stronger halo.
 - Traffic lights 20px apart, menu rows 22px (WCAG 2.5.8). Recommended: 24px.
+- The focus ring (batch L, opaque accent) is still under 3:1 for the orange,
+  yellow, green and graphite accents in light mode. Decide together with the
+  accent fills above.
 - 10 idle animations loop forever (WCAG 2.2.2; reduced motion stops them).
 - New-tab links don't say so to screen readers (wording).
 - The 404 page is Next's unstyled default with two `<title>`s and the home
   canonical (`app/not-found.tsx` missing; wording + look).
-- N1: does a demo actually play on the user's iPhone today?
+- Check on a real iPhone that the project demos play (N1 made the videos
+  answer Range requests with 206; Safari on iOS needs that).
 
 **Review round 2 backlog:** F, G, H and I are done and live (2026-11-13, see
 the review-fixes history); J was dropped.
@@ -661,8 +663,12 @@ When real projects land, add them to the README's "Selected work" table too.
   cache). Each takes the base URL as its first argument and prints one
   PASS/FAIL line per check: `smoke.mjs`, `ashos-test.mjs` (batch 1),
   `batch-a.mjs` … `batch-e.mjs`, `batch-f.mjs`, `batch-g-ui.mjs`,
-  `batch-g-apps.mjs`, `batch-h.mjs`, `batch-i.mjs` (always run with
-  `node --no-warnings`). Extras: `batch-i-visual.mjs <before> <after>`
+  `batch-g-apps.mjs`, `batch-h.mjs`, `batch-i.mjs`, `batch-k.mjs`,
+  `batch-l.mjs`, `batch-m.mjs`, `batch-n.mjs` (always run with
+  `node --no-warnings`). batch-f's "public/_headers" check reads the file
+  through `next start`; against a worker build (`opennextjs-cloudflare
+  preview`) it fails by design, since Cloudflare applies the file
+  instead of serving it. Extras: `batch-i-visual.mjs <before> <after>`
   (hero pixel diff, Chromium + WebKit; its "LCP element" line is info only and
   flaky), `heading-check.mjs` (the h1 by role at five widths), `og-shot-i.mjs`
   (renders the share image). `review2-*.mjs` are old repro scripts (some still
