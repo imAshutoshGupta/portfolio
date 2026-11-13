@@ -172,6 +172,14 @@
      them just below the nav rather than under it */
   #main,#main section[id],#contact{scroll-margin-top:97px}
   @media (width < 40rem){#main,#main section[id],#contact{scroll-margin-top:81px}}
+  /* mobile menu (Nav.tsx): never taller than the screen minus the nav's own
+     chrome (28+40 row, 16px row gap, 28 + 1px border = 113px; 20/20 = 97px
+     under max-sm), so on short landscape phones it scrolls to its last link.
+     The 6px side / 4px bottom padding, cancelled by negative margins, keeps
+     the links' focus rings clear of the scroll box's clip; nothing moves. */
+  .mobile-menu{flex-basis:calc(100% + 12px);margin:0 -6px -4px;padding:0 6px 4px;
+    max-height:calc(100vh - 113px);max-height:calc(100dvh - 113px);overflow-y:auto;overscroll-behavior:contain}
+  @media (width < 40rem){.mobile-menu{max-height:calc(100vh - 97px);max-height:calc(100dvh - 97px)}}
 
   /* 4. thread: glow ring pulses around the leading dot; semicolon lights up at the end */
   .thread-dot::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--accent);
@@ -254,6 +262,14 @@
 /* no JS: the nav's <noscript> link row only has element children when
    scripting is off; then the menu button (which needs JS) steps aside */
 .site-nav:has(noscript > *) [aria-controls="mobile-menu"]{display:none}
+/* Forced colours (Windows High Contrast) paint every background as Canvas,
+   and Semi is drawn with backgrounds, so it would vanish. Semi (hero, footer
+   CTA, footer stats) and the nav's logo mark get the system's text colour
+   instead, with the eyes / cut-outs in Canvas. */
+@media (forced-colors: active){
+  .semi .bg-accent,.logo-mark{forced-color-adjust:none;background-color:CanvasText}
+  .semi .bg-bg,.logo-mark > span{forced-color-adjust:none;background-color:Canvas}
+}
 @media (hover: none){.row:hover > *{transform:none}}
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation:none !important;transition:none !important}

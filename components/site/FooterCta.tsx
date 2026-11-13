@@ -37,7 +37,7 @@ export default function FooterCta() {
         aria-hidden="true"
         className="ml-[12px] -mt-4 mb-[-10px] inline-block origin-bottom [scale:.9] max-lg:[scale:.85] max-sm:[scale:.7]"
       >
-        <span className="fsemi block" style={{ transform: on ? "translateY(-10px) rotate(-8deg)" : "none" }}>
+        <span className="semi fsemi block" style={{ transform: on ? "translateY(-10px) rotate(-8deg)" : "none" }}>
           <span className="relative block h-[26px] w-[26px] rounded-[99px] bg-accent">
             <span className="absolute left-[6px] w-1 rounded-[99px] bg-bg" style={eye} />
             <span className="absolute right-[6px] w-1 rounded-[99px] bg-bg" style={eye} />

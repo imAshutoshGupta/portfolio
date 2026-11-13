@@ -23,13 +23,28 @@ function useAutoHide(ref: React.RefObject<HTMLElement | null>, pinned: boolean) 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let last = window.scrollY;
     let frame = 0;
+    // Arriving on a deep link (/#experience): the browser's jump to the
+    // target, and any settling after it, aren't the visitor scrolling down.
+    // The target stops its scroll-margin (the nav's height) short, so the nav
+    // stays shown over that gap until the visitor scrolls for themselves.
+    const hash = location.hash.slice(1);
+    let arrived = false;
+    try {
+      arrived = !!hash && hash !== "top" && !!document.getElementById(decodeURIComponent(hash));
+    } catch {}
+    const ARRIVAL_END = ["wheel", "touchstart", "keydown", "pointerdown"] as const;
+    const endArrival = () => {
+      arrived = false;
+      ARRIVAL_END.forEach((t) => window.removeEventListener(t, endArrival, true));
+    };
+    if (arrived) ARRIVAL_END.forEach((t) => window.addEventListener(t, endArrival, { capture: true, passive: true }));
     const update = () => {
       frame = 0;
       const y = Math.max(0, window.scrollY);
       const dy = y - last;
       nav.toggleAttribute("data-scrolled", y > 8);
       // keyboard focus in the nav keeps it on screen; a mouse click on a link doesn't
-      if (reduced || pinnedRef.current || nav.querySelector(":focus-visible") || y < 160) {
+      if (reduced || arrived || pinnedRef.current || nav.querySelector(":focus-visible") || y < 160) {
         nav.removeAttribute("data-hidden");
       } else if (dy > 4) {
         nav.setAttribute("data-hidden", "");
@@ -87,6 +102,7 @@ function useAutoHide(ref: React.RefObject<HTMLElement | null>, pinned: boolean) 
 export default function Nav() {
   const [menu, setMenu] = useState(false);
   const navRef = useRef<HTMLElement>(null);
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
   useAutoHide(navRef, menu);
 
   // close the mobile menu if the viewport grows past the breakpoint
@@ -94,7 +110,13 @@ export default function Nav() {
     if (!menu) return;
     const mq = window.matchMedia("(min-width: 861px)");
     const onChange = () => mq.matches && setMenu(false);
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenu(false);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      // closing unmounts the focused link; focus goes back to the menu button
+      // instead of dropping to <body>
+      if (document.activeElement?.closest("#mobile-menu")) menuBtnRef.current?.focus();
+      setMenu(false);
+    };
     mq.addEventListener("change", onChange);
     document.addEventListener("keydown", onKey);
     return () => {
@@ -110,7 +132,7 @@ export default function Nav() {
       <a href="#top" onClick={(e) => onHashClick(e)} className="flex items-center gap-3 no-underline">
         <span
           aria-hidden="true"
-          className="flex h-8 w-8 flex-col items-center justify-center gap-[3px] rounded-[8px] bg-fg"
+          className="logo-mark flex h-8 w-8 flex-col items-center justify-center gap-[3px] rounded-[8px] bg-fg"
         >
           <span className="breathe h-[6px] w-[6px] rounded-[9px] bg-accent-soft" />
           <span className="h-[9px] w-[5px] rounded-[4px_4px_4px_1px] bg-bg [transform:skewX(-12deg)]" />
@@ -136,6 +158,7 @@ export default function Nav() {
       <div className="hidden items-center gap-2 max-[860px]:flex">
         <Bulb top={20} />
         <button
+          ref={menuBtnRef}
           onClick={() => setMenu((m) => !m)}
           aria-label={menu ? nav.menuClose : nav.menuOpen}
           aria-expanded={menu}
@@ -149,7 +172,9 @@ export default function Nav() {
       </div>
 
       {menu && (
-        <div id="mobile-menu" className="hidden basis-full max-[860px]:block">
+        // mobile-menu (site.css) caps it to the screen and lets it scroll on
+        // short landscape phones; Lenis leaves that scroll alone
+        <div id="mobile-menu" data-lenis-prevent="" className="mobile-menu hidden max-[860px]:block">
           <ul className="m-0 list-none p-[4px_0_0] text-[20px] tracking-[-0.015em]">
             {nav.items.map((l) => (
               <li key={l.href} className="border-t border-line first:border-t-0">

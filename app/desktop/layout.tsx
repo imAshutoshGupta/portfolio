@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { ashos } from "@/content";
 import { sharedOpenGraph, sharedTwitter } from "../shared-metadata";
@@ -18,6 +18,16 @@ export const metadata: Metadata = {
   // twitter objects, hence the shared base (app/shared-metadata.ts).
   openGraph: { ...sharedOpenGraph, title: ashos.pageTitle, description: ashos.pageDescription, url: "/desktop" },
   twitter: { ...sharedTwitter, title: ashos.pageTitle, description: ashos.pageDescription },
+};
+
+// The browser bar follows the OS here, as it always has (ashOS has its own
+// appearance setting). The site sets a single theme-color from its chosen
+// theme instead (components/site/themeColor.ts), and leaves this pair alone.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0a12" },
+  ],
 };
 
 export default function DesktopLayout({ children }: { children: React.ReactNode }) {

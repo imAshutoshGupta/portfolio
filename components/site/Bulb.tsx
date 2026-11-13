@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { nav } from "@/content";
+import { setThemeColor } from "./themeColor";
 
 /*
   The theme switch: a bulb hanging from the top edge of the viewport (the nav's
@@ -49,6 +50,7 @@ function switchTheme(x: number, y: number) {
   queued = me;
   const apply = () => {
     root.setAttribute("data-theme", next);
+    setThemeColor(next); // the browser bar follows the chosen theme, not the OS
     try {
       localStorage.setItem("theme", next);
     } catch {}
