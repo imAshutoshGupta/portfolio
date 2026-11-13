@@ -1,12 +1,23 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "portfolio-terminal",
-  "main": ".open-next/worker.js",
+  // Wraps the worker OpenNext generates (.open-next/worker.js) to answer
+  // byte-range requests for the demo videos: worker/ranges.ts.
+  "main": "worker/index.ts",
   "compatibility_date": "2026-11-06",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    // Static assets ignore Range (iOS Safari won't play a <video> without
+    // 206), so the videos go to the worker first. Everything else is still
+    // served straight from the assets.
+    "run_worker_first": ["/projects/*.mp4"],
+    // OpenNext's build requires these once run_worker_first is set (files only
+    // at their exact path, as in Next). There are no .html assets, and a
+    // missing file already fell through to the app, so nothing else changes.
+    "html_handling": "none",
+    "not_found_handling": "none"
   },
   // Footer counters (page views, Semi pokes): app/api/_lib/counter.ts
   "kv_namespaces": [{ "binding": "COUNTERS", "id": "adc6d0c1554943d3824766538e38918b" }],

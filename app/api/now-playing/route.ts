@@ -12,6 +12,10 @@ export const dynamic = "force-dynamic";
 
 const CACHE_SECONDS = 10;
 const BROWSER_CACHE = "no-store";
+// A stalled Last.fm or Spotify gives up after this and the widget shows its
+// idle line, instead of every poll hanging until the platform kills it.
+const UPSTREAM_TIMEOUT_MS = 4000;
+const upstream = () => AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
 
 const TOKEN_URL = "https://accounts.spotify.com/api/token";
 const NOW_PLAYING_URL = "https://api.spotify.com/v1/me/player/currently-playing";
@@ -46,6 +50,7 @@ async function getAccessToken(id: string, secret: string, refresh: string): Prom
     },
     body: new URLSearchParams({ grant_type: "refresh_token", refresh_token: refresh }),
     cache: "no-store",
+    signal: upstream(),
   });
   if (!res.ok) return null;
   const data = await res.json();
@@ -66,11 +71,12 @@ async function loadLastFm(key: string, user: string): Promise<Track> {
     const url =
       "https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&limit=1&format=json" +
       `&api_key=${encodeURIComponent(key)}&user=${encodeURIComponent(user)}`;
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetch(url, { cache: "no-store", signal: upstream() });
     if (!res.ok) return { live: false };
     const data = await res.json();
     const t = data.recenttracks?.track?.[0];
-    if (!t) return { live: false };
+    // No title, no track: ashOS would otherwise show "undefined — Artist".
+    if (!t || typeof t.name !== "string" || !t.name) return { live: false };
     return {
       live: true,
       isPlaying: t["@attr"]?.nowplaying === "true",
@@ -98,19 +104,19 @@ async function loadTrack(): Promise<Track> {
     if (!token) return { live: false };
     const headers = { Authorization: `Bearer ${token}` };
 
-    const now = await fetch(NOW_PLAYING_URL, { headers, cache: "no-store" });
+    const now = await fetch(NOW_PLAYING_URL, { headers, cache: "no-store", signal: upstream() });
     if (now.status === 200) {
       const data = await now.json();
       const item = data.item as SpotifyItem | null;
-      if (item && data.is_playing) return toTrack(item, true);
+      if (item?.name && data.is_playing) return toTrack(item, true);
     }
 
     // Nothing playing — show the most recent track as "last played".
-    const recent = await fetch(RECENT_URL, { headers, cache: "no-store" });
+    const recent = await fetch(RECENT_URL, { headers, cache: "no-store", signal: upstream() });
     if (recent.ok) {
       const data = await recent.json();
       const item = data.items?.[0]?.track as SpotifyItem | undefined;
-      if (item) return toTrack(item, false);
+      if (item?.name) return toTrack(item, false);
     }
     return { live: false };
   } catch {
