@@ -116,7 +116,8 @@ function buildMenus(os: OS): { appName: string; sections: MenuSection[]; system:
     ...(pick("View")?.length ? ([{ sep: true }] as MenuItem[]) : []),
     {
       label: win?.mode === "fullscreen" ? "Exit Full Screen" : "Enter Full Screen",
-      disabled: !win || os.mobile,
+      // A window that went full screen before the screen turned phone-sized can still leave it.
+      disabled: !win || (os.mobile && win.mode !== "fullscreen"),
       run: () => win && os.toggleFullscreen(win.id),
     },
   ];
@@ -164,7 +165,9 @@ export function MenuBar() {
   const os = useOS();
   const [open, setOpen] = useState<number | null>(null);
   const [kbd, setKbd] = useState(false);
-  const barRef = useRef<HTMLDivElement>(null);
+  // Roving tabindex: the one menu title Tab lands on (the last one focused).
+  const [cur, setCur] = useState(0);
+  const barRef = useRef<HTMLElement>(null);
   // Safari's clicks misreport pointerType (none before 18.2, "mouse" for taps
   // on iOS 18.2+), so the click asks the pointerdown before it.
   const pointer = useRef("");
@@ -173,6 +176,8 @@ export function MenuBar() {
   const { sections, system } = buildMenus(os);
   const all: MenuSection[] = [{ title: "ashOS", items: system }, ...sections];
   const shown = os.mobile ? all.slice(0, 2) : all;
+  const roving = Math.min(cur, shown.length - 1);
+  const titles = () => Array.from(barRef.current?.querySelectorAll<HTMLButtonElement>(".ashos-menubar__item") ?? []);
 
   useEffect(() => {
     if (open === null) return;
@@ -211,7 +216,8 @@ export function MenuBar() {
 
   const date = new Intl.DateTimeFormat(undefined, { weekday: "short", day: "numeric", month: "short" }).format(now);
   const time = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(now);
-  const fsActive = os.focused?.mode === "fullscreen";
+  // Phones have no hover to bring an auto-hidden bar back, so it stays put there.
+  const fsActive = os.focused?.mode === "fullscreen" && !os.mobile;
 
   const toggleOverlay = (o: "control" | "notifications" | "spotlight") => {
     setOpen(null);
@@ -219,13 +225,15 @@ export function MenuBar() {
   };
 
   return (
-    <header ref={barRef} className={"ashos-menubar" + (fsActive ? " is-autohide" : "")} role="menubar" aria-label="Menu bar">
-      <nav className="ashos-menubar__left">
+    <header ref={barRef} className={"ashos-menubar" + (fsActive ? " is-autohide" : "")}>
+      {/* Only the menu titles make up the menubar; the status items beside it are plain buttons. */}
+      <div className="ashos-menubar__left" role="menubar" aria-label="Menu bar">
         {shown.map((m, i) => (
-          <div key={m.title + i} className="ashos-menubar__menu">
+          <div key={m.title + i} className="ashos-menubar__menu" role="none">
             <button
               type="button"
               role="menuitem"
+              tabIndex={i === roving ? 0 : -1}
               aria-haspopup="menu"
               aria-expanded={open === i}
               aria-label={i === 0 ? "ashOS menu" : undefined}
@@ -246,12 +254,26 @@ export function MenuBar() {
                 os.setOverlay(null);
               }}
               onPointerEnter={(e) => e.pointerType === "mouse" && open !== null && open !== i && setOpen(i)}
+              onFocus={() => setCur(i)}
               onKeyDown={(e) => {
                 if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
                   setKbd(true);
                   setOpen(i);
+                  return;
                 }
+                // ←/→ (wrapping), Home and End move between the titles; an
+                // open menu follows along, like the menu bar.
+                const n = shown.length;
+                const to =
+                  e.key === "ArrowRight" ? (i + 1) % n : e.key === "ArrowLeft" ? (i - 1 + n) % n : e.key === "Home" ? 0 : e.key === "End" ? n - 1 : null;
+                if (to === null || e.altKey || e.ctrlKey || e.metaKey) return;
+                e.preventDefault();
+                if (open !== null) {
+                  setKbd(false);
+                  setOpen(to);
+                }
+                titles()[to]?.focus();
               }}
             >
               {i === 0 ? <AshMark className="ashos-menubar__mark" /> : m.title}
@@ -265,7 +287,7 @@ export function MenuBar() {
                 onClose={(how) => {
                   setOpen(null);
                   // Backed out with Esc: back to this menu's title, like the menu bar.
-                  if (how === "escape") barRef.current?.querySelectorAll<HTMLButtonElement>(".ashos-menubar__item")[i]?.focus();
+                  if (how === "escape") titles()[i]?.focus();
                 }}
                 onKeyNav={(d) => {
                   const n = (i + (d === "right" ? 1 : -1) + shown.length) % shown.length;
@@ -274,15 +296,14 @@ export function MenuBar() {
                   // The new menu focuses its first item; with nothing to focus
                   // there, keep the keys on its title in the bar.
                   requestAnimationFrame(() => {
-                    if (!document.activeElement?.closest(".ashos-menu"))
-                      barRef.current?.querySelectorAll<HTMLButtonElement>(".ashos-menubar__item")[n]?.focus();
+                    if (!document.activeElement?.closest(".ashos-menu")) titles()[n]?.focus();
                   });
                 }}
               />
             )}
           </div>
         ))}
-      </nav>
+      </div>
 
       <div className="ashos-menubar__right">
         {os.prefs.doNotDisturb && !os.mobile && (

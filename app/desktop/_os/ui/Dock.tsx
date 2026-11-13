@@ -3,13 +3,23 @@
 import { useEffect, useRef, useState, type MouseEvent as RMouseEvent } from "react";
 import { APPS, DOCK_APPS, type AppId } from "../data/apps";
 import { TRASH } from "../data/fs";
-import { useOS, type MenuItem } from "../state/os";
+import { MENUBAR_H, useOS, type MenuItem } from "../state/os";
 import { AppIcon, TrashIcon } from "./icons";
+import { useLongPress } from "./longPress";
+
+// The Dock's box model (os.css .ashos-dock): 6px padding each end, 4px gaps,
+// and the separator (1px + 8px margin). Kept in step with the stylesheet.
+const DOCK_PAD = 12;
+const DOCK_GAP = 4;
+const DOCK_SEP = 9;
+const DOCK_EDGE = 6;
+const DOCK_MIN = 16;
 
 export function Dock() {
   const os = useOS();
   const ref = useRef<HTMLDivElement>(null);
-  const centers = useRef<number[] | null>(null);
+  // Where the pointer is along the Dock while it hovers there (null: elsewhere).
+  const pointerAt = useRef<number | null>(null);
   const [revealed, setRevealed] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hovered = useRef(false);
@@ -24,35 +34,59 @@ export function Dock() {
   const forcedHide = os.focused?.mode === "fullscreen";
   const autohide = !os.mobile && (os.prefs.dockAutohide || forcedHide);
   const magnify = os.prefs.dockMagnification && !os.mobile && !os.reduced;
-  const base = os.mobile ? 46 : os.prefs.dockSize;
 
   const extra = os.runningApps.filter((a) => !DOCK_APPS.includes(a));
   const minimized = os.wins.filter((w) => w.minimized && w.phase !== "closing");
   const trashFull = (os.fs[TRASH]?.children?.length ?? 0) > 0;
 
+  // Like macOS, tiles shrink when the Dock would run past the screen edge
+  // (every minimised window adds one). Phones scroll the Dock instead. On a
+  // side, it also stays clear of the menu bar.
+  const count = DOCK_APPS.length + extra.length + minimized.length + 1;
+  const fixed = DOCK_PAD + DOCK_SEP + DOCK_GAP * count;
+  const room = vertical ? os.viewport.h - 2 * (MENUBAR_H + DOCK_EDGE) : os.viewport.w - 2 * DOCK_EDGE;
+  const base = os.mobile ? 46 : Math.min(os.prefs.dockSize, Math.max(DOCK_MIN, Math.floor((room - fixed) / count)));
+  // What magnification may add before the Dock would leave the screen.
+  const spare = Math.max(0, room - fixed - base * count);
+
   useEffect(() => () => void (hideTimer.current && clearTimeout(hideTimer.current)), []);
 
   const items = () => Array.from(ref.current?.querySelectorAll<HTMLElement>("[data-dock-item]") ?? []);
 
-  const onMove = (e: React.PointerEvent) => {
-    if (!magnify || e.pointerType !== "mouse") return;
+  // Each tile's centre at rest (no magnification), from the box model rather
+  // than measured, so scaling can't feed back and tiles added mid-hover count.
+  const apps = DOCK_APPS.length + extra.length;
+  const restCenter = (i: number) =>
+    (vertical ? os.viewport.h : os.viewport.w) / 2 -
+    (fixed + base * count) / 2 +
+    DOCK_PAD / 2 +
+    i * (base + DOCK_GAP) +
+    (i >= apps ? DOCK_SEP + DOCK_GAP : 0) +
+    base / 2;
+
+  const magnifyAt = (p: number) => {
     const els = items();
-    if (!centers.current) {
-      // Rest positions, measured once per hover so scaling can't feed back.
-      centers.current = els.map((el) => {
-        const r = el.getBoundingClientRect();
-        return vertical ? r.top + r.height / 2 : r.left + r.width / 2;
-      });
-    }
-    const p = vertical ? e.clientY : e.clientX;
     const range = base * 3.2;
     const max = os.prefs.dockMagnify;
-    els.forEach((el, i) => {
-      const d = Math.abs(p - (centers.current![i] ?? 0));
-      const k = d < range ? (Math.cos((Math.PI * d) / range) + 1) / 2 : 0;
-      el.style.setProperty("--s", String(1 + (max - 1) * k));
+    const ks = els.map((_, i) => {
+      const d = Math.abs(p - restCenter(i));
+      return d < range ? (Math.cos((Math.PI * d) / range) + 1) / 2 : 0;
     });
+    // Scale the bulge down where the grown Dock wouldn't fit on screen.
+    const grow = base * (max - 1) * ks.reduce((a, k) => a + k, 0);
+    const fit = grow > spare ? spare / grow : 1;
+    els.forEach((el, i) => el.style.setProperty("--s", String(1 + (max - 1) * ks[i] * fit)));
   };
+  const onMove = (e: React.PointerEvent) => {
+    if (!magnify || e.pointerType !== "mouse") return;
+    pointerAt.current = vertical ? e.clientY : e.clientX;
+    magnifyAt(pointerAt.current);
+  };
+  // A tile added or removed under the pointer (a window minimised, an app
+  // quit) or a new tile size: magnify again from the new layout.
+  useEffect(() => {
+    if (magnify && hovered.current && pointerAt.current !== null) magnifyAt(pointerAt.current);
+  });
   const hideSoon = () => {
     if (!autohide) return;
     hideTimer.current && clearTimeout(hideTimer.current);
@@ -64,14 +98,13 @@ export function Dock() {
   };
   const onLeave = () => {
     hovered.current = false;
-    centers.current = null;
+    pointerAt.current = null;
     items().forEach((el) => el.style.setProperty("--s", "1"));
     hideSoon();
   };
   const onEnter = () => {
     hovered.current = true;
     hideTimer.current && clearTimeout(hideTimer.current);
-    centers.current = null;
   };
 
   const appMenu = (app: AppId): MenuItem[] => {
@@ -92,11 +125,34 @@ export function Dock() {
     ];
   };
 
+  const minMenu = (id: string): MenuItem[] => [
+    { label: "Restore", run: () => os.restore(id) },
+    { label: "Close", run: () => os.close(id) },
+  ];
+  const trashMenu = (): MenuItem[] => [
+    { label: "Open", run: () => os.openPath(TRASH) },
+    { sep: true },
+    { label: "Empty Trash", disabled: !trashFull, run: os.emptyTrash },
+  ];
+
+  const openMenu = (x: number, y: number, menu: MenuItem[]) => {
+    setOwnMenu(menu);
+    os.openContextMenu(x, y, menu);
+  };
   const ctx = (e: RMouseEvent, menu: MenuItem[]) => {
     e.preventDefault();
-    setOwnMenu(menu);
-    os.openContextMenu(e.clientX, e.clientY, menu);
+    openMenu(e.clientX, e.clientY, menu);
   };
+
+  // Touch: long-press stands in for right-click (iOS never sends contextmenu).
+  const longPress = useLongPress((x, y, t) => {
+    const item = t.closest<HTMLElement>("[data-dock-item]");
+    if (!item || !ref.current?.contains(item)) return;
+    const { dockApp, dockMin } = item.dataset;
+    if (dockApp && dockApp in APPS) openMenu(x, y, appMenu(dockApp as AppId));
+    else if (dockMin && os.wins.some((w) => w.id === dockMin)) openMenu(x, y, minMenu(dockMin));
+    else if (item.hasAttribute("data-dock-trash")) openMenu(x, y, trashMenu());
+  });
 
   // Its menu closed: hide again unless the pointer is back on the Dock.
   const hadMenu = useRef(false);
@@ -143,6 +199,7 @@ export function Dock() {
         role="toolbar"
         aria-label="Dock"
         aria-orientation={vertical ? "vertical" : "horizontal"}
+        onPointerDown={longPress}
         onPointerMove={onMove}
         onPointerLeave={onLeave}
         onPointerEnter={onEnter}
@@ -161,7 +218,7 @@ export function Dock() {
             className="ashos-dock__item ashos-dock__item--min"
             aria-label={`Restore ${w.title}`}
             onClick={() => os.restore(w.id)}
-            onContextMenu={(e) => ctx(e, [{ label: "Restore", run: () => os.restore(w.id) }, { label: "Close", run: () => os.close(w.id) }])}
+            onContextMenu={(e) => ctx(e, minMenu(w.id))}
           >
             <span className="ashos-dock__tip">{w.title}</span>
             <span className="ashos-dock__mini">
@@ -176,13 +233,7 @@ export function Dock() {
           className="ashos-dock__item"
           aria-label={trashFull ? "Trash (has items)" : "Trash (empty)"}
           onClick={() => os.openPath(TRASH)}
-          onContextMenu={(e) =>
-            ctx(e, [
-              { label: "Open", run: () => os.openPath(TRASH) },
-              { sep: true },
-              { label: "Empty Trash", disabled: !trashFull, run: os.emptyTrash },
-            ])
-          }
+          onContextMenu={(e) => ctx(e, trashMenu())}
         >
           <span className="ashos-dock__tip">Trash</span>
           <span className="ashos-appicon ashos-dock__icon">

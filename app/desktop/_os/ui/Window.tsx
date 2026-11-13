@@ -104,6 +104,8 @@ function TrafficLights({ win, active }: { win: Win; active: boolean }) {
         className="ashos-light ashos-light--zoom"
         aria-label={full ? `Exit full screen` : `Enter full screen (Option-click to zoom)`}
         title={full ? "Exit Full Screen" : "Full Screen (⌥-click to Zoom)"}
+        // Phone windows already fill the screen: no full screen there, as in View.
+        disabled={os.mobile && !full}
         onClick={(e) => (e.altKey ? os.toggleZoom(win.id) : os.toggleFullscreen(win.id))}
       >
         <svg viewBox="0 0 12 12" aria-hidden="true">
