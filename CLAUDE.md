@@ -478,6 +478,18 @@ request, tested before/after and against the live site; suites in
   the user declined college/alumniOf and the photo as `image`, and declined
   a visible "based in Mumbai". Placeholders stay as they are (user's call).
   Axiomic is the missing "[Project one]": add nothing until the user says.
+- M (ashOS state + Terminal, review round 3, 2026-11-13): ashOS no longer
+  crashes when the browser blocks site data or a saved value is damaged.
+  `sessionGet`/`sessionSet` in `state/prefs.ts` wrap sessionStorage, and a
+  blocked read counts as a first visit. `load()` cleans every known
+  `ashos:*` key. Prefs fall back per key unless the value is one the UI can
+  set, and the ranges match the Settings sliders: keep them in step if a
+  slider changes. Saved fs changes go through `cleanChanges` in `data/fs.ts`.
+  Terminal: only a plain Tab with text typed completes; Shift+Tab, and Tab
+  on an empty line, leave (`help` says so, via `leaveHint` in `shell.ts`).
+  Output sits in a `role="log"` region. Suite `batch-m.mjs`. batch-a's
+  boot-splash timing check is load-sensitive and flakes on any build when
+  the machine is busy.
 
 ### Open
 
@@ -486,20 +498,15 @@ against a `main` build on :3100; every item reproduced, repro scripts are the
 `review3-*.mjs` files in `portfolio-qa`, run as `node --no-warnings <script>
 http://localhost:3100`; FAIL = bug present). Severity: H/M/L.
 
-Progress (paused 2026-11-13 at the user's request): K, L, M, N are fixed but
-not committed. The work sits in the worktrees `C:/Users/admin/portfolio-wt/<k|l|m|n>`
-and is snapshotted on GitHub as `wip/k` … `wip/n`. Suites:
-`portfolio-qa/batch-k.mjs`, `batch-l.mjs`, `batch-m.mjs`, `batch-n.mjs` (+
-`batch-n-route.mjs <repo dir>`); each fails on main and passes on its branch,
-per the agents. Still to do before merging:
-- L and K: an independent visual review (it was stopped midway; rerun it).
-- M: my rerun of all suites. 11 of 14 suites had passed when it stopped.
-- N: verified on a local worker preview (31/31, smoke OK). The new worker
-  entry point (`worker/index.ts`, wrangler `main`) needs a Cloudflare preview
-  build checked with curl before merging. After the deploy, check `/` shows
-  `x-nextjs-cache: HIT`.
-- Baseline main build for fail-before proofs: the `portfolio-wt/baseline`
-  worktree (`npx next start -p 3100`).
+Progress: M is merged and live (see history). K, L and N are fixed and
+reviewed (independent reviews of K and L: ship), but not merged yet. Their
+work sits in the worktrees `C:/Users/admin/portfolio-wt/<k|l|n>`, and in
+GitHub snapshots `wip/k`, `wip/l` and `wip/n`. Suites: `portfolio-qa/batch-k.mjs`,
+`batch-l.mjs`, `batch-n.mjs` (+ `batch-n-route.mjs <repo dir>`). Order: L,
+then K, then N, each rebased on `main` and retested first. N: check after
+its deploy that `/` shows `x-nextjs-cache: HIT` and the mp4 Range request
+gives 206. Baseline (old-code) build for fail-before proofs: the
+`portfolio-wt/baseline` worktree (`npx next start -p 3100`).
 
 K — site (`components/site/*`, `site.css`, `app/layout.tsx`), branch `fix/site-batch-k`:
 - K1 M. The ashOS takeover doesn't make the page behind it inert: Shift+Tab
@@ -545,21 +552,6 @@ L — ashOS UI (`_os/ui/*`, `os.css`), branch `fix/ashos-batch-l`:
   `MenuBar.tsx:222-223, 249`. Repro `review3-a11y-ashos.mjs`.
 - L6 M. Focus ring 2.1–2.2:1 on window surfaces (accent at 55%).
   `os.css:152-154`. Fix: opaque accent. Repro `review3-a11y-ashos.mjs`.
-
-M — ashOS state + Terminal (`Desktop.tsx`, `Root.tsx`, `state/*`, `data/fs.ts`,
-`apps/Terminal.tsx`), branch `fix/ashos-batch-m`:
-- M1 H. ashOS crashes ("This page couldn't load") when site data is blocked:
-  `sessionStorage` read without try/catch (`Desktop.tsx:216-217`,
-  `Root.tsx:17`); also a wrong-shaped `ashos:fs` / `ashos:recents` crashes it
-  for good (`prefs.ts:76` `load()` doesn't check shape; `fs.ts:511`,
-  `os.tsx:199`). Prefs aren't validated either. Repro
-  `review3-ashos-blocked.mjs`, `review3-ashos-storage.mjs`,
-  `review3-code-sessionstorage.mjs`.
-- M2 M. Terminal swallows Tab and Shift+Tab (keyboard trap, worst inside the
-  site takeover); ⌥Tab also runs completion. `Terminal.tsx:225`. Repro
-  `review3-a11y-ashos.mjs`, `review3-ashos-term.mjs`.
-- M3 M. Terminal output isn't announced (no live region). `Terminal.tsx:178-205`.
-  Fix: `role="log"` on the output lines. Repro `review3-a11y-ashos.mjs`.
 
 N — server, caching, SEO (`app/api/*`, `open-next.config.ts`, `wrangler.jsonc`,
 `content.ts`), branch `fix/server-batch-n`:
