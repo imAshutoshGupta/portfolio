@@ -23,7 +23,7 @@ export const meta = {
   home: { locality: "Mumbai", country: "India", countryCode: "IN" },
   // Sitemap <lastmod> for every page (app/sitemap.ts). Bump it by hand when
   // the content changes (YYYY-MM-DD).
-  updated: "2026-11-12",
+  updated: "2026-11-13",
 };
 
 export const links = {
