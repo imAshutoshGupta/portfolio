@@ -502,6 +502,19 @@ request, tested before/after and against the live site; suites in
   (roving tabindex, Left/Right/Home/End). The focus ring is the opaque
   accent; orange, yellow, green and graphite still fall short in light
   mode (part of the accent-colour decision). Suite `batch-l.mjs`.
+- K (site, review round 3, 2026-11-13): while the ashOS takeover is open,
+  every sibling on the path from the dialog up to <body> is `inert`; focus
+  goes back to the opener, or to #main if it's gone. The landscape-phone
+  mobile menu is capped at 100dvh minus the nav and scrolls inside itself
+  (`.mobile-menu` in site.css, `data-lenis-prevent`). Esc in the menu
+  focuses the menu button. theme-color follows the bulb: the site has one
+  meta, which isn't rendered by Next. The inline theme script and the bulb
+  set it (`components/site/themeColor.ts`). /desktop keeps its own media
+  pair (`app/desktop/layout.tsx`), and with JS off the site sends none. A
+  deep link at phone width keeps the nav shown until the first
+  wheel/touch/key/pointer input. Semi and the logo mark use
+  CanvasText/Canvas in forced colours (`.semi`, `.logo-mark`). The footer
+  pill announces its count only after a footer poke. Suite `batch-k.mjs`.
 ### Open
 
 **Review round 3 backlog** (found 2026-11-13 by five read-only Opus reviewers
@@ -509,41 +522,14 @@ against a `main` build on :3100; every item reproduced, repro scripts are the
 `review3-*.mjs` files in `portfolio-qa`, run as `node --no-warnings <script>
 http://localhost:3100`; FAIL = bug present). Severity: H/M/L.
 
-Progress: M and L are merged and live (see history). K and N are fixed and
-reviewed (independent review of K: ship), but not merged yet. Their work
-sits in the worktrees `C:/Users/admin/portfolio-wt/<k|n>`, and in GitHub
-snapshots `wip/k` and `wip/n`. Suites: `portfolio-qa/batch-k.mjs`,
-`batch-n.mjs` (+ `batch-n-route.mjs <repo dir>`). Order: K, then N, each
-rebased on `main` and retested first. (A separate session works on a
-batch P in `portfolio-wt/p-*`, ports 3110 and up: leave those alone.) N: check after
-its deploy that `/` shows `x-nextjs-cache: HIT` and the mp4 Range request
-gives 206. Baseline (old-code) build for fail-before proofs: the
+Progress: M, L and K are merged and live (see history). N is fixed, not
+merged yet: worktree `C:/Users/admin/portfolio-wt/n`, GitHub snapshot `wip/n`,
+suites `portfolio-qa/batch-n.mjs` (+ `batch-n-route.mjs <repo dir>`). Rebase it
+on `main` and retest before merging. After its deploy, check that `/` shows
+`x-nextjs-cache: HIT` and that an mp4 Range request gets 206. (A separate
+session works on a batch P in `portfolio-wt/p-*`, ports 3110 and up: leave
+those alone.) Baseline (old-code) build for fail-before proofs: the
 `portfolio-wt/baseline` worktree (`npx next start -p 3100`).
-
-K — site (`components/site/*`, `site.css`, `app/layout.tsx`), branch `fix/site-batch-k`:
-- K1 M. The ashOS takeover doesn't make the page behind it inert: Shift+Tab
-  from "Exit to site" lands on footer links under the dialog and scrolls the
-  hidden page to the footer; screen readers can browse it. `AshOS.tsx:57-77`
-  (only `aria-modal`). Fix: `inert` on the page container (and the thread)
-  while open. Repro `review3-site-takeover.mjs`, `review3-a11y-takeover.mjs`.
-- K2 M. Mobile menu can't be scrolled on landscape phones: nav + menu is
-  472–488px in a 320–342px viewport, sticky at top 0, so Contact / ashOS /
-  Résumé are unreachable. `Nav.tsx` `#mobile-menu`. Fix: max-height
-  `calc(100dvh - nav)`, `overflow-y: auto`, `overscroll-behavior: contain`,
-  `data-lenis-prevent`. Repro `review3-site-menu.mjs`.
-- K3 L. Esc in the mobile menu with focus on a link drops focus to `<body>`.
-  `Nav.tsx:97`. Fix: focus the menu button. Repro `review3-site-menu.mjs`.
-- K4 L. `theme-color` follows the OS, not the bulb (white browser bar over the
-  dark page). `app/layout.tsx` `viewport.themeColor`. Fix: one meta updated by
-  `THEME_SCRIPT` and `Bulb.tsx` `apply()`. Repro `review3-site-bulb.mjs`.
-- K5 L. Deep links at phone width (`/#experience` etc.) hide the nav on the
-  browser's hash scroll but keep the 81px scroll-margin, so a slice of the
-  previous section shows. `Nav.tsx` `useAutoHide`. Repro `review3-site-deeplink.mjs`.
-- K6 L. Semi vanishes in forced-colours mode (spans drawn with background).
-  `Hero.tsx:51-73`. Fix: `@media (forced-colors: active)` → `CanvasText`.
-  Repro `review3-a11y-site.mjs`.
-- K7 L. One hero poke is announced twice (Semi's line + the off-screen
-  footer pill's "N pokes"). `FooterStats.tsx:106`. Repro `review3-a11y-site.mjs`.
 
 N — server, caching, SEO (`app/api/*`, `open-next.config.ts`, `wrangler.jsonc`,
 `content.ts`), branch `fix/server-batch-n`:
