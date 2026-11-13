@@ -62,18 +62,22 @@ export default function FooterStats() {
   const views = useViews();
   const { total: pokes, tired } = usePokes();
   const [hops, setHops] = useState(0);
+  // what the live region says: only after a poke from this button (a hero
+  // poke is announced by Semi's own line), keyed so a repeat counts as new
+  const [said, setSaid] = useState<{ k: number; text: string } | null>(null);
   if (views === null && pokes === null) return null;
 
   const v = footer.views;
   const t = footer.pokes;
-  const pokesText = pokes === null ? "" : `${fmt.format(pokes)} ${pokes === 1 ? t.one : t.many}`;
+  const countText = (n: number) => `${fmt.format(n)} ${n === 1 ? t.one : t.many}`;
+  const pokesText = pokes === null ? "" : countText(pokes);
   const eye = { height: tired ? "1.5px" : "4px", top: tired ? "5px" : "4px" };
 
   return (
     <div className="inline-flex items-center overflow-hidden rounded-[999px] border border-line font-mono text-[12px] text-muted tabular-nums">
       {views !== null && (
         <p className={"m-0 " + CHIP}>
-          <span aria-hidden="true" className="inline-flex gap-[3px]">
+          <span aria-hidden="true" className="semi inline-flex gap-[3px]">
             <span className="eye block h-[8px] w-[3px] rounded-[99px] bg-accent" />
             <span className="eye block h-[8px] w-[3px] rounded-[99px] bg-accent" />
           </span>
@@ -85,7 +89,9 @@ export default function FooterStats() {
         <button
           type="button"
           onClick={() => {
-            if (poke()) setHops((h) => h + 1);
+            if (!poke()) return;
+            setHops((h) => h + 1);
+            if (pokes !== null) setSaid((s) => ({ k: (s?.k ?? 0) + 1, text: countText(pokes + 1) }));
           }}
           aria-label={`${t.poke}. ${pokesText}${tired ? `. ${t.tired}` : ""}`}
           aria-disabled={tired || undefined}
@@ -97,14 +103,19 @@ export default function FooterStats() {
           }
         >
           {/* Semi's head; hops on each poke */}
-          <span aria-hidden="true" key={hops} className={"block " + (hops ? "hop-sm" : "")}>
+          <span aria-hidden="true" key={hops} className={"semi block " + (hops ? "hop-sm" : "")}>
             <span className="relative block h-[12px] w-[12px] rounded-[99px] bg-accent">
               <span className="eye absolute left-[3px] w-[2px] rounded-[99px] bg-bg" style={eye} />
               <span className="eye absolute right-[3px] w-[2px] rounded-[99px] bg-bg" style={eye} />
             </span>
           </span>
-          <span aria-live="polite">{pokesText}</span>
+          <span>{pokesText}</span>
         </button>
+      )}
+      {pokes !== null && (
+        <span role="status" aria-live="polite" className="sr-only">
+          {said && <span key={said.k}>{said.text}</span>}
+        </span>
       )}
     </div>
   );

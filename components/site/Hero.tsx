@@ -57,7 +57,7 @@ function Name() {
           <span className="absolute bottom-0 left-0 block h-[112px] w-[48px] origin-bottom-left [scale:var(--k)]">
             <span className="drop absolute bottom-[10px] left-[6px] block h-[86px] w-[34px]">
               <span key={"h" + pokes} className={"block " + (pokes ? "hop" : "")}>
-                <span className="sway block">
+                <span className="semi sway block">
                   <span aria-hidden="true" className="relative block h-[34px] w-[34px] rounded-[99px] bg-accent">
                     <span className="eye absolute top-[11px] left-[8px] w-[6px] rounded-[99px] bg-bg" style={{ height: done ? "3px" : "9px" }} />
                     <span className="eye absolute top-[11px] right-[8px] w-[6px] rounded-[99px] bg-bg" style={{ height: done ? "3px" : "9px" }} />

@@ -31,6 +31,7 @@ export function AshOSTakeover() {
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("light");
   const exitRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const close = useCallback(() => setOpen(false), []);
 
   useEffect(() => {
@@ -60,17 +61,36 @@ export function AshOSTakeover() {
     const prev = document.activeElement as HTMLElement | null;
     document.documentElement.style.overflow = "hidden";
     document.documentElement.dataset.ashos = "open";
+    // Everything but the dialog goes inert while it's open (the skip link,
+    // nav, page, thread and whatever else sits in <body>), so Tab, Shift+Tab
+    // and screen readers can't wander onto the page it covers. The dialog
+    // lives inside #page, so that's every sibling on the way up to <body>,
+    // not #page itself. Only what this sets is unset, before focus goes back.
+    const inerted: HTMLElement[] = [];
+    for (let el: HTMLElement | null = dialogRef.current; el && el !== document.body; el = el.parentElement) {
+      for (const sib of el.parentElement?.children ?? []) {
+        if (sib === el || !(sib instanceof HTMLElement) || sib.inert) continue;
+        if (sib instanceof HTMLScriptElement || sib instanceof HTMLStyleElement || sib instanceof HTMLLinkElement) continue;
+        sib.inert = true;
+        inerted.push(sib);
+      }
+    }
     exitRef.current?.focus();
     return () => {
+      inerted.forEach((el) => (el.inert = false));
       document.documentElement.style.overflow = "";
       delete document.documentElement.dataset.ashos;
-      prev?.focus?.();
+      // The opener may be gone (e.g. a mobile-menu link, if the window grew
+      // past the menu's breakpoint meanwhile): then the page's main landmark.
+      if (prev?.isConnected) prev.focus?.();
+      else document.getElementById("main")?.focus({ preventScroll: true });
     };
   }, [open]);
 
   if (!open) return null;
   return (
     <div
+      ref={dialogRef}
       className="os-in fixed inset-0 z-[300] flex flex-col bg-bg"
       role="dialog"
       aria-modal="true"
