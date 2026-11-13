@@ -58,6 +58,27 @@ file:line, CLAUDE.md rules, how to test, "don't commit"). Merge batches one at
 a time; rebase/retest a later batch on the new `main` before merging it.
 Agents' claims get checked: rerun their tests yourself before committing.
 
+What worked in the 2026-11-13 run (F–I, four agents at once):
+- Worktrees in `C:/Users/admin/portfolio-wt/<batch>` (`git worktree add -b
+  fix/<area>-batch-<x> …`), each agent runs `npm ci` and its own port
+  (3101, 3102, …). One baseline build of `main` on :3100 serves as the "old
+  code" for every agent's fail-before/pass-after proof.
+- Split a big batch across agents by file ownership (e.g. ashOS UI vs ashOS
+  apps), name each agent's files in its brief, then commit both parts and
+  merge them into one batch branch before review.
+- Start a dependent batch early from the branch it builds on, and rebase it
+  onto `main` once that branch is merged.
+- Before risky or visible changes, add an independent Opus reviewer that
+  gets only the code and the goal, not your conclusions. It caught a
+  VoiceOver issue that every test missed.
+- The user may hit usage limits. Push `wip/<batch>` snapshot branches of
+  uncommitted agent work (`commit-tree` from a temp index, which doesn't touch
+  the agent's branch or index) and keep CLAUDE.md's Open section current on
+  GitHub, so a new session can resume. Delete the wip branches after merging.
+  A rate-limited agent resumes with SendMessage once the limit resets.
+- Wait for a deploy by polling with curl for something the batch changes
+  (a header, a string in the HTML), not with a browser.
+
 ## Codebase
 
 **Stack:** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript ·
@@ -225,7 +246,7 @@ full-screen iframe. It is fully separate from the site:
 - The Résumé app checks for the résumé PDF (`links.resume`) at build time
   (`page.tsx`), so no 404 probe runs in the browser.
 
-## Status (as of 2026-11-12)
+## Status (as of 2026-11-13)
 
 ### Done
 
@@ -554,8 +575,13 @@ When real projects land, add them to the README's "Selected work" table too.
   Playwright in its own node_modules; browsers in the user's ms-playwright
   cache). Each takes the base URL as its first argument and prints one
   PASS/FAIL line per check: `smoke.mjs`, `ashos-test.mjs` (batch 1),
-  `batch-a.mjs` … `batch-e.mjs` (`node --no-warnings` for c, d, e), plus
-  `review2-*.mjs` repro scripts for the open backlog. `site-counters.mjs` is
+  `batch-a.mjs` … `batch-e.mjs`, `batch-f.mjs`, `batch-g-ui.mjs`,
+  `batch-g-apps.mjs`, `batch-h.mjs`, `batch-i.mjs` (always run with
+  `node --no-warnings`). Extras: `batch-i-visual.mjs <before> <after>`
+  (hero pixel diff, Chromium + WebKit; its "LCP element" line is info only and
+  flaky), `heading-check.mjs` (the h1 by role at five widths), `og-shot-i.mjs`
+  (renders the share image). `review2-*.mjs` are old repro scripts (some still
+  use the pre-I `h1 button` selector). `site-counters.mjs` is
   hardcoded to `wrangler dev` on :8787. Run them all after every batch.
 - Playwright's bundled Chromium can't play the H.264 demos: tests that need
   video launch installed Chrome (`channel: "chrome"`).
